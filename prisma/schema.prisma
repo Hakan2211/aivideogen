@@ -36,6 +36,20 @@ model User {
   // Onboarding (optional - for multi-step onboarding flows)
   onboardingComplete Boolean @default(false)
 
+  // DirectorAI: Credits system (1 credit = $0.01)
+  credits Int @default(50) // New users get 50 credits ($0.50)
+
+  // DirectorAI: User preferences
+  preferredLlmModel   String? // e.g., "anthropic/claude-3.5-sonnet"
+  preferredImageModel String? // e.g., "flux-pro"
+  preferredVideoModel String? // e.g., "kling-1.5"
+  preferredVoiceId    String? // ElevenLabs voice ID
+
+  // DirectorAI: Relations
+  projects       Project[]
+  assets         Asset[]
+  generationJobs GenerationJob[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -91,6 +105,135 @@ model Verification {
 }
 
 // ====================================================================================
+// DirectorAI: Video Projects
+// ====================================================================================
+
+model Project {
+  id     String @id @default(cuid())
+  name   String
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // The DNA of the video - stores the JSON timeline (ProjectManifest)
+  manifest String @default("{}")
+
+  // Video dimensions and settings
+  width    Int @default(1080)
+  height   Int @default(1920)
+  fps      Int @default(30)
+  duration Int @default(0) // Total duration in frames
+
+  // Project status
+  status    String  @default("draft") // "draft", "rendering", "completed", "failed"
+  outputUrl String? // Final rendered video URL (Bunny.net)
+
+  // Thumbnail for project list
+  thumbnailUrl String?
+
+  // Related assets and jobs
+  assets         Asset[]
+  generationJobs GenerationJob[]
+  chatMessages   ChatMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("project")
+}
+
+// ====================================================================================
+// DirectorAI: Generated Assets (Images, Videos, Audio)
+// ====================================================================================
+
+model Asset {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Optional project association (assets can be standalone or project-specific)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  // Asset type and storage
+  type       String // "image", "video", "audio"
+  storageUrl String // Bunny.net CDN URL
+  filename   String // Original or generated filename
+
+  // Generation info
+  prompt   String? // The prompt used to generate this asset
+  provider String? // "fal", "elevenlabs", "upload"
+  model    String? // "flux-pro", "kling-1.5", "eleven_multilingual_v2"
+
+  // Metadata (JSON string for flexibility)
+  // For images: { width, height }
+  // For videos: { width, height, duration, fps }
+  // For audio: { duration, wordTimestamps: [{word, start, end}] }
+  metadata String?
+
+  // Duration in seconds (for video/audio)
+  durationSeconds Float?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([type])
+  @@map("asset")
+}
+
+// ====================================================================================
+// DirectorAI: Generation Job Queue (for async processing)
+// ====================================================================================
+
+model GenerationJob {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Optional project association
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  // Job type and status
+  type   String // "image", "video", "audio", "render"
+  status String @default("pending") // "pending", "processing", "completed", "failed"
+
+  // Provider info
+  provider String // "fal", "elevenlabs", "remotion"
+  model    String // "flux-pro", "kling-1.5", etc.
+
+  // Input parameters (JSON)
+  input String // { prompt, imageUrl, voiceId, etc. }
+
+  // Output data (JSON) - populated on completion
+  // { url, assetId, metadata, etc. }
+  output String?
+
+  // Error message if failed
+  error String?
+
+  // Credits charged for this job
+  creditsUsed Int @default(0)
+
+  // External provider job ID (for polling status)
+  externalId String?
+
+  // Progress percentage (0-100)
+  progress Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+  @@index([externalId])
+  @@map("generation_job")
+}
+
+// ====================================================================================
 // Subscription Event Audit Log
 // ====================================================================================
 
@@ -119,4 +262,31 @@ model SubscriptionEvent {
   @@index([event])
   @@index([createdAt])
   @@map("subscription_event")
+}
+
+// ====================================================================================
+// DirectorAI: Chat History (for AI Director conversations)
+// ====================================================================================
+
+model ChatMessage {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Message role: "user", "assistant", "system", "tool"
+  role    String
+  content String // Message text or tool result JSON
+
+  // For tool calls (when role is "assistant" with tool_calls)
+  toolCalls String? // JSON array of tool calls [{id, name, arguments}]
+
+  // For tool results (when role is "tool")
+  toolCallId String? // The ID of the tool call this result is for
+  toolName   String? // Name of the tool that was called
+
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([createdAt])
+  @@map("chat_message")
 }

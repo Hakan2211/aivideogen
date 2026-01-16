@@ -61,7 +61,7 @@ function AppLayout() {
           <div className="flex h-16 items-center border-b px-6">
             <Link to="/" className="flex items-center space-x-2">
               <div className="h-8 w-8 rounded-lg bg-primary" />
-              <span className="text-xl font-bold">AppStarter</span>
+              <span className="text-xl font-bold">DirectorAI</span>
             </Link>
           </div>
 
@@ -69,6 +69,9 @@ function AppLayout() {
           <nav className="flex-1 space-y-1 p-4">
             <NavLink to="/dashboard" icon="📊">
               Dashboard
+            </NavLink>
+            <NavLink to="/projects" icon="🎬">
+              Projects
             </NavLink>
             <NavLink to="/profile" icon="👤">
               Profile
@@ -111,7 +114,7 @@ function AppLayout() {
         <header className="flex h-16 items-center justify-between border-b px-4 md:hidden">
           <Link to="/" className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-lg bg-primary" />
-            <span className="text-xl font-bold">AppStarter</span>
+            <span className="text-xl font-bold">DirectorAI</span>
           </Link>
           <Button variant="ghost" size="sm" onClick={handleSignOut}>
             Sign out
