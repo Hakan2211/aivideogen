@@ -10,16 +10,16 @@ import {
   ChevronLeft,
   ChevronRight,
   Image,
-  Video,
+  Loader2,
   Music,
   Plus,
-  Loader2,
   Upload,
+  Video,
 } from 'lucide-react'
 import {
+  createAudioJobFn,
   createImageJobFn,
   createVideoJobFn,
-  createAudioJobFn,
   getAvailableModelsFn,
 } from '../../server/generation.fn'
 import { Button } from '../ui/button'
@@ -39,7 +39,7 @@ interface Asset {
 
 interface AssetPanelProps {
   projectId: string
-  assets: Asset[]
+  assets: Array<Asset>
   manifest: ProjectManifest
   onManifestChange: (manifest: ProjectManifest) => void
   collapsed: boolean

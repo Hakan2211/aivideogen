@@ -95,7 +95,7 @@ export function getSystemPrompt(context?: {
   let prompt = DIRECTOR_SYSTEM_PROMPT
 
   if (context) {
-    const contextInfo: string[] = []
+    const contextInfo: Array<string> = []
 
     if (context.projectName) {
       contextInfo.push(`Current project: "${context.projectName}"`)

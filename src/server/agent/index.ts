@@ -7,14 +7,16 @@
 
 import { prisma } from '../../db'
 import {
+  
+  
   chatCompletion,
-  chatCompletionStream,
-  type ChatMessage,
-  type ToolCall,
+  chatCompletionStream
 } from '../services'
 import { AGENT_TOOLS } from './tools'
 import { getSystemPrompt } from './system-prompt'
-import { executeTool, type ToolContext, type ToolResult } from './executor'
+import {   executeTool } from './executor'
+import type {ChatMessage, ToolCall} from '../services';
+import type {ToolContext, ToolResult} from './executor';
 
 // =============================================================================
 // Types
@@ -75,7 +77,7 @@ const MAX_ITERATIONS = 5
 /**
  * Load chat history from database
  */
-async function loadChatHistory(projectId: string): Promise<ChatMessage[]> {
+async function loadChatHistory(projectId: string): Promise<Array<ChatMessage>> {
   const messages = await prisma.chatMessage.findMany({
     where: { projectId },
     orderBy: { createdAt: 'asc' },
@@ -109,7 +111,7 @@ async function loadChatHistory(projectId: string): Promise<ChatMessage[]> {
 async function saveMessage(
   projectId: string,
   message: ChatMessage,
-  toolCalls?: ToolCall[],
+  toolCalls?: Array<ToolCall>,
 ): Promise<string> {
   const saved = await prisma.chatMessage.create({
     data: {
@@ -173,7 +175,7 @@ export async function* runAgent(input: AgentInput): AsyncGenerator<AgentEvent> {
     await saveMessage(projectId, userMsg)
 
     // Build messages array
-    const messages: ChatMessage[] = [
+    const messages: Array<ChatMessage> = [
       { role: 'system', content: systemPrompt },
       ...history,
       userMsg,
@@ -354,7 +356,7 @@ export async function getChatHistory(projectId: string): Promise<
     id: string
     role: string
     content: string
-    toolCalls?: ToolCall[]
+    toolCalls?: Array<ToolCall>
     createdAt: Date
   }>
 > {

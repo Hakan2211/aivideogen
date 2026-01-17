@@ -6,9 +6,9 @@
 
 import {
   AbsoluteFill,
-  useCurrentFrame,
   interpolate,
   spring,
+  useCurrentFrame,
   useVideoConfig,
 } from 'remotion'
 import type { LowerThirdProps } from '../../types'

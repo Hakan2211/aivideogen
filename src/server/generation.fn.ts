@@ -10,15 +10,15 @@ import { z } from 'zod'
 import { prisma } from '../db'
 import { authMiddleware } from './middleware'
 import {
-  generateImage,
-  generateVideo,
-  getFalJobStatus,
-  generateSpeech,
-  uploadFromUrl,
+  AUDIO_MODELS,
   IMAGE_MODELS,
   VIDEO_MODELS,
-  AUDIO_MODELS,
+  generateImage,
+  generateSpeech,
+  generateVideo,
+  getFalJobStatus,
   getModelById,
+  uploadFromUrl,
 } from './services'
 
 // =============================================================================

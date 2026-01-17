@@ -15,9 +15,9 @@ export interface CompositionProps {
 export interface ProjectManifest {
   version: number
   tracks: {
-    video: VideoClipProps[]
-    audio: AudioClipProps[]
-    components: ComponentOverlayProps[]
+    video: Array<VideoClipProps>
+    audio: Array<AudioClipProps>
+    components: Array<ComponentOverlayProps>
   }
   globalSettings: {
     backgroundColor: string
@@ -32,7 +32,7 @@ export interface VideoClipProps {
   durationFrames: number
   layer: number
   transition?: TransitionType
-  effects?: ClipEffectProps[]
+  effects?: Array<ClipEffectProps>
 }
 
 export interface AudioClipProps {
@@ -42,13 +42,13 @@ export interface AudioClipProps {
   startFrame: number
   durationFrames: number
   volume: number
-  wordTimestamps?: WordTimestampProps[]
+  wordTimestamps?: Array<WordTimestampProps>
 }
 
 export interface ComponentOverlayProps {
   id: string
   component: ComponentType
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   props: Record<string, any>
   startFrame: number
   durationFrames: number
@@ -90,7 +90,7 @@ export type TransitionType =
 
 export interface KaraokeTextProps {
   text: string
-  wordTimestamps: WordTimestampProps[]
+  wordTimestamps: Array<WordTimestampProps>
   fontSize?: number
   fontFamily?: string
   color?: string
@@ -144,7 +144,7 @@ export interface TimelineTrack {
   id: string
   type: 'video' | 'audio' | 'component'
   name: string
-  clips: TimelineClip[]
+  clips: Array<TimelineClip>
   muted?: boolean
   locked?: boolean
 }

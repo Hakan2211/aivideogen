@@ -4,7 +4,7 @@
  * Displays an image (logo, watermark, etc.) at a specific position.
  */
 
-import { AbsoluteFill, Img, useCurrentFrame, interpolate } from 'remotion'
+import { AbsoluteFill, Img, interpolate, useCurrentFrame } from 'remotion'
 import type { ImageOverlayProps } from '../../types'
 
 export const ImageOverlay: React.FC<ImageOverlayProps> = ({

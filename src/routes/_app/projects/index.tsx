@@ -4,13 +4,14 @@
  * Displays user's video projects with create/edit/delete options.
  */
 
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { Calendar, Layers, Play, Plus, Trash2, Video } from 'lucide-react'
 import {
-  listProjectsFn,
   createProjectFn,
   deleteProjectFn,
+  listProjectsFn,
 } from '../../../server/project.fn'
 import { Button } from '../../../components/ui/button'
 import { Card } from '../../../components/ui/card'
@@ -30,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../components/ui/select'
-import { Plus, Video, Trash2, Play, Calendar, Layers } from 'lucide-react'
 
 export const Route = createFileRoute('/_app/projects/')({
   component: ProjectsPage,

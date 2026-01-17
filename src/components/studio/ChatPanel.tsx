@@ -5,16 +5,16 @@
  * Connects to the /api/chat endpoint for streaming responses.
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  Send,
+  Check,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   Loader2,
+  Send,
+  Sparkles,
   Trash2,
   Wrench,
-  Check,
   X,
 } from 'lucide-react'
 import { Button } from '../ui/button'
@@ -29,7 +29,7 @@ interface ChatMessage {
   role: 'user' | 'assistant' | 'system'
   content: string
   timestamp: Date
-  toolCalls?: ToolCallDisplay[]
+  toolCalls?: Array<ToolCallDisplay>
 }
 
 interface ToolCallDisplay {
@@ -58,14 +58,14 @@ interface ChatPanelProps {
 
 export function ChatPanel({
   projectId,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   manifest: _manifest,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   onManifestChange: _onManifestChange,
   collapsed,
   onToggleCollapse,
 }: ChatPanelProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [messages, setMessages] = useState<Array<ChatMessage>>([
     {
       id: 'welcome',
       role: 'assistant',
@@ -77,7 +77,7 @@ export function ChatPanel({
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
-  const [currentToolCalls, setCurrentToolCalls] = useState<ToolCallDisplay[]>(
+  const [currentToolCalls, setCurrentToolCalls] = useState<Array<ToolCallDisplay>>(
     [],
   )
   const messagesEndRef = useRef<HTMLDivElement>(null)

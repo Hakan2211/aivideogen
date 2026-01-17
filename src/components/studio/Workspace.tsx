@@ -11,15 +11,15 @@
  * - Manifest updates (when AI modifies timeline)
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import type { ProjectManifest } from '../../remotion/types'
+import { getManifestFn } from '../../server/project.fn'
+import { getJobStatusFn, listJobsFn } from '../../server/generation.fn'
 import { ChatPanel } from './ChatPanel'
 import { VideoPreview } from './VideoPreview'
 import { Timeline } from './Timeline'
 import { AssetPanel } from './AssetPanel'
-import { getManifestFn } from '../../server/project.fn'
-import { listJobsFn, getJobStatusFn } from '../../server/generation.fn'
+import type { ProjectManifest } from '../../remotion/types'
 
 // Project type from getProjectFn
 interface Project {

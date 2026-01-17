@@ -9,26 +9,26 @@
 
 import {
   AbsoluteFill,
-  Sequence,
   Audio,
+  Sequence,
   Video,
-  useCurrentFrame,
   interpolate,
+  useCurrentFrame,
 } from 'remotion'
-import type {
-  CompositionProps,
-  VideoClipProps,
-  ComponentOverlayProps,
-  TransitionType,
-  KaraokeTextProps,
-  BigTitleProps,
-  ImageOverlayProps,
-  LowerThirdProps,
-} from './types'
 import { KaraokeText } from './components/overlays/KaraokeText'
 import { BigTitle } from './components/overlays/BigTitle'
 import { ImageOverlay } from './components/overlays/ImageOverlay'
 import { LowerThird } from './components/overlays/LowerThird'
+import type {
+  BigTitleProps,
+  ComponentOverlayProps,
+  CompositionProps,
+  ImageOverlayProps,
+  KaraokeTextProps,
+  LowerThirdProps,
+  TransitionType,
+  VideoClipProps,
+} from './types'
 
 // =============================================================================
 // Main Composition

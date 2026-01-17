@@ -70,9 +70,28 @@ function AppLayout() {
             <NavLink to="/dashboard" icon="📊">
               Dashboard
             </NavLink>
-            <NavLink to="/projects" icon="🎬">
-              Projects
-            </NavLink>
+
+            <div className="py-2">
+              <div className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Create
+              </div>
+              <NavLink to="/images" icon="🖼️">
+                Images
+              </NavLink>
+              <NavLink to="/videos" icon="🎥">
+                Videos
+              </NavLink>
+            </div>
+
+            <div className="py-2">
+              <div className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Edit
+              </div>
+              <NavLink to="/projects" icon="🎬">
+                Projects
+              </NavLink>
+            </div>
+
             <NavLink to="/profile" icon="👤">
               Profile
             </NavLink>

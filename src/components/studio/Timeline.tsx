@@ -4,20 +4,21 @@
  * Multi-track timeline with drag-and-drop clip reordering.
  */
 
-import { useRef, useCallback, useMemo } from 'react'
-import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core'
+import { useCallback, useMemo, useRef } from 'react'
+import { DndContext, closestCenter } from '@dnd-kit/core'
 import {
   SortableContext,
   horizontalListSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Film, Music, Type, GripVertical } from 'lucide-react'
+import { Film, GripVertical, Music, Type } from 'lucide-react'
+import type { DragEndEvent } from '@dnd-kit/core';
 import type {
-  ProjectManifest,
-  VideoClipProps,
   AudioClipProps,
   ComponentOverlayProps,
+  ProjectManifest,
+  VideoClipProps,
 } from '../../remotion/types'
 
 interface TimelineProps {
@@ -178,7 +179,7 @@ interface TimeRulerProps {
 }
 
 function TimeRuler({ totalFrames, fps, pixelsPerFrame }: TimeRulerProps) {
-  const markers: JSX.Element[] = []
+  const markers: Array<JSX.Element> = []
   const secondWidth = fps * pixelsPerFrame
 
   for (let second = 0; second <= totalFrames / fps; second++) {

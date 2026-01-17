@@ -7,7 +7,7 @@
 
 import { createFileRoute } from '@tanstack/react-router'
 import { auth } from '../../lib/auth'
-import { runAgent, getChatHistory, clearChatHistory } from '../../server/agent'
+import { clearChatHistory, getChatHistory, runAgent } from '../../server/agent'
 
 // =============================================================================
 // Types

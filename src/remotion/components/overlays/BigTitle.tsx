@@ -6,10 +6,10 @@
 
 import {
   AbsoluteFill,
-  useCurrentFrame,
-  useVideoConfig,
   interpolate,
   spring,
+  useCurrentFrame,
+  useVideoConfig,
 } from 'remotion'
 import type { BigTitleProps } from '../../types'
 

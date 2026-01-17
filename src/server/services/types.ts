@@ -16,7 +16,7 @@ export interface ModelConfig {
   description?: string
 }
 
-export const IMAGE_MODELS: ModelConfig[] = [
+export const IMAGE_MODELS: Array<ModelConfig> = [
   {
     id: 'fal-ai/flux-pro/v1.1',
     name: 'Flux Pro 1.1',
@@ -47,7 +47,7 @@ export const IMAGE_MODELS: ModelConfig[] = [
   },
 ]
 
-export const VIDEO_MODELS: ModelConfig[] = [
+export const VIDEO_MODELS: Array<ModelConfig> = [
   {
     id: 'fal-ai/kling-video/v1.5/pro/image-to-video',
     name: 'Kling 1.5 Pro',
@@ -85,7 +85,7 @@ export const VIDEO_MODELS: ModelConfig[] = [
   },
 ]
 
-export const AUDIO_MODELS: ModelConfig[] = [
+export const AUDIO_MODELS: Array<ModelConfig> = [
   {
     id: 'fal-ai/elevenlabs/tts/multilingual-v2',
     name: 'ElevenLabs Multilingual v2',
@@ -102,7 +102,7 @@ export const AUDIO_MODELS: ModelConfig[] = [
   },
 ]
 
-export const LLM_MODELS: ModelConfig[] = [
+export const LLM_MODELS: Array<ModelConfig> = [
   {
     id: 'anthropic/claude-3.5-sonnet',
     name: 'Claude 3.5 Sonnet',
@@ -171,7 +171,7 @@ export interface GenerationJobInput {
 
 export interface GenerationJobOutput {
   url?: string
-  urls?: string[]
+  urls?: Array<string>
   assetId?: string
   metadata?: Record<string, unknown>
   error?: string
@@ -184,9 +184,9 @@ export interface GenerationJobOutput {
 export interface ProjectManifest {
   version: number
   tracks: {
-    video: VideoClip[]
-    audio: AudioClip[]
-    components: ComponentOverlay[]
+    video: Array<VideoClip>
+    audio: Array<AudioClip>
+    components: Array<ComponentOverlay>
   }
   globalSettings: {
     backgroundColor: string
@@ -201,7 +201,7 @@ export interface VideoClip {
   durationFrames: number
   layer: number
   transition?: TransitionType
-  effects?: ClipEffect[]
+  effects?: Array<ClipEffect>
 }
 
 export interface AudioClip {
@@ -212,13 +212,13 @@ export interface AudioClip {
   durationFrames: number
   volume: number
   // Word timestamps for karaoke sync
-  wordTimestamps?: WordTimestamp[]
+  wordTimestamps?: Array<WordTimestamp>
 }
 
 export interface ComponentOverlay {
   id: string
   component: 'KaraokeText' | 'BigTitle' | 'ImageOverlay' | 'LowerThird'
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   props: Record<string, any>
   startFrame: number
   durationFrames: number
@@ -250,7 +250,7 @@ export interface ClipEffect {
 
 export function getModelById(
   modelId: string,
-  modelList: ModelConfig[],
+  modelList: Array<ModelConfig>,
 ): ModelConfig | undefined {
   return modelList.find((m) => m.id === modelId)
 }

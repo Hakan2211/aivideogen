@@ -23,7 +23,7 @@ export interface ChatMessage {
   content: string
   name?: string
   tool_call_id?: string
-  tool_calls?: ToolCall[]
+  tool_calls?: Array<ToolCall>
 }
 
 export interface ToolCall {
@@ -43,15 +43,15 @@ export interface ToolDefinition {
     parameters: {
       type: 'object'
       properties: Record<string, unknown>
-      required?: string[]
+      required?: Array<string>
     }
   }
 }
 
 export interface ChatCompletionInput {
-  messages: ChatMessage[]
+  messages: Array<ChatMessage>
   model?: string
-  tools?: ToolDefinition[]
+  tools?: Array<ToolDefinition>
   toolChoice?:
     | 'auto'
     | 'none'

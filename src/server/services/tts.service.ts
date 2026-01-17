@@ -40,7 +40,7 @@ export interface WordTimestamp {
 
 export interface SpeechResult {
   audioUrl: string // Bunny CDN URL after re-upload
-  wordTimestamps: WordTimestamp[]
+  wordTimestamps: Array<WordTimestamp>
   duration: number // total duration in seconds
 }
 
@@ -73,7 +73,7 @@ interface FalStatusResponse {
 // Default Voices (ElevenLabs voices available through Fal.ai)
 // =============================================================================
 
-export const DEFAULT_VOICES: Voice[] = [
+export const DEFAULT_VOICES: Array<Voice> = [
   { name: 'Rachel', description: 'Calm, young female voice' },
   { name: 'Sarah', description: 'Soft, young female voice' },
   { name: 'Antoni', description: 'Well-rounded male voice' },
@@ -141,7 +141,7 @@ export async function generateSpeech(
   const result = await pollForCompletion(requestId, modelId, apiKey)
 
   // Convert Fal.ai timestamps to our format
-  const wordTimestamps: WordTimestamp[] = (result.timestamps || []).map(
+  const wordTimestamps: Array<WordTimestamp> = (result.timestamps || []).map(
     (t) => ({
       word: t.text,
       start: t.start,
@@ -192,7 +192,7 @@ export function isTtsConfigured(): boolean {
 /**
  * Get available voices
  */
-export function getDefaultVoices(): Voice[] {
+export function getDefaultVoices(): Array<Voice> {
   return DEFAULT_VOICES
 }
 
@@ -283,7 +283,7 @@ async function mockGenerateSpeech(
   const avgWordDuration = 0.3 // seconds per word
   let currentTime = 0
 
-  const wordTimestamps: WordTimestamp[] = words.map((word) => {
+  const wordTimestamps: Array<WordTimestamp> = words.map((word) => {
     const start = currentTime
     const duration = avgWordDuration + word.length * 0.02
     currentTime += duration + 0.1 // gap between words

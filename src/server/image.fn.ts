@@ -1,0 +1,395 @@
+/**
+ * Image Server Functions
+ *
+ * Server functions for AI image generation using Fal.ai.
+ * Handles generation jobs, asset creation, and user image library.
+ */
+
+import { createServerFn } from '@tanstack/react-start'
+import { z } from 'zod'
+import { prisma } from '../db'
+import { authMiddleware } from './middleware'
+import {
+  generateImage,
+  getImageModels,
+  getJobStatus,
+} from './services/fal.service'
+import { IMAGE_MODELS, getModelById } from './services/types'
+import type { FalImageResult } from './services/fal.service'
+
+// =============================================================================
+// Schemas
+// =============================================================================
+
+const generateImageSchema = z.object({
+  prompt: z.string().min(1).max(2000),
+  model: z.string().optional(), // defaults to flux-pro
+  width: z.number().min(256).max(2048).optional(),
+  height: z.number().min(256).max(2048).optional(),
+  negativePrompt: z.string().max(1000).optional(),
+  projectId: z.string().optional(), // optional project association
+})
+
+const listImagesSchema = z.object({
+  limit: z.number().min(1).max(100).optional(),
+  offset: z.number().min(0).optional(),
+  projectId: z.string().optional(), // filter by project
+})
+
+const imageIdSchema = z.object({
+  imageId: z.string(),
+})
+
+const jobIdSchema = z.object({
+  jobId: z.string(),
+})
+
+// =============================================================================
+// Image Generation
+// =============================================================================
+
+/**
+ * Start an image generation job
+ * Returns job ID for polling status
+ */
+export const generateImageFn = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
+  .inputValidator(generateImageSchema)
+  .handler(async ({ data, context }) => {
+    const modelId = data.model || 'fal-ai/flux-pro/v1.1'
+    const modelConfig = getModelById(modelId, IMAGE_MODELS)
+
+    if (!modelConfig) {
+      throw new Error(`Unknown model: ${modelId}`)
+    }
+
+    // Check user credits
+    const user = await prisma.user.findUnique({
+      where: { id: context.user.id },
+      select: { credits: true },
+    })
+
+    if (!user || user.credits < modelConfig.credits) {
+      throw new Error(
+        `Insufficient credits. Required: ${modelConfig.credits}, Available: ${user?.credits || 0}`,
+      )
+    }
+
+    // Start generation job via Fal.ai
+    const job = await generateImage({
+      prompt: data.prompt,
+      model: modelId,
+      width: data.width || 1024,
+      height: data.height || 1024,
+      negativePrompt: data.negativePrompt,
+    })
+
+    // Create job record in database
+    const dbJob = await prisma.generationJob.create({
+      data: {
+        userId: context.user.id,
+        projectId: data.projectId || null,
+        type: 'image',
+        status: 'pending',
+        provider: 'fal',
+        model: modelId,
+        input: JSON.stringify({
+          prompt: data.prompt,
+          width: data.width || 1024,
+          height: data.height || 1024,
+          negativePrompt: data.negativePrompt,
+        }),
+        externalId: job.requestId,
+        creditsUsed: modelConfig.credits,
+      },
+    })
+
+    // Deduct credits
+    await prisma.user.update({
+      where: { id: context.user.id },
+      data: { credits: { decrement: modelConfig.credits } },
+    })
+
+    return {
+      jobId: dbJob.id,
+      externalId: job.requestId,
+      model: modelId,
+      credits: modelConfig.credits,
+      status: 'pending',
+    }
+  })
+
+/**
+ * Check the status of an image generation job
+ */
+export const getImageJobStatusFn = createServerFn({ method: 'GET' })
+  .middleware([authMiddleware])
+  .inputValidator(jobIdSchema)
+  .handler(async ({ data, context }) => {
+    const job = await prisma.generationJob.findUnique({
+      where: { id: data.jobId },
+    })
+
+    if (!job) {
+      throw new Error('Job not found')
+    }
+
+    if (job.userId !== context.user.id) {
+      throw new Error('Unauthorized')
+    }
+
+    // If already completed or failed, return cached result
+    if (job.status === 'completed' || job.status === 'failed') {
+      return {
+        jobId: job.id,
+        status: job.status,
+        progress: job.status === 'completed' ? 100 : 0,
+        output: job.output ? JSON.parse(job.output) : null,
+        error: job.error,
+      }
+    }
+
+    // Poll Fal.ai for status
+    if (!job.externalId) {
+      throw new Error('Job has no external ID')
+    }
+
+    const falStatus = await getJobStatus(job.externalId, job.model)
+
+    // Update job status in database
+    if (falStatus.status === 'completed' && falStatus.result) {
+      const result = falStatus.result as FalImageResult
+      const imageUrl = result.images[0]?.url
+
+      if (imageUrl) {
+        // Create asset for the generated image
+        const asset = await prisma.asset.create({
+          data: {
+            userId: context.user.id,
+            projectId: job.projectId,
+            type: 'image',
+            storageUrl: imageUrl,
+            filename: `generated-${Date.now()}.png`,
+            prompt: JSON.parse(job.input).prompt,
+            provider: 'fal',
+            model: job.model,
+            metadata: JSON.stringify({
+              width: result.images[0].width,
+              height: result.images[0].height,
+              seed: result.seed,
+            }),
+          },
+        })
+
+        // Update job as completed
+        await prisma.generationJob.update({
+          where: { id: job.id },
+          data: {
+            status: 'completed',
+            progress: 100,
+            output: JSON.stringify({
+              url: imageUrl,
+              assetId: asset.id,
+              width: result.images[0].width,
+              height: result.images[0].height,
+            }),
+          },
+        })
+
+        return {
+          jobId: job.id,
+          status: 'completed' as const,
+          progress: 100,
+          output: {
+            url: imageUrl,
+            assetId: asset.id,
+            width: result.images[0].width,
+            height: result.images[0].height,
+          },
+        }
+      }
+    }
+
+    if (falStatus.status === 'failed') {
+      await prisma.generationJob.update({
+        where: { id: job.id },
+        data: {
+          status: 'failed',
+          error: 'Generation failed',
+        },
+      })
+
+      return {
+        jobId: job.id,
+        status: 'failed' as const,
+        progress: 0,
+        error: 'Generation failed',
+      }
+    }
+
+    // Still processing
+    const progress =
+      falStatus.progress || (falStatus.status === 'processing' ? 50 : 10)
+
+    await prisma.generationJob.update({
+      where: { id: job.id },
+      data: {
+        status: falStatus.status === 'processing' ? 'processing' : 'pending',
+        progress,
+      },
+    })
+
+    return {
+      jobId: job.id,
+      status: falStatus.status === 'processing' ? 'processing' : 'pending',
+      progress,
+    }
+  })
+
+// =============================================================================
+// Image Library
+// =============================================================================
+
+/**
+ * List user's images
+ */
+export const listUserImagesFn = createServerFn({ method: 'GET' })
+  .middleware([authMiddleware])
+  .inputValidator(listImagesSchema)
+  .handler(async ({ data, context }) => {
+    const images = await prisma.asset.findMany({
+      where: {
+        userId: context.user.id,
+        type: 'image',
+        ...(data.projectId && { projectId: data.projectId }),
+      },
+      orderBy: { createdAt: 'desc' },
+      take: data.limit || 20,
+      skip: data.offset || 0,
+    })
+
+    const total = await prisma.asset.count({
+      where: {
+        userId: context.user.id,
+        type: 'image',
+        ...(data.projectId && { projectId: data.projectId }),
+      },
+    })
+
+    return {
+      images: images.map((img) => ({
+        id: img.id,
+        url: img.storageUrl,
+        filename: img.filename,
+        prompt: img.prompt,
+        model: img.model,
+        metadata: img.metadata ? JSON.parse(img.metadata) : null,
+        projectId: img.projectId,
+        createdAt: img.createdAt,
+      })),
+      total,
+    }
+  })
+
+/**
+ * Get a single image by ID
+ */
+export const getImageFn = createServerFn({ method: 'GET' })
+  .middleware([authMiddleware])
+  .inputValidator(imageIdSchema)
+  .handler(async ({ data, context }) => {
+    const image = await prisma.asset.findUnique({
+      where: { id: data.imageId },
+    })
+
+    if (!image) {
+      throw new Error('Image not found')
+    }
+
+    if (image.userId !== context.user.id) {
+      throw new Error('Unauthorized')
+    }
+
+    return {
+      id: image.id,
+      url: image.storageUrl,
+      filename: image.filename,
+      prompt: image.prompt,
+      model: image.model,
+      provider: image.provider,
+      metadata: image.metadata ? JSON.parse(image.metadata) : null,
+      projectId: image.projectId,
+      createdAt: image.createdAt,
+    }
+  })
+
+/**
+ * Delete an image
+ */
+export const deleteImageFn = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
+  .inputValidator(imageIdSchema)
+  .handler(async ({ data, context }) => {
+    const image = await prisma.asset.findUnique({
+      where: { id: data.imageId },
+    })
+
+    if (!image) {
+      throw new Error('Image not found')
+    }
+
+    if (image.userId !== context.user.id) {
+      throw new Error('Unauthorized')
+    }
+
+    // TODO: Delete from storage (Bunny.net) if needed
+
+    await prisma.asset.delete({
+      where: { id: data.imageId },
+    })
+
+    return { success: true }
+  })
+
+// =============================================================================
+// Model Info
+// =============================================================================
+
+/**
+ * Get available image models
+ */
+export const getImageModelsFn = createServerFn({ method: 'GET' }).handler(
+  () => {
+    return {
+      models: getImageModels(),
+    }
+  },
+)
+
+/**
+ * Get user's pending image generation jobs
+ */
+export const getPendingImageJobsFn = createServerFn({ method: 'GET' })
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    const jobs = await prisma.generationJob.findMany({
+      where: {
+        userId: context.user.id,
+        type: 'image',
+        status: { in: ['pending', 'processing'] },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    })
+
+    return {
+      jobs: jobs.map((job) => ({
+        id: job.id,
+        model: job.model,
+        status: job.status,
+        progress: job.progress,
+        input: JSON.parse(job.input),
+        createdAt: job.createdAt,
+      })),
+    }
+  })

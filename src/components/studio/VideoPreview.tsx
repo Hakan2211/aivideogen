@@ -5,11 +5,12 @@
  */
 
 import { useCallback, useRef } from 'react'
-import { Player, PlayerRef } from '@remotion/player'
-import { Play, Pause, SkipBack, SkipForward, Maximize } from 'lucide-react'
+import { Player } from '@remotion/player'
+import { Maximize, Pause, Play, SkipBack, SkipForward } from 'lucide-react'
 import { VideoComposition } from '../../remotion/Composition'
-import type { ProjectManifest } from '../../remotion/types'
 import { Button } from '../ui/button'
+import type { PlayerRef } from '@remotion/player';
+import type { ProjectManifest } from '../../remotion/types'
 
 interface VideoPreviewProps {
   manifest: ProjectManifest

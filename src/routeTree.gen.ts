@@ -19,9 +19,15 @@ import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppAdminRouteImport } from './routes/_app/admin'
+import { Route as AppVideosIndexRouteImport } from './routes/_app/videos/index'
 import { Route as AppProjectsIndexRouteImport } from './routes/_app/projects/index'
+import { Route as AppImagesIndexRouteImport } from './routes/_app/images/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AppVideosGalleryRouteImport } from './routes/_app/videos/gallery'
+import { Route as AppVideosCreateRouteImport } from './routes/_app/videos/create'
 import { Route as AppProjectsProjectIdRouteImport } from './routes/_app/projects/$projectId'
+import { Route as AppImagesGalleryRouteImport } from './routes/_app/images/gallery'
+import { Route as AppImagesCreateRouteImport } from './routes/_app/images/create'
 
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
@@ -71,9 +77,19 @@ const AppAdminRoute = AppAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
+const AppVideosIndexRoute = AppVideosIndexRouteImport.update({
+  id: '/videos/',
+  path: '/videos/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProjectsIndexRoute = AppProjectsIndexRouteImport.update({
   id: '/projects/',
   path: '/projects/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppImagesIndexRoute = AppImagesIndexRouteImport.update({
+  id: '/images/',
+  path: '/images/',
   getParentRoute: () => AppRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -81,9 +97,29 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppVideosGalleryRoute = AppVideosGalleryRouteImport.update({
+  id: '/videos/gallery',
+  path: '/videos/gallery',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppVideosCreateRoute = AppVideosCreateRouteImport.update({
+  id: '/videos/create',
+  path: '/videos/create',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProjectsProjectIdRoute = AppProjectsProjectIdRouteImport.update({
   id: '/projects/$projectId',
   path: '/projects/$projectId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppImagesGalleryRoute = AppImagesGalleryRouteImport.update({
+  id: '/images/gallery',
+  path: '/images/gallery',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppImagesCreateRoute = AppImagesCreateRouteImport.update({
+  id: '/images/create',
+  path: '/images/create',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -96,9 +132,15 @@ export interface FileRoutesByFullPath {
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/api/chat': typeof ApiChatRoute
+  '/images/create': typeof AppImagesCreateRoute
+  '/images/gallery': typeof AppImagesGalleryRoute
   '/projects/$projectId': typeof AppProjectsProjectIdRoute
+  '/videos/create': typeof AppVideosCreateRoute
+  '/videos/gallery': typeof AppVideosGalleryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/images': typeof AppImagesIndexRoute
   '/projects': typeof AppProjectsIndexRoute
+  '/videos': typeof AppVideosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,9 +151,15 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/api/chat': typeof ApiChatRoute
+  '/images/create': typeof AppImagesCreateRoute
+  '/images/gallery': typeof AppImagesGalleryRoute
   '/projects/$projectId': typeof AppProjectsProjectIdRoute
+  '/videos/create': typeof AppVideosCreateRoute
+  '/videos/gallery': typeof AppVideosGalleryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/images': typeof AppImagesIndexRoute
   '/projects': typeof AppProjectsIndexRoute
+  '/videos': typeof AppVideosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,9 +173,15 @@ export interface FileRoutesById {
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/signup': typeof AuthSignupRoute
   '/api/chat': typeof ApiChatRoute
+  '/_app/images/create': typeof AppImagesCreateRoute
+  '/_app/images/gallery': typeof AppImagesGalleryRoute
   '/_app/projects/$projectId': typeof AppProjectsProjectIdRoute
+  '/_app/videos/create': typeof AppVideosCreateRoute
+  '/_app/videos/gallery': typeof AppVideosGalleryRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/_app/images/': typeof AppImagesIndexRoute
   '/_app/projects/': typeof AppProjectsIndexRoute
+  '/_app/videos/': typeof AppVideosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,9 +194,15 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/api/chat'
+    | '/images/create'
+    | '/images/gallery'
     | '/projects/$projectId'
+    | '/videos/create'
+    | '/videos/gallery'
     | '/api/auth/$'
+    | '/images'
     | '/projects'
+    | '/videos'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -153,9 +213,15 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/api/chat'
+    | '/images/create'
+    | '/images/gallery'
     | '/projects/$projectId'
+    | '/videos/create'
+    | '/videos/gallery'
     | '/api/auth/$'
+    | '/images'
     | '/projects'
+    | '/videos'
   id:
     | '__root__'
     | '/'
@@ -168,9 +234,15 @@ export interface FileRouteTypes {
     | '/_auth/login'
     | '/_auth/signup'
     | '/api/chat'
+    | '/_app/images/create'
+    | '/_app/images/gallery'
     | '/_app/projects/$projectId'
+    | '/_app/videos/create'
+    | '/_app/videos/gallery'
     | '/api/auth/$'
+    | '/_app/images/'
     | '/_app/projects/'
+    | '/_app/videos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -254,11 +326,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/videos/': {
+      id: '/_app/videos/'
+      path: '/videos'
+      fullPath: '/videos'
+      preLoaderRoute: typeof AppVideosIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/projects/': {
       id: '/_app/projects/'
       path: '/projects'
       fullPath: '/projects'
       preLoaderRoute: typeof AppProjectsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/images/': {
+      id: '/_app/images/'
+      path: '/images'
+      fullPath: '/images'
+      preLoaderRoute: typeof AppImagesIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/api/auth/$': {
@@ -268,11 +354,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/videos/gallery': {
+      id: '/_app/videos/gallery'
+      path: '/videos/gallery'
+      fullPath: '/videos/gallery'
+      preLoaderRoute: typeof AppVideosGalleryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/videos/create': {
+      id: '/_app/videos/create'
+      path: '/videos/create'
+      fullPath: '/videos/create'
+      preLoaderRoute: typeof AppVideosCreateRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/projects/$projectId': {
       id: '/_app/projects/$projectId'
       path: '/projects/$projectId'
       fullPath: '/projects/$projectId'
       preLoaderRoute: typeof AppProjectsProjectIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/images/gallery': {
+      id: '/_app/images/gallery'
+      path: '/images/gallery'
+      fullPath: '/images/gallery'
+      preLoaderRoute: typeof AppImagesGalleryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/images/create': {
+      id: '/_app/images/create'
+      path: '/images/create'
+      fullPath: '/images/create'
+      preLoaderRoute: typeof AppImagesCreateRouteImport
       parentRoute: typeof AppRoute
     }
   }
@@ -282,16 +396,28 @@ interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppProfileRoute: typeof AppProfileRoute
+  AppImagesCreateRoute: typeof AppImagesCreateRoute
+  AppImagesGalleryRoute: typeof AppImagesGalleryRoute
   AppProjectsProjectIdRoute: typeof AppProjectsProjectIdRoute
+  AppVideosCreateRoute: typeof AppVideosCreateRoute
+  AppVideosGalleryRoute: typeof AppVideosGalleryRoute
+  AppImagesIndexRoute: typeof AppImagesIndexRoute
   AppProjectsIndexRoute: typeof AppProjectsIndexRoute
+  AppVideosIndexRoute: typeof AppVideosIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppProfileRoute: AppProfileRoute,
+  AppImagesCreateRoute: AppImagesCreateRoute,
+  AppImagesGalleryRoute: AppImagesGalleryRoute,
   AppProjectsProjectIdRoute: AppProjectsProjectIdRoute,
+  AppVideosCreateRoute: AppVideosCreateRoute,
+  AppVideosGalleryRoute: AppVideosGalleryRoute,
+  AppImagesIndexRoute: AppImagesIndexRoute,
   AppProjectsIndexRoute: AppProjectsIndexRoute,
+  AppVideosIndexRoute: AppVideosIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

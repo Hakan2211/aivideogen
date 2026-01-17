@@ -8,7 +8,8 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { prisma } from '../db'
 import { authMiddleware } from './middleware'
-import { createEmptyManifest, type ProjectManifest } from './services'
+import {  createEmptyManifest } from './services'
+import type {ProjectManifest} from './services';
 
 // =============================================================================
 // Schemas

@@ -169,7 +169,7 @@ function schemaToParameters(
   schema: z.ZodObject<z.ZodRawShape>,
 ): ToolDefinition['function']['parameters'] {
   // Cast to any to work with both Zod v3 and v4
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const jsonSchema = zodToJsonSchema(schema as any, { target: 'openApi3' })
 
   // Extract just what we need for OpenRouter
@@ -179,7 +179,7 @@ function schemaToParameters(
       properties:
         (jsonSchema as { properties?: Record<string, unknown> }).properties ||
         {},
-      required: (jsonSchema as { required?: string[] }).required,
+      required: (jsonSchema as { required?: Array<string> }).required,
     }
   }
 
@@ -193,7 +193,7 @@ function schemaToParameters(
 /**
  * All agent tools in OpenRouter format
  */
-export const AGENT_TOOLS: ToolDefinition[] = [
+export const AGENT_TOOLS: Array<ToolDefinition> = [
   {
     type: 'function',
     function: {
