@@ -54,24 +54,52 @@ export async function uploadFromUrl(
   sourceUrl: string,
   options: UploadOptions = {},
 ): Promise<UploadResult> {
+  console.log('[BUNNY] uploadFromUrl called:', {
+    sourceUrl: sourceUrl.slice(0, 80) + '...',
+    folder: options.folder,
+    filename: options.filename,
+  })
+
   if (MOCK_BUNNY) {
+    console.log('[BUNNY] Using MOCK mode')
     return mockUpload(options)
   }
 
   const config = getConfig()
+  console.log('[BUNNY] Config:', {
+    storageZone: config.storageZone,
+    hostname: config.hostname,
+    cdnUrl: config.cdnUrl,
+    hasApiKey: !!config.apiKey,
+    apiKeyLength: config.apiKey?.length || 0,
+  })
+
   if (!config.apiKey || !config.storageZone) {
+    console.error('[BUNNY] Configuration missing!')
     throw new Error('Bunny.net configuration missing')
   }
 
   // Download the file from source URL
+  console.log('[BUNNY] Downloading from source URL...')
   const response = await fetch(sourceUrl)
+  console.log(
+    '[BUNNY] Download response:',
+    response.status,
+    response.statusText,
+  )
+
   if (!response.ok) {
+    console.error('[BUNNY] Download failed:', response.status)
     throw new Error(`Failed to download file: ${response.status}`)
   }
 
   const contentType =
     response.headers.get('content-type') || 'application/octet-stream'
   const buffer = await response.arrayBuffer()
+  console.log('[BUNNY] Downloaded:', {
+    contentType,
+    size: buffer.byteLength,
+  })
 
   // Generate filename if not provided
   const extension = getExtensionFromContentType(contentType)
@@ -81,6 +109,7 @@ export async function uploadFromUrl(
 
   // Upload to Bunny storage
   const uploadUrl = `https://${config.hostname}/${config.storageZone}/${storagePath}`
+  console.log('[BUNNY] Uploading to:', uploadUrl)
 
   const uploadResponse = await fetch(uploadUrl, {
     method: 'PUT',
@@ -91,8 +120,15 @@ export async function uploadFromUrl(
     body: buffer,
   })
 
+  console.log(
+    '[BUNNY] Upload response:',
+    uploadResponse.status,
+    uploadResponse.statusText,
+  )
+
   if (!uploadResponse.ok) {
     const errorText = await uploadResponse.text()
+    console.error('[BUNNY] Upload failed:', uploadResponse.status, errorText)
     throw new Error(
       `Bunny upload failed: ${uploadResponse.status} - ${errorText}`,
     )
@@ -100,6 +136,7 @@ export async function uploadFromUrl(
 
   // Return the CDN URL
   const cdnUrl = `${config.cdnUrl}/${storagePath}`
+  console.log('[BUNNY] Upload success! CDN URL:', cdnUrl)
 
   return {
     success: true,

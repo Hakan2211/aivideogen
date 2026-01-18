@@ -28,6 +28,7 @@ import {
   VARIATION_MODELS,
   getModelById,
 } from './services/types'
+import { uploadFromUrl } from './services/bunny.service'
 import type { FalEditResult } from './services/edit.service'
 
 // =============================================================================
@@ -431,21 +432,36 @@ export const getEditJobStatusFn = createServerFn({ method: 'GET' })
     if (falStatus.status === 'completed' && falStatus.result) {
       const result = falStatus.result as FalEditResult
       // Handle both 'images' array and single 'image' response formats
-      const imageUrl = result.images?.[0]?.url || result.image?.url
+      const falTempUrl = result.images?.[0]?.url || result.image?.url
       const imageWidth = result.images?.[0]?.width || result.image?.width
       const imageHeight = result.images?.[0]?.height || result.image?.height
 
-      if (imageUrl) {
+      if (falTempUrl) {
         const inputData = JSON.parse(job.input)
+        const filename = `${inputData.editType}-${Date.now()}.png`
 
-        // Create asset for the edited image
+        // Upload the edited image from FAL's temporary URL to Bunny CDN
+        let permanentUrl = falTempUrl
+
+        try {
+          const uploadResult = await uploadFromUrl(falTempUrl, {
+            folder: `images/${context.user.id}`,
+            filename,
+          })
+          permanentUrl = uploadResult.url
+        } catch (uploadError) {
+          // Log error but continue - we'll fall back to FAL's URL
+          console.error('Failed to upload to Bunny CDN:', uploadError)
+        }
+
+        // Create asset for the edited image with permanent CDN URL
         const asset = await prisma.asset.create({
           data: {
             userId: context.user.id,
             projectId: job.projectId,
             type: 'image',
-            storageUrl: imageUrl,
-            filename: `${inputData.editType}-${Date.now()}.png`,
+            storageUrl: permanentUrl,
+            filename,
             prompt: inputData.prompt || null,
             provider: 'fal',
             model: job.model,
@@ -466,7 +482,7 @@ export const getEditJobStatusFn = createServerFn({ method: 'GET' })
             status: 'completed',
             progress: 100,
             output: JSON.stringify({
-              url: imageUrl,
+              url: permanentUrl,
               assetId: asset.id,
               width: imageWidth,
               height: imageHeight,
@@ -480,7 +496,7 @@ export const getEditJobStatusFn = createServerFn({ method: 'GET' })
           status: 'completed' as const,
           progress: 100,
           output: {
-            url: imageUrl,
+            url: permanentUrl,
             assetId: asset.id,
             width: imageWidth,
             height: imageHeight,

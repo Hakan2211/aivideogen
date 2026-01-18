@@ -17,35 +17,136 @@ export interface ModelConfig {
 }
 
 export const IMAGE_MODELS: Array<ModelConfig> = [
+  // === Google (Nano Banana) ===
   {
-    id: 'fal-ai/flux-pro/v1.1',
-    name: 'Flux Pro 1.1',
+    id: 'fal-ai/nano-banana-pro',
+    name: 'Nano Banana Pro',
     provider: 'fal',
-    credits: 5,
-    description: 'Best quality, great text rendering',
+    credits: 15,
+    description: 'Google Gemini 3 Pro - Best quality, excellent text rendering',
   },
   {
-    id: 'fal-ai/flux/schnell',
-    name: 'Flux Schnell',
+    id: 'fal-ai/nano-banana',
+    name: 'Nano Banana',
     provider: 'fal',
-    credits: 1,
-    description: 'Fast and cheap, good for iteration',
+    credits: 4,
+    description: 'Google Gemini 2.5 Flash - Fast and affordable',
   },
+
+  // === OpenAI (GPT Image) ===
   {
-    id: 'fal-ai/flux/dev',
-    name: 'Flux Dev',
+    id: 'fal-ai/gpt-image-1.5',
+    name: 'GPT Image 1.5',
+    provider: 'fal',
+    credits: 4, // Medium quality default, actual varies by quality tier
+    description: 'OpenAI - Strong prompt adherence, variable quality tiers',
+  },
+
+  // === Black Forest Labs (Flux 2) ===
+  {
+    id: 'fal-ai/flux-2-pro',
+    name: 'Flux 2 Pro',
     provider: 'fal',
     credits: 3,
-    description: 'Good balance of quality and speed',
+    description: 'Production-optimized, zero-config professional quality',
   },
   {
-    id: 'fal-ai/stable-diffusion-v3-medium',
-    name: 'SD3 Medium',
+    id: 'fal-ai/flux-2',
+    name: 'Flux 2 Dev',
     provider: 'fal',
-    credits: 2,
-    description: 'Stable Diffusion 3 Medium',
+    credits: 1,
+    description: 'Fast open-source, great for iteration',
+  },
+
+  // === ImagineArt ===
+  {
+    id: 'imagineart/imagineart-1.5-pro-preview/text-to-image',
+    name: 'ImagineArt 1.5 Pro',
+    provider: 'fal',
+    credits: 5,
+    description: 'Ultra-high-fidelity 4K, professional use',
+  },
+  {
+    id: 'imagineart/imagineart-1.5-preview/text-to-image',
+    name: 'ImagineArt 1.5',
+    provider: 'fal',
+    credits: 3,
+    description: 'Professional realism, good text rendering',
+  },
+
+  // === ByteDance ===
+  {
+    id: 'fal-ai/bytedance/seedream/v4.5/text-to-image',
+    name: 'Seedream 4.5',
+    provider: 'fal',
+    credits: 4,
+    description: 'ByteDance - Up to 4MP, unified generation + editing',
+  },
+
+  // === Recraft ===
+  {
+    id: 'fal-ai/recraft/v3/text-to-image',
+    name: 'Recraft V3',
+    provider: 'fal',
+    credits: 4,
+    description: 'SOTA text rendering, vector art, brand styles',
+  },
+
+  // === Bria ===
+  {
+    id: 'bria/text-to-image/3.2',
+    name: 'Bria 3.2',
+    provider: 'fal',
+    credits: 4,
+    description: 'Licensed data, safe commercial use, good text',
+  },
+
+  // === Alibaba (Wan) ===
+  {
+    id: 'wan/v2.6/text-to-image',
+    name: 'Wan 2.6',
+    provider: 'fal',
+    credits: 3,
+    description: 'Alibaba - High quality, good value',
   },
 ]
+
+// =============================================================================
+// Model-specific Options
+// =============================================================================
+
+// GPT Image quality tiers with credit costs
+export const GPT_IMAGE_QUALITY_TIERS = [
+  { id: 'low', name: 'Low', credits: 1, description: 'Fast drafts' },
+  { id: 'medium', name: 'Medium', credits: 4, description: 'Balanced quality' },
+  { id: 'high', name: 'High', credits: 13, description: 'Best quality' },
+] as const
+
+export type GptImageQuality = 'low' | 'medium' | 'high'
+
+// Recraft V3 style options
+export const RECRAFT_STYLES = [
+  {
+    id: 'realistic_image',
+    name: 'Realistic',
+    description: 'Photorealistic images',
+  },
+  {
+    id: 'digital_illustration',
+    name: 'Digital Art',
+    description: 'Digital illustrations',
+  },
+  {
+    id: 'vector_illustration',
+    name: 'Vector',
+    description: 'Scalable vector graphics (2x cost)',
+  },
+] as const
+
+export type RecraftStyle =
+  | 'realistic_image'
+  | 'digital_illustration'
+  | 'vector_illustration'
 
 // Image editing models (inpainting, outpainting)
 export const EDIT_MODELS: Array<ModelConfig> = [
@@ -324,7 +425,12 @@ export function getModelById(
 }
 
 export function getDefaultImageModel(): ModelConfig {
-  return IMAGE_MODELS[0]
+  // Return ImagineArt 1.5 as the default
+  return (
+    IMAGE_MODELS.find(
+      (m) => m.id === 'imagineart/imagineart-1.5-preview/text-to-image',
+    ) || IMAGE_MODELS[0]
+  )
 }
 
 export function getDefaultVideoModel(): ModelConfig {

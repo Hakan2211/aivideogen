@@ -68,6 +68,12 @@ import {
   VariationsPanel,
   type ImageMode,
 } from '@/components/images'
+import {
+  GPT_IMAGE_QUALITY_TIERS,
+  RECRAFT_STYLES,
+  type GptImageQuality,
+  type RecraftStyle,
+} from '@/server/services/types'
 
 export const Route = createFileRoute('/_app/images/')({
   component: ImagesPage,
@@ -106,10 +112,17 @@ function ImagesPage() {
 
   // Generate form state
   const [prompt, setPrompt] = useState('')
-  const [model, setModel] = useState('fal-ai/flux-pro/v1.1')
+  const [model, setModel] = useState(
+    'imagineart/imagineart-1.5-preview/text-to-image',
+  )
   const [aspectRatio, setAspectRatio] = useState('1:1')
   const [showNegativePrompt, setShowNegativePrompt] = useState(false)
   const [negativePrompt, setNegativePrompt] = useState('')
+
+  // Model-specific options
+  const [gptQuality, setGptQuality] = useState<GptImageQuality>('medium')
+  const [recraftStyle, setRecraftStyle] =
+    useState<RecraftStyle>('realistic_image')
 
   // Edit mode state
   const [editPrompt, setEditPrompt] = useState('')
@@ -319,6 +332,9 @@ function ImagesPage() {
         width: ratio.width,
         height: ratio.height,
         negativePrompt: negativePrompt.trim() || undefined,
+        // Model-specific options
+        quality: model === 'fal-ai/gpt-image-1.5' ? gptQuality : undefined,
+        style: model.includes('recraft') ? recraftStyle : undefined,
       },
     })
   }
@@ -597,6 +613,11 @@ function ImagesPage() {
               selectedModel={selectedModel}
               error={currentError}
               jobStatus={jobStatus}
+              // Model-specific options
+              gptQuality={gptQuality}
+              onGptQualityChange={setGptQuality}
+              recraftStyle={recraftStyle}
+              onRecraftStyleChange={setRecraftStyle}
             />
           )}
 
@@ -821,6 +842,11 @@ interface GeneratePanelProps {
   selectedModel: { credits: number } | undefined
   error: Error | null
   jobStatus: { status?: string; error?: string | null } | undefined
+  // Model-specific options
+  gptQuality: GptImageQuality
+  onGptQualityChange: (v: GptImageQuality) => void
+  recraftStyle: RecraftStyle
+  onRecraftStyleChange: (v: RecraftStyle) => void
 }
 
 function GeneratePanel({
@@ -841,7 +867,22 @@ function GeneratePanel({
   selectedModel,
   error,
   jobStatus,
+  gptQuality,
+  onGptQualityChange,
+  recraftStyle,
+  onRecraftStyleChange,
 }: GeneratePanelProps) {
+  // Calculate displayed credits based on model-specific options
+  const getDisplayedCredits = () => {
+    if (model === 'fal-ai/gpt-image-1.5') {
+      const tier = GPT_IMAGE_QUALITY_TIERS.find((t) => t.id === gptQuality)
+      return tier?.credits || 4
+    }
+    if (model.includes('recraft') && recraftStyle === 'vector_illustration') {
+      return (selectedModel?.credits || 4) * 2
+    }
+    return selectedModel?.credits || 3
+  }
   return (
     <>
       <div className="relative">
@@ -889,6 +930,43 @@ function GeneratePanel({
           </SelectContent>
         </Select>
 
+        {/* GPT Image Quality Selector */}
+        {model === 'fal-ai/gpt-image-1.5' && (
+          <Select value={gptQuality} onValueChange={onGptQualityChange}>
+            <SelectTrigger className="h-8 w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {GPT_IMAGE_QUALITY_TIERS.map((tier) => (
+                <SelectItem key={tier.id} value={tier.id}>
+                  <span className="flex items-center gap-2">
+                    {tier.name}
+                    <span className="text-xs text-muted-foreground">
+                      {tier.credits}cr
+                    </span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {/* Recraft Style Selector */}
+        {model.includes('recraft') && (
+          <Select value={recraftStyle} onValueChange={onRecraftStyleChange}>
+            <SelectTrigger className="h-8 w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {RECRAFT_STYLES.map((style) => (
+                <SelectItem key={style.id} value={style.id}>
+                  {style.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
         <div className="flex rounded-md border">
           {ASPECT_RATIOS.map((ratio) => (
             <button
@@ -917,7 +995,7 @@ function GeneratePanel({
         </button>
 
         <div className="ml-auto text-xs text-muted-foreground">
-          {selectedModel?.credits || 5} credits
+          {getDisplayedCredits()} credits
         </div>
       </div>
 
