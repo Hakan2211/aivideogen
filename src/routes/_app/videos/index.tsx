@@ -2,7 +2,8 @@
  * Videos Page - Unified Create & Gallery
  *
  * Professional video generation interface with:
- * - Fixed bottom prompt bar with image picker
+ * - 3 Tabs: Text to Video, Image to Video, Keyframes
+ * - Fixed bottom prompt bar with mode-specific inputs
  * - Uniform grid with skeleton placeholders
  * - Hover-to-play video previews
  * - Hover actions (download, use in project, delete)
@@ -25,6 +26,7 @@ import {
   Trash2,
   Video,
   Wand2,
+  X,
 } from 'lucide-react'
 import {
   deleteVideoFn,
@@ -63,6 +65,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../../../components/ui/tooltip'
+import { Switch } from '../../../components/ui/switch'
+import { Label } from '../../../components/ui/label'
+import { VideoModeToggle } from '../../../components/videos/VideoModeToggle'
+import type { VideoMode } from '../../../components/videos/VideoModeToggle'
+import type { VideoModelConfig } from '../../../server/services/types'
 
 export const Route = createFileRoute('/_app/videos/')({
   component: VideosPage,
@@ -74,7 +81,13 @@ interface GeneratedVideo {
   prompt: string | null
   model: string | null
   durationSeconds: number | null
-  metadata: { sourceImageUrl?: string; sourceImageId?: string } | null
+  metadata: {
+    generationType?: string
+    sourceImageUrl?: string
+    sourceImageId?: string
+    firstFrameUrl?: string
+    lastFrameUrl?: string
+  } | null
   createdAt: Date
 }
 
@@ -89,19 +102,33 @@ function VideosPage() {
   const queryClient = useQueryClient()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  // Mode state
+  const [mode, setMode] = useState<VideoMode>('text-to-video')
+
   // Form state
-  const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null)
   const [prompt, setPrompt] = useState('')
-  const [model, setModel] = useState(
-    'fal-ai/kling-video/v1.5/pro/image-to-video',
-  )
-  const [duration, setDuration] = useState<5 | 10>(5)
+  const [model, setModel] = useState('')
+  const [duration, setDuration] = useState<number>(5)
+  const [aspectRatio, setAspectRatio] = useState('16:9')
+  const [generateAudio, setGenerateAudio] = useState(true)
+
+  // Image-to-video state
+  const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null)
+
+  // Keyframes state
+  const [firstFrame, setFirstFrame] = useState<SelectedImage | null>(null)
+  const [lastFrame, setLastFrame] = useState<SelectedImage | null>(null)
+  // Pika multi-keyframe support
+  const [keyframes, setKeyframes] = useState<Array<SelectedImage>>([])
 
   // UI state
   const [selectedVideo, setSelectedVideo] = useState<GeneratedVideo | null>(
     null,
   )
   const [imagePickerOpen, setImagePickerOpen] = useState(false)
+  const [imagePickerTarget, setImagePickerTarget] = useState<
+    'image' | 'first' | 'last' | number
+  >('image')
 
   // Generation state
   const [currentJobId, setCurrentJobId] = useState<string | null>(null)
@@ -117,6 +144,7 @@ function VideosPage() {
       try {
         const data = JSON.parse(stored)
         setSelectedImage({ id: data.id, url: data.url, prompt: null })
+        setMode('image-to-video')
         sessionStorage.removeItem('animateImage')
       } catch {
         // ignore
@@ -129,6 +157,48 @@ function VideosPage() {
     queryKey: ['videoModels'],
     queryFn: () => getVideoModelsFn(),
   })
+
+  // Get filtered models based on current mode
+  const capabilityKey =
+    mode === 'text-to-video'
+      ? 'textToVideo'
+      : mode === 'image-to-video'
+        ? 'imageToVideo'
+        : 'keyframes'
+  const availableModels: Array<VideoModelConfig> =
+    modelsData?.byCapability[capabilityKey] || []
+
+  // Set default model when mode changes
+  useEffect(() => {
+    if (
+      availableModels.length > 0 &&
+      !availableModels.find((m) => m.id === model)
+    ) {
+      setModel(availableModels[0].id)
+      // Reset duration to model default
+      setDuration(availableModels[0].durations[0] || 5)
+    }
+  }, [mode, availableModels, model])
+
+  const selectedModel = availableModels.find((m) => m.id === model)
+
+  // Handle model change - also update duration to a valid value
+  const handleModelChange = (newModelId: string) => {
+    setModel(newModelId)
+    const newModel = availableModels.find((m) => m.id === newModelId)
+    if (newModel && newModel.durations.length > 0) {
+      // Only update duration if current duration is not valid for this model
+      if (!newModel.durations.includes(duration)) {
+        setDuration(newModel.durations[0])
+      }
+    }
+  }
+
+  // Check if selected model is Pika (supports multi-keyframe)
+  const isPikaKeyframes =
+    mode === 'keyframes' &&
+    model.includes('pika') &&
+    model.includes('pikaframes')
 
   // Fetch videos
   const { data: videosData, isLoading: videosLoading } = useQuery({
@@ -143,7 +213,6 @@ function VideosPage() {
     enabled: imagePickerOpen,
   })
 
-  const models = modelsData?.models || []
   const videos = videosData?.videos || []
   const total = videosData?.total || 0
   const hasMore = videos.length + page * limit < total
@@ -221,20 +290,86 @@ function VideosPage() {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [prompt, model, duration, selectedImage])
+  }, [
+    prompt,
+    model,
+    duration,
+    mode,
+    selectedImage,
+    firstFrame,
+    lastFrame,
+    keyframes,
+  ])
+
+  const canGenerate = () => {
+    if (!prompt.trim() || isGenerating) return false
+
+    switch (mode) {
+      case 'text-to-video':
+        return true
+      case 'image-to-video':
+        return !!selectedImage
+      case 'keyframes':
+        if (isPikaKeyframes) {
+          return keyframes.length >= 2
+        }
+        return !!firstFrame && !!lastFrame
+    }
+  }
 
   const handleGenerate = () => {
-    if (!selectedImage || !prompt.trim() || isGenerating) return
+    if (!canGenerate()) return
 
-    generateMutation.mutate({
-      data: {
-        imageUrl: selectedImage.url,
-        prompt: prompt.trim(),
-        model,
-        duration,
-        sourceImageId: selectedImage.id,
-      },
-    })
+    const baseData = {
+      prompt: prompt.trim(),
+      model,
+      duration,
+      generateAudio,
+    }
+
+    if (mode === 'text-to-video') {
+      generateMutation.mutate({
+        data: {
+          ...baseData,
+          generationType: 'text-to-video',
+          aspectRatio,
+        },
+      })
+    } else if (mode === 'image-to-video') {
+      generateMutation.mutate({
+        data: {
+          ...baseData,
+          generationType: 'image-to-video',
+          imageUrl: selectedImage!.url,
+          sourceImageId: selectedImage!.id,
+        },
+      })
+    } else {
+      // mode === 'keyframes'
+      if (isPikaKeyframes && keyframes.length >= 2) {
+        generateMutation.mutate({
+          data: {
+            ...baseData,
+            generationType: 'keyframes',
+            keyframeUrls: keyframes.map((k) => k.url),
+          },
+        })
+      } else {
+        generateMutation.mutate({
+          data: {
+            ...baseData,
+            generationType: 'keyframes',
+            firstFrameUrl: firstFrame!.url,
+            lastFrameUrl: lastFrame!.url,
+          },
+        })
+      }
+    }
+  }
+
+  const openImagePicker = (target: 'image' | 'first' | 'last' | number) => {
+    setImagePickerTarget(target)
+    setImagePickerOpen(true)
   }
 
   const handleImageSelect = (image: {
@@ -242,13 +377,34 @@ function VideosPage() {
     url: string
     prompt: string | null
   }) => {
-    setSelectedImage(image)
-    setImagePickerOpen(false)
-    // Pre-fill prompt if image has one
-    if (image.prompt && !prompt) {
-      setPrompt(`Animate: ${image.prompt}`)
+    if (imagePickerTarget === 'image') {
+      setSelectedImage(image)
+      // Pre-fill prompt if image has one
+      if (image.prompt && !prompt) {
+        setPrompt(`Animate: ${image.prompt}`)
+      }
+    } else if (imagePickerTarget === 'first') {
+      setFirstFrame(image)
+    } else if (imagePickerTarget === 'last') {
+      setLastFrame(image)
+    } else if (typeof imagePickerTarget === 'number') {
+      // Pika multi-keyframe: add at specific index
+      const newKeyframes = [...keyframes]
+      newKeyframes[imagePickerTarget] = image
+      setKeyframes(newKeyframes)
     }
+    setImagePickerOpen(false)
     textareaRef.current?.focus()
+  }
+
+  const addKeyframe = () => {
+    if (keyframes.length < 5) {
+      openImagePicker(keyframes.length)
+    }
+  }
+
+  const removeKeyframe = (index: number) => {
+    setKeyframes(keyframes.filter((_, i) => i !== index))
   }
 
   const handleDownload = (url: string) => {
@@ -265,7 +421,6 @@ function VideosPage() {
   }
 
   const handleAddToProject = () => {
-    // Navigate to projects - asset will be available there
     navigate({ to: '/projects' })
   }
 
@@ -277,19 +432,29 @@ function VideosPage() {
       jobStatus?.status !== 'failed'
     )
 
-  const selectedModel = models.find((m) => m.id === model)
   const progress = jobStatus?.progress || 0
+
+  // Calculate credits (including Pika extra frames)
+  const creditCost = () => {
+    if (!selectedModel) return 0
+    let cost = selectedModel.credits
+    if (isPikaKeyframes && keyframes.length > 2) {
+      cost += (keyframes.length - 2) * 5
+    }
+    return cost
+  }
 
   return (
     <div className="flex h-[calc(100vh-theme(spacing.16))] flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-1 pb-4">
+      {/* Header with Mode Toggle */}
+      <div className="flex flex-wrap items-center justify-between gap-4 px-1 pb-4">
         <div>
           <h1 className="text-2xl font-bold">Videos</h1>
           <p className="text-sm text-muted-foreground">
             {total} video{total !== 1 ? 's' : ''} in your library
           </p>
         </div>
+        <VideoModeToggle mode={mode} onModeChange={setMode} />
       </div>
 
       {/* Main Grid Area - Scrollable */}
@@ -307,8 +472,11 @@ function VideosPage() {
             </div>
             <h3 className="mt-6 text-lg font-medium">No videos yet</h3>
             <p className="mt-2 text-sm text-muted-foreground text-center max-w-sm">
-              Select an image and describe the motion to create your first
-              AI-generated video
+              {mode === 'text-to-video'
+                ? 'Describe your scene to generate a video from text'
+                : mode === 'image-to-video'
+                  ? 'Select an image and describe the motion to animate it'
+                  : 'Add first and last frames to create a transition video'}
             </p>
           </div>
         ) : (
@@ -379,77 +547,199 @@ function VideosPage() {
       {/* Fixed Bottom Prompt Bar */}
       <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:left-64">
         <div className="mx-auto max-w-4xl p-4">
-          {/* Image + Prompt Row */}
-          <div className="flex gap-3">
-            {/* Image Picker Thumbnail */}
-            <button
-              onClick={() => setImagePickerOpen(true)}
-              className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-lg border-2 border-dashed transition-colors hover:border-primary hover:bg-accent/50"
-            >
-              {selectedImage ? (
-                <>
-                  <img
-                    src={selectedImage.url}
-                    alt="Selected"
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity hover:opacity-100">
-                    <span className="text-xs font-medium text-white">
-                      Change
+          {/* Mode-specific inputs */}
+          {mode === 'image-to-video' && (
+            <div className="mb-3 flex gap-3">
+              {/* Image Picker Thumbnail */}
+              <button
+                onClick={() => openImagePicker('image')}
+                className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-lg border-2 border-dashed transition-colors hover:border-primary hover:bg-accent/50"
+              >
+                {selectedImage ? (
+                  <>
+                    <img
+                      src={selectedImage.url}
+                      alt="Selected"
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity hover:opacity-100">
+                      <span className="text-xs font-medium text-white">
+                        Change
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center">
+                    <Plus className="h-5 w-5 text-muted-foreground" />
+                    <span className="mt-1 text-[10px] text-muted-foreground">
+                      Image
                     </span>
                   </div>
-                </>
-              ) : (
-                <div className="flex h-full flex-col items-center justify-center">
-                  <Plus className="h-5 w-5 text-muted-foreground" />
-                  <span className="mt-1 text-[10px] text-muted-foreground">
-                    Image
-                  </span>
-                </div>
-              )}
-            </button>
-
-            {/* Prompt Input */}
-            <div className="relative flex-1">
-              <Textarea
-                ref={textareaRef}
-                placeholder={
-                  selectedImage
-                    ? 'Describe the motion... (Press Enter to generate)'
-                    : 'Select an image first, then describe the motion...'
-                }
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className="min-h-[68px] resize-none pr-24 text-base"
-                rows={1}
-                disabled={!selectedImage}
-              />
-              <Button
-                size="sm"
-                className="absolute bottom-2 right-2"
-                onClick={handleGenerate}
-                disabled={!selectedImage || !prompt.trim() || isGenerating}
-              >
-                {isGenerating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <Wand2 className="mr-1.5 h-4 w-4" />
-                    Generate
-                  </>
                 )}
-              </Button>
+              </button>
+              <div className="flex-1 text-sm text-muted-foreground">
+                <p className="font-medium">First Frame</p>
+                <p>Select an image to animate</p>
+              </div>
             </div>
+          )}
+
+          {mode === 'keyframes' && !isPikaKeyframes && (
+            <div className="mb-3 flex gap-3">
+              {/* First Frame */}
+              <button
+                onClick={() => openImagePicker('first')}
+                className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-lg border-2 border-dashed transition-colors hover:border-primary hover:bg-accent/50"
+              >
+                {firstFrame ? (
+                  <>
+                    <img
+                      src={firstFrame.url}
+                      alt="First frame"
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity hover:opacity-100">
+                      <span className="text-xs font-medium text-white">
+                        Change
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center">
+                    <Plus className="h-5 w-5 text-muted-foreground" />
+                    <span className="mt-1 text-[10px] text-muted-foreground">
+                      First
+                    </span>
+                  </div>
+                )}
+              </button>
+
+              {/* Arrow */}
+              <div className="flex items-center text-muted-foreground">
+                <span className="text-lg">→</span>
+              </div>
+
+              {/* Last Frame */}
+              <button
+                onClick={() => openImagePicker('last')}
+                className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-lg border-2 border-dashed transition-colors hover:border-primary hover:bg-accent/50"
+              >
+                {lastFrame ? (
+                  <>
+                    <img
+                      src={lastFrame.url}
+                      alt="Last frame"
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity hover:opacity-100">
+                      <span className="text-xs font-medium text-white">
+                        Change
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center">
+                    <Plus className="h-5 w-5 text-muted-foreground" />
+                    <span className="mt-1 text-[10px] text-muted-foreground">
+                      Last
+                    </span>
+                  </div>
+                )}
+              </button>
+
+              <div className="flex-1 text-sm text-muted-foreground">
+                <p className="font-medium">Keyframes</p>
+                <p>Create a transition between two images</p>
+              </div>
+            </div>
+          )}
+
+          {/* Pika multi-keyframe UI */}
+          {mode === 'keyframes' && isPikaKeyframes && (
+            <div className="mb-3">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium">
+                  Keyframes ({keyframes.length}/5)
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  Add 2-5 images for smooth transitions
+                </span>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {keyframes.map((kf, index) => (
+                  <div key={index} className="relative">
+                    <button
+                      onClick={() => openImagePicker(index)}
+                      className="relative h-[60px] w-[60px] overflow-hidden rounded-lg border"
+                    >
+                      <img
+                        src={kf.url}
+                        alt={`Frame ${index + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                    </button>
+                    <button
+                      onClick={() => removeKeyframe(index)}
+                      className="absolute -right-1 -top-1 rounded-full bg-destructive p-0.5 text-destructive-foreground"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                {keyframes.length < 5 && (
+                  <button
+                    onClick={addKeyframe}
+                    className="flex h-[60px] w-[60px] items-center justify-center rounded-lg border-2 border-dashed hover:border-primary hover:bg-accent/50"
+                  >
+                    <Plus className="h-5 w-5 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Prompt Input */}
+          <div className="relative">
+            <Textarea
+              ref={textareaRef}
+              placeholder={
+                mode === 'text-to-video'
+                  ? 'Describe your video scene... (Press Enter to generate)'
+                  : mode === 'image-to-video'
+                    ? 'Describe the motion... (Press Enter to generate)'
+                    : 'Describe the transition... (Press Enter to generate)'
+              }
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              className="min-h-[52px] resize-none pr-24 text-base"
+              rows={1}
+            />
+            <Button
+              size="sm"
+              className="absolute bottom-2 right-2"
+              onClick={handleGenerate}
+              disabled={!canGenerate()}
+            >
+              {isGenerating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Wand2 className="mr-1.5 h-4 w-4" />
+                  Generate
+                </>
+              )}
+            </Button>
           </div>
 
           {/* Inline Settings */}
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <Select value={model} onValueChange={setModel}>
-              <SelectTrigger className="h-8 w-44">
-                <SelectValue />
+            {/* Model Selector */}
+            <Select value={model} onValueChange={handleModelChange}>
+              <SelectTrigger className="h-8 w-48">
+                <SelectValue placeholder="Select model" />
               </SelectTrigger>
               <SelectContent>
-                {models.map((m) => (
+                {availableModels.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
                     <span className="flex items-center gap-2">
                       {m.name}
@@ -462,31 +752,58 @@ function VideosPage() {
               </SelectContent>
             </Select>
 
-            <div className="flex rounded-md border">
-              <button
-                onClick={() => setDuration(5)}
-                className={`px-3 py-1 text-xs font-medium transition-colors rounded-l-md ${
-                  duration === 5
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted'
-                }`}
-              >
-                5 sec
-              </button>
-              <button
-                onClick={() => setDuration(10)}
-                className={`px-3 py-1 text-xs font-medium transition-colors rounded-r-md ${
-                  duration === 10
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted'
-                }`}
-              >
-                10 sec
-              </button>
-            </div>
+            {/* Duration */}
+            {selectedModel && selectedModel.durations.length > 1 && (
+              <div className="flex rounded-md border">
+                {selectedModel.durations.map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => setDuration(d)}
+                    className={`px-3 py-1 text-xs font-medium transition-colors first:rounded-l-md last:rounded-r-md ${
+                      duration === d
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-muted'
+                    }`}
+                  >
+                    {d}s
+                  </button>
+                ))}
+              </div>
+            )}
 
+            {/* Aspect Ratio (for text-to-video) */}
+            {mode === 'text-to-video' && selectedModel?.aspectRatios && (
+              <Select value={aspectRatio} onValueChange={setAspectRatio}>
+                <SelectTrigger className="h-8 w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {selectedModel.aspectRatios.map((ar) => (
+                    <SelectItem key={ar} value={ar}>
+                      {ar}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {/* Audio Toggle */}
+            {selectedModel?.supportsAudio && (
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="audio"
+                  checked={generateAudio}
+                  onCheckedChange={setGenerateAudio}
+                />
+                <Label htmlFor="audio" className="text-xs">
+                  Audio
+                </Label>
+              </div>
+            )}
+
+            {/* Credits */}
             <div className="ml-auto text-xs text-muted-foreground">
-              {selectedModel?.credits || 20} credits
+              {creditCost()} credits
             </div>
           </div>
 
@@ -505,7 +822,15 @@ function VideosPage() {
       <Dialog open={imagePickerOpen} onOpenChange={setImagePickerOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Select an image to animate</DialogTitle>
+            <DialogTitle>
+              {imagePickerTarget === 'image'
+                ? 'Select an image to animate'
+                : imagePickerTarget === 'first'
+                  ? 'Select first frame'
+                  : imagePickerTarget === 'last'
+                    ? 'Select last frame'
+                    : `Select frame ${imagePickerTarget + 1}`}
+            </DialogTitle>
           </DialogHeader>
           {imagesLoading ? (
             <div className="flex h-64 items-center justify-center">
@@ -571,7 +896,7 @@ function VideosPage() {
               {selectedVideo.prompt && (
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground">
-                    Motion Prompt
+                    Prompt
                   </h4>
                   <p className="mt-1 text-sm">{selectedVideo.prompt}</p>
                 </div>
@@ -579,6 +904,14 @@ function VideosPage() {
 
               {/* Metadata */}
               <div className="grid grid-cols-2 gap-4 text-sm">
+                {selectedVideo.metadata?.generationType && (
+                  <div>
+                    <span className="text-muted-foreground">Type</span>
+                    <p className="font-medium capitalize">
+                      {selectedVideo.metadata.generationType.replace(/-/g, ' ')}
+                    </p>
+                  </div>
+                )}
                 {selectedVideo.model && (
                   <div>
                     <span className="text-muted-foreground">Model</span>

@@ -194,6 +194,7 @@ export const createVideoJobFn = createServerFn({ method: 'POST' })
     // Start the generation (async)
     try {
       const falJob = await generateVideo({
+        generationType: 'image-to-video',
         imageUrl: data.imageUrl,
         prompt: data.prompt,
         model: modelId,

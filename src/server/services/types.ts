@@ -304,43 +304,328 @@ export const UPSCALE_MODELS: Array<UpscaleModelConfig> = [
   },
 ]
 
-export const VIDEO_MODELS: Array<ModelConfig> = [
+// =============================================================================
+// Video Model Configuration
+// =============================================================================
+
+export type VideoCapability = 'text-to-video' | 'image-to-video' | 'keyframes'
+
+export interface VideoModelConfig extends ModelConfig {
+  capabilities: Array<VideoCapability>
+  // Different endpoints for different modes (some models have separate endpoints)
+  endpoints?: {
+    textToVideo?: string
+    imageToVideo?: string
+    keyframes?: string
+  }
+  // Model-specific parameters
+  durations: Array<number> // Available duration options in seconds
+  aspectRatios?: Array<string> // e.g., ['16:9', '9:16', '1:1']
+  resolutions?: Array<string> // e.g., ['720p', '1080p', '4k']
+  supportsAudio?: boolean // Native audio generation
+  supportsEndFrame?: boolean // For I2V models that support end frame (keyframes)
+  // Field name mappings (models use different field names)
+  fieldMappings?: {
+    imageUrl?: string // 'image_url' | 'start_image_url' | 'first_frame_url'
+    endImageUrl?: string // 'end_image_url' | 'last_frame_url' | 'tail_image_url'
+  }
+}
+
+export const VIDEO_MODELS: Array<VideoModelConfig> = [
+  // =============================================================================
+  // Kling 2.6 Pro - Premium tier with audio
+  // =============================================================================
   {
-    id: 'fal-ai/kling-video/v1.5/pro/image-to-video',
-    name: 'Kling 1.5 Pro',
+    id: 'fal-ai/kling-video/v2.6/pro/text-to-video',
+    name: 'Kling 2.6 Pro',
+    provider: 'fal',
+    credits: 30,
+    description: 'Top-tier text-to-video with native audio',
+    capabilities: ['text-to-video'],
+    durations: [5, 10],
+    aspectRatios: ['16:9', '9:16', '1:1'],
+    supportsAudio: true,
+  },
+  {
+    id: 'fal-ai/kling-video/v2.6/pro/image-to-video',
+    name: 'Kling 2.6 Pro',
+    provider: 'fal',
+    credits: 25,
+    description: 'Top-tier image-to-video with native audio',
+    capabilities: ['image-to-video'],
+    durations: [5, 10],
+    supportsAudio: true,
+    supportsEndFrame: true,
+    fieldMappings: {
+      imageUrl: 'start_image_url',
+      endImageUrl: 'end_image_url',
+    },
+  },
+
+  // =============================================================================
+  // Sora 2 - OpenAI's video model
+  // =============================================================================
+  {
+    id: 'fal-ai/sora-2/text-to-video/pro',
+    name: 'Sora 2 Pro',
+    provider: 'fal',
+    credits: 35,
+    description: 'OpenAI Sora 2 Pro - Premium quality',
+    capabilities: ['text-to-video'],
+    durations: [4, 8, 12],
+    aspectRatios: ['16:9', '9:16'],
+    resolutions: ['720p'],
+  },
+  {
+    id: 'fal-ai/sora-2/text-to-video',
+    name: 'Sora 2',
+    provider: 'fal',
+    credits: 25,
+    description: 'OpenAI Sora 2 - State-of-the-art video',
+    capabilities: ['text-to-video'],
+    durations: [4, 8, 12],
+    aspectRatios: ['16:9', '9:16'],
+    resolutions: ['720p'],
+  },
+  {
+    id: 'fal-ai/sora-2/image-to-video/pro',
+    name: 'Sora 2 Pro',
+    provider: 'fal',
+    credits: 30,
+    description: 'OpenAI Sora 2 Pro image-to-video',
+    capabilities: ['image-to-video'],
+    durations: [4, 8, 12],
+    aspectRatios: ['16:9', '9:16'],
+    resolutions: ['720p'],
+    fieldMappings: {
+      imageUrl: 'image_url',
+    },
+  },
+  {
+    id: 'fal-ai/sora-2/image-to-video',
+    name: 'Sora 2',
+    provider: 'fal',
+    credits: 22,
+    description: 'OpenAI Sora 2 image-to-video',
+    capabilities: ['image-to-video'],
+    durations: [4, 8, 12],
+    aspectRatios: ['16:9', '9:16'],
+    resolutions: ['720p'],
+    fieldMappings: {
+      imageUrl: 'image_url',
+    },
+  },
+
+  // =============================================================================
+  // Veo 3.1 - Google's video model (Premium)
+  // =============================================================================
+  {
+    id: 'fal-ai/veo3.1',
+    name: 'Veo 3.1',
+    provider: 'fal',
+    credits: 40,
+    description: 'Google Veo 3.1 - Most advanced, with audio',
+    capabilities: ['text-to-video'],
+    durations: [4, 6, 8],
+    aspectRatios: ['16:9', '9:16'],
+    resolutions: ['720p', '1080p', '4k'],
+    supportsAudio: true,
+  },
+  {
+    id: 'fal-ai/veo3.1/fast',
+    name: 'Veo 3.1 Fast',
+    provider: 'fal',
+    credits: 25,
+    description: 'Google Veo 3.1 Fast - Quicker generation',
+    capabilities: ['text-to-video'],
+    durations: [4, 6, 8],
+    aspectRatios: ['16:9', '9:16'],
+    resolutions: ['720p', '1080p'],
+    supportsAudio: true,
+  },
+  {
+    id: 'fal-ai/veo3.1/image-to-video',
+    name: 'Veo 3.1',
+    provider: 'fal',
+    credits: 35,
+    description: 'Google Veo 3.1 image-to-video with audio',
+    capabilities: ['image-to-video'],
+    durations: [4, 6, 8],
+    aspectRatios: ['16:9', '9:16'],
+    resolutions: ['720p', '1080p', '4k'],
+    supportsAudio: true,
+    fieldMappings: {
+      imageUrl: 'image_url',
+    },
+  },
+  {
+    id: 'fal-ai/veo3.1/fast/image-to-video',
+    name: 'Veo 3.1 Fast',
+    provider: 'fal',
+    credits: 22,
+    description: 'Google Veo 3.1 Fast image-to-video',
+    capabilities: ['image-to-video'],
+    durations: [4, 6, 8],
+    aspectRatios: ['16:9', '9:16'],
+    resolutions: ['720p', '1080p'],
+    supportsAudio: true,
+    fieldMappings: {
+      imageUrl: 'image_url',
+    },
+  },
+  {
+    id: 'fal-ai/veo3.1/first-last-frame-to-video',
+    name: 'Veo 3.1 Keyframes',
+    provider: 'fal',
+    credits: 50,
+    description: 'Google Veo 3.1 first+last frame to video',
+    capabilities: ['keyframes'],
+    durations: [4, 6, 8],
+    aspectRatios: ['16:9', '9:16'],
+    resolutions: ['720p', '1080p', '4k'],
+    supportsAudio: true,
+    fieldMappings: {
+      imageUrl: 'first_frame_url',
+      endImageUrl: 'last_frame_url',
+    },
+  },
+
+  // =============================================================================
+  // Wan 2.6 - Alibaba (Good value)
+  // =============================================================================
+  {
+    id: 'wan/v2.6/text-to-video',
+    name: 'Wan 2.6',
+    provider: 'fal',
+    credits: 18,
+    description: 'Alibaba Wan 2.6 - Multi-shot support',
+    capabilities: ['text-to-video'],
+    durations: [5, 10, 15],
+    aspectRatios: ['16:9', '9:16', '1:1', '4:3', '3:4'],
+    resolutions: ['720p', '1080p'],
+  },
+  {
+    id: 'wan/v2.6/image-to-video',
+    name: 'Wan 2.6',
+    provider: 'fal',
+    credits: 15,
+    description: 'Alibaba Wan 2.6 image-to-video',
+    capabilities: ['image-to-video'],
+    durations: [5, 10, 15],
+    resolutions: ['720p', '1080p'],
+    fieldMappings: {
+      imageUrl: 'image_url',
+    },
+  },
+
+  // =============================================================================
+  // Seedance 1.5 Pro - ByteDance (with keyframes support)
+  // =============================================================================
+  {
+    id: 'fal-ai/bytedance/seedance/v1.5/pro/text-to-video',
+    name: 'Seedance 1.5 Pro',
     provider: 'fal',
     credits: 20,
-    description: 'Best quality image-to-video, 5-10s clips',
+    description: 'ByteDance Seedance with audio',
+    capabilities: ['text-to-video'],
+    durations: [4, 5, 6, 7, 8, 9, 10, 11, 12],
+    aspectRatios: ['21:9', '16:9', '4:3', '1:1', '3:4', '9:16'],
+    resolutions: ['480p', '720p', '1080p'],
+    supportsAudio: true,
   },
   {
-    id: 'fal-ai/kling-video/v1/pro/image-to-video',
-    name: 'Kling 1.0 Pro',
+    id: 'fal-ai/bytedance/seedance/v1.5/pro/image-to-video',
+    name: 'Seedance 1.5 Pro',
     provider: 'fal',
-    credits: 15,
-    description: 'Good quality, slightly cheaper',
+    credits: 18,
+    description: 'ByteDance Seedance I2V with keyframes',
+    capabilities: ['image-to-video', 'keyframes'],
+    durations: [4, 5, 6, 7, 8, 9, 10, 11, 12],
+    aspectRatios: ['21:9', '16:9', '4:3', '1:1', '3:4', '9:16'],
+    resolutions: ['480p', '720p', '1080p'],
+    supportsAudio: true,
+    supportsEndFrame: true,
+    fieldMappings: {
+      imageUrl: 'image_url',
+      endImageUrl: 'end_image_url',
+    },
   },
+
+  // =============================================================================
+  // MiniMax Hailuo 2.3 - Pro and Standard tiers
+  // =============================================================================
   {
-    id: 'fal-ai/kling-video/v1/standard/image-to-video',
-    name: 'Kling 1.0 Standard',
+    id: 'fal-ai/minimax/hailuo-2.3/pro/text-to-video',
+    name: 'Hailuo 2.3 Pro',
     provider: 'fal',
-    credits: 8,
-    description: 'Fast and affordable',
+    credits: 18,
+    description: 'MiniMax Hailuo Pro - 1080p quality',
+    capabilities: ['text-to-video'],
+    durations: [5], // Fixed duration
   },
   {
-    id: 'fal-ai/minimax/video-01/image-to-video',
-    name: 'MiniMax Video',
+    id: 'fal-ai/minimax/hailuo-2.3/standard/text-to-video',
+    name: 'Hailuo 2.3 Standard',
     provider: 'fal',
     credits: 12,
-    description: 'Alternative video model',
+    description: 'MiniMax Hailuo Standard - Affordable',
+    capabilities: ['text-to-video'],
+    durations: [5],
   },
   {
-    id: 'fal-ai/luma-dream-machine/image-to-video',
-    name: 'Luma Dream Machine',
+    id: 'fal-ai/minimax/hailuo-2.3/pro/image-to-video',
+    name: 'Hailuo 2.3 Pro',
     provider: 'fal',
     credits: 15,
-    description: 'Cinematic style',
+    description: 'MiniMax Hailuo Pro I2V - 1080p',
+    capabilities: ['image-to-video'],
+    durations: [5],
+    fieldMappings: {
+      imageUrl: 'image_url',
+    },
+  },
+  {
+    id: 'fal-ai/minimax/hailuo-2.3/standard/image-to-video',
+    name: 'Hailuo 2.3 Standard',
+    provider: 'fal',
+    credits: 10,
+    description: 'MiniMax Hailuo Standard I2V',
+    capabilities: ['image-to-video'],
+    durations: [5],
+    fieldMappings: {
+      imageUrl: 'image_url',
+    },
+  },
+
+  // =============================================================================
+  // Pika 2.2 - Keyframes specialist
+  // =============================================================================
+  {
+    id: 'fal-ai/pika/v2.2/pikaframes',
+    name: 'Pika 2.2 Pikaframes',
+    provider: 'fal',
+    credits: 20, // Base cost for 2 frames
+    description: 'Pika keyframes - 2-5 images with transitions',
+    capabilities: ['keyframes'],
+    durations: [5, 10], // Per transition, max 25s total
+    resolutions: ['720p', '1080p'],
+    // Pika uses image_urls array, handled specially
   },
 ]
+
+// Helper to get video models by capability
+export function getVideoModelsByCapability(
+  capability: VideoCapability,
+): Array<VideoModelConfig> {
+  return VIDEO_MODELS.filter((m) => m.capabilities.includes(capability))
+}
+
+// Helper to get a video model config by ID
+export function getVideoModelById(
+  modelId: string,
+): VideoModelConfig | undefined {
+  return VIDEO_MODELS.find((m) => m.id === modelId)
+}
 
 export const AUDIO_MODELS: Array<ModelConfig> = [
   {
@@ -527,8 +812,20 @@ export function getDefaultImageModel(): ModelConfig {
   )
 }
 
-export function getDefaultVideoModel(): ModelConfig {
+export function getDefaultVideoModel(): VideoModelConfig {
   return VIDEO_MODELS[0]
+}
+
+export function getDefaultTextToVideoModel(): VideoModelConfig {
+  return getVideoModelsByCapability('text-to-video')[0] || VIDEO_MODELS[0]
+}
+
+export function getDefaultImageToVideoModel(): VideoModelConfig {
+  return getVideoModelsByCapability('image-to-video')[0] || VIDEO_MODELS[0]
+}
+
+export function getDefaultKeyframesModel(): VideoModelConfig {
+  return getVideoModelsByCapability('keyframes')[0] || VIDEO_MODELS[0]
 }
 
 export function getDefaultLlmModel(): ModelConfig {

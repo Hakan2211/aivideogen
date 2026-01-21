@@ -8,7 +8,13 @@
  * - FAL_KEY: Fal.ai API key
  */
 
-import { IMAGE_MODELS, VIDEO_MODELS, getModelById } from './types'
+import {
+  IMAGE_MODELS,
+  VIDEO_MODELS,
+  getModelById,
+  getVideoModelById,
+} from './types'
+import type { VideoModelConfig } from './types'
 
 const MOCK_FAL = process.env.MOCK_GENERATION === 'true'
 const FAL_API_URL = 'https://queue.fal.run'
@@ -29,12 +35,34 @@ export interface ImageGenerationInput {
   style?: string // For Recraft V3
 }
 
+export type VideoGenerationType =
+  | 'text-to-video'
+  | 'image-to-video'
+  | 'keyframes'
+
 export interface VideoGenerationInput {
-  imageUrl: string
   prompt: string
-  model?: string // defaults to kling-1.5
-  duration?: number // seconds (5 or 10)
+  model?: string
+  duration?: number // seconds
   seed?: number
+  // Generation type
+  generationType: VideoGenerationType
+  // For image-to-video
+  imageUrl?: string
+  // For keyframes (first + last frame)
+  firstFrameUrl?: string
+  lastFrameUrl?: string
+  // For Pika multi-keyframe (2-5 images)
+  keyframeUrls?: Array<string>
+  keyframeTransitions?: Array<{
+    duration?: number
+    prompt?: string
+  }>
+  // Optional params
+  aspectRatio?: string // e.g., '16:9', '9:16', '1:1'
+  resolution?: string // e.g., '720p', '1080p', '4k'
+  generateAudio?: boolean
+  negativePrompt?: string
 }
 
 export interface FalQueueResponse {
@@ -170,16 +198,49 @@ export async function generateImage(
 
 /**
  * Start a video generation job (queued)
- * Converts an image to video using specified model
+ * Supports text-to-video, image-to-video, and keyframes generation
  */
 export async function generateVideo(
   input: VideoGenerationInput,
 ): Promise<GenerationJob> {
-  const modelId = input.model || 'fal-ai/kling-video/v1.5/pro/image-to-video'
-  // Validate model exists (throws if not found)
-  getModelById(modelId, VIDEO_MODELS)
+  // Determine default model based on generation type
+  let defaultModelId: string
+  switch (input.generationType) {
+    case 'text-to-video':
+      defaultModelId = 'fal-ai/kling-video/v2.6/pro/text-to-video'
+      break
+    case 'image-to-video':
+      defaultModelId = 'fal-ai/kling-video/v2.6/pro/image-to-video'
+      break
+    case 'keyframes':
+      defaultModelId = 'fal-ai/veo3.1/first-last-frame-to-video'
+      break
+    default:
+      defaultModelId = 'fal-ai/kling-video/v2.6/pro/text-to-video'
+  }
+
+  const modelId = input.model || defaultModelId
+  const modelConfig = getVideoModelById(modelId)
+
+  if (!modelConfig) {
+    throw new Error(`Unknown video model: ${modelId}`)
+  }
+
+  // Validate generation type matches model capabilities
+  if (!modelConfig.capabilities.includes(input.generationType)) {
+    throw new Error(
+      `Model ${modelConfig.name} does not support ${input.generationType}`,
+    )
+  }
+
+  console.log('[FAL] generateVideo called:', {
+    modelId,
+    generationType: input.generationType,
+    prompt: input.prompt.slice(0, 50) + '...',
+  })
 
   if (MOCK_FAL) {
+    console.log('[FAL] Using MOCK mode')
     return mockGenerateJob(modelId)
   }
 
@@ -188,8 +249,10 @@ export async function generateVideo(
     throw new Error('FAL_KEY not configured')
   }
 
-  // Build the request payload
-  const payload = buildVideoPayload(input, modelId)
+  // Build the request payload based on model and generation type
+  const payload = buildVideoPayload(input, modelId, modelConfig)
+
+  console.log('[FAL] Video payload:', JSON.stringify(payload, null, 2))
 
   const response = await fetch(`${FAL_API_URL}/${modelId}`, {
     method: 'POST',
@@ -202,6 +265,7 @@ export async function generateVideo(
 
   if (!response.ok) {
     const error = await response.text()
+    console.error('[FAL] Video submit error:', error)
     throw new Error(`Fal.ai error: ${response.status} - ${error}`)
   }
 
@@ -293,7 +357,7 @@ export async function getJobStatus(
 
   // Map Fal status to our status
   const statusMap: Record<
-    string,
+    FalStatusResponse['status'],
     'pending' | 'processing' | 'completed' | 'failed'
   > = {
     IN_QUEUE: 'pending',
@@ -302,7 +366,7 @@ export async function getJobStatus(
     FAILED: 'failed',
   }
 
-  const status = statusMap[statusData.status] || 'pending'
+  const status = statusMap[statusData.status]
   console.log('[FAL] Mapped status:', statusData.status, '->', status)
 
   // If completed, fetch the result using the response URL provided by Fal.ai
@@ -411,7 +475,7 @@ export function getImageModels() {
 /**
  * Get available video models
  */
-export function getVideoModels() {
+export function getVideoModels(): Array<VideoModelConfig> {
   return VIDEO_MODELS
 }
 
@@ -517,22 +581,174 @@ function buildImagePayload(input: ImageGenerationInput, modelId: string) {
   return payload
 }
 
-function buildVideoPayload(input: VideoGenerationInput, modelId: string) {
-  const payload: Record<string, unknown> = {
-    image_url: input.imageUrl,
-    prompt: input.prompt,
+function buildVideoPayload(
+  input: VideoGenerationInput,
+  modelId: string,
+  modelConfig: VideoModelConfig,
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {}
+
+  // Always include prompt
+  payload.prompt = input.prompt
+
+  // Handle different generation types
+  switch (input.generationType) {
+    case 'text-to-video':
+      // Text-to-video: just prompt + settings
+      // No image required
+      break
+
+    case 'image-to-video': {
+      // Image-to-video: need first frame image
+      const imageField = modelConfig.fieldMappings?.imageUrl || 'image_url'
+      if (!input.imageUrl) {
+        throw new Error('imageUrl is required for image-to-video generation')
+      }
+      payload[imageField] = input.imageUrl
+      break
+    }
+
+    case 'keyframes': {
+      // Keyframes: handle Pika multi-frame vs standard first+last frame
+      if (modelId.includes('pika') && modelId.includes('pikaframes')) {
+        // Pika Pikaframes: uses image_urls array
+        if (input.keyframeUrls && input.keyframeUrls.length >= 2) {
+          payload.image_urls = input.keyframeUrls
+          if (input.keyframeTransitions) {
+            payload.transitions = input.keyframeTransitions
+          }
+        } else if (input.firstFrameUrl && input.lastFrameUrl) {
+          // Fallback to first+last as 2-frame array
+          payload.image_urls = [input.firstFrameUrl, input.lastFrameUrl]
+        } else {
+          throw new Error('Pika keyframes requires at least 2 images')
+        }
+      } else {
+        // Standard first+last frame (Veo 3.1, Seedance)
+        const firstFrameField =
+          modelConfig.fieldMappings?.imageUrl || 'first_frame_url'
+        const lastFrameField =
+          modelConfig.fieldMappings?.endImageUrl || 'last_frame_url'
+
+        if (!input.firstFrameUrl || !input.lastFrameUrl) {
+          throw new Error(
+            'firstFrameUrl and lastFrameUrl are required for keyframes generation',
+          )
+        }
+        payload[firstFrameField] = input.firstFrameUrl
+        payload[lastFrameField] = input.lastFrameUrl
+      }
+      break
+    }
   }
 
-  // Kling-specific settings
-  if (modelId.includes('kling')) {
-    payload.duration = input.duration === 10 ? '10' : '5'
+  // =============================================================================
+  // Model-specific payload building
+  // =============================================================================
+
+  // --- Kling 2.6 ---
+  // Kling API expects duration as a NUMBER (5, 10)
+  if (modelId.includes('kling-video/v2.6')) {
+    payload.duration = input.duration || 5
+    // Aspect ratio (for text-to-video)
+    if (input.aspectRatio) {
+      payload.aspect_ratio = input.aspectRatio
+    }
+    // Audio generation
+    if (input.generateAudio !== undefined) {
+      payload.generate_audio = input.generateAudio
+    } else {
+      payload.generate_audio = true // default on
+    }
+    // Negative prompt
+    if (input.negativePrompt) {
+      payload.negative_prompt = input.negativePrompt
+    }
   }
 
-  // Luma-specific settings
-  if (modelId.includes('luma')) {
-    payload.aspect_ratio = '9:16' // vertical by default
+  // --- Sora 2 ---
+  // Sora API expects duration as a NUMBER (4, 8, 12)
+  else if (modelId.includes('sora-2')) {
+    payload.duration = input.duration || 4
+    if (input.aspectRatio) {
+      payload.aspect_ratio = input.aspectRatio
+    }
+    if (input.resolution) {
+      payload.resolution = input.resolution
+    }
   }
 
+  // --- Veo 3.1 ---
+  // Veo API expects duration with 's' suffix: '4s', '6s', '8s'
+  else if (modelId.includes('veo3.1')) {
+    const dur = input.duration || 8
+    payload.duration = `${dur}s`
+    if (input.aspectRatio) {
+      payload.aspect_ratio = input.aspectRatio
+    }
+    if (input.resolution) {
+      payload.resolution = input.resolution
+    }
+    if (input.generateAudio !== undefined) {
+      payload.generate_audio = input.generateAudio
+    } else {
+      payload.generate_audio = true
+    }
+    if (input.negativePrompt) {
+      payload.negative_prompt = input.negativePrompt
+    }
+  }
+
+  // --- Wan 2.6 ---
+  // Wan API expects duration as a NUMBER (5)
+  else if (modelId.includes('wan/v2.6')) {
+    payload.duration = input.duration || 5
+    if (input.aspectRatio) {
+      payload.aspect_ratio = input.aspectRatio
+    }
+    if (input.resolution) {
+      payload.resolution = input.resolution
+    }
+    if (input.negativePrompt) {
+      payload.negative_prompt = input.negativePrompt
+    }
+  }
+
+  // --- Seedance 1.5 ---
+  // Seedance API expects duration as a NUMBER (5, 10)
+  else if (modelId.includes('seedance')) {
+    payload.duration = input.duration || 5
+    if (input.aspectRatio) {
+      payload.aspect_ratio = input.aspectRatio
+    }
+    if (input.resolution) {
+      payload.resolution = input.resolution
+    }
+    if (input.generateAudio !== undefined) {
+      payload.generate_audio = input.generateAudio
+    } else {
+      payload.generate_audio = true
+    }
+  }
+
+  // --- MiniMax Hailuo ---
+  // Hailuo has fixed duration, uses prompt_optimizer
+  else if (modelId.includes('minimax/hailuo')) {
+    payload.prompt_optimizer = true
+  }
+
+  // --- Pika ---
+  // Pika uses transition-based timing, no duration param
+  else if (modelId.includes('pika')) {
+    if (input.resolution) {
+      payload.resolution = input.resolution
+    }
+    if (input.negativePrompt) {
+      payload.negative_prompt = input.negativePrompt
+    }
+  }
+
+  // Common: seed
   if (input.seed !== undefined) {
     payload.seed = input.seed
   }

@@ -21,7 +21,6 @@ export {
   AUDIO_MODELS,
   EDIT_MODELS,
   UPSCALE_MODELS,
-  VARIATION_MODELS,
   // Types
   type ModelConfig,
   type JobType,
@@ -43,7 +42,6 @@ export {
   getDefaultAudioModel,
   getDefaultEditModel,
   getDefaultUpscaleModel,
-  getDefaultVariationModel,
   createEmptyManifest,
 } from './types'
 
@@ -87,14 +85,11 @@ export {
 export {
   editImage,
   upscaleImage,
-  createVariation,
   getEditJobStatus,
   getEditModels,
   getUpscaleModels,
-  getVariationModels,
   type EditInput,
   type UpscaleInput,
-  type VariationInput,
   type EditJob,
   type FalEditResult,
 } from './edit.service'

@@ -1,8 +1,8 @@
 /**
  * Video Server Functions
  *
- * Server functions for AI video generation (image-to-video) using Fal.ai.
- * Handles generation jobs, asset creation, and user video library.
+ * Server functions for AI video generation using Fal.ai.
+ * Supports text-to-video, image-to-video, and keyframes generation.
  */
 
 import { createServerFn } from '@tanstack/react-start'
@@ -14,20 +14,53 @@ import {
   getJobStatus,
   getVideoModels,
 } from './services/fal.service'
-import { VIDEO_MODELS, getModelById } from './services/types'
+import { getVideoModelById } from './services/types'
 import type { FalVideoResult } from './services/fal.service'
 
 // =============================================================================
 // Schemas
 // =============================================================================
 
+const generationTypeSchema = z.enum([
+  'text-to-video',
+  'image-to-video',
+  'keyframes',
+])
+
+const keyframeTransitionSchema = z.object({
+  duration: z.number().optional(),
+  prompt: z.string().optional(),
+})
+
 const generateVideoSchema = z.object({
-  imageUrl: z.string().url(),
+  // Required
   prompt: z.string().min(1).max(2000),
-  model: z.string().optional(), // defaults to kling-1.5
-  duration: z.number().min(5).max(10).optional(), // 5 or 10 seconds
-  projectId: z.string().optional(), // optional project association
-  sourceImageId: z.string().optional(), // track which image was used
+  generationType: generationTypeSchema,
+
+  // Model selection
+  model: z.string().optional(),
+
+  // For image-to-video
+  imageUrl: z.string().url().optional(),
+  sourceImageId: z.string().optional(),
+
+  // For keyframes (first + last frame)
+  firstFrameUrl: z.string().url().optional(),
+  lastFrameUrl: z.string().url().optional(),
+
+  // For Pika multi-keyframe (2-5 images)
+  keyframeUrls: z.array(z.string().url()).min(2).max(5).optional(),
+  keyframeTransitions: z.array(keyframeTransitionSchema).optional(),
+
+  // Generation settings
+  duration: z.number().min(4).max(15).optional(),
+  aspectRatio: z.string().optional(),
+  resolution: z.string().optional(),
+  generateAudio: z.boolean().optional(),
+  negativePrompt: z.string().optional(),
+
+  // Project association
+  projectId: z.string().optional(),
 })
 
 const listVideosSchema = z.object({
@@ -49,18 +82,54 @@ const jobIdSchema = z.object({
 // =============================================================================
 
 /**
- * Start a video generation job (image-to-video)
+ * Start a video generation job
+ * Supports text-to-video, image-to-video, and keyframes generation
  * Returns job ID for polling status
  */
 export const generateVideoFn = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
   .inputValidator(generateVideoSchema)
   .handler(async ({ data, context }) => {
-    const modelId = data.model || 'fal-ai/kling-video/v1.5/pro/image-to-video'
-    const modelConfig = getModelById(modelId, VIDEO_MODELS)
+    // Determine default model based on generation type
+    let defaultModelId: string
+    switch (data.generationType) {
+      case 'text-to-video':
+        defaultModelId = 'fal-ai/kling-video/v2.6/pro/text-to-video'
+        break
+      case 'image-to-video':
+        defaultModelId = 'fal-ai/kling-video/v2.6/pro/image-to-video'
+        break
+      case 'keyframes':
+        defaultModelId = 'fal-ai/veo3.1/first-last-frame-to-video'
+        break
+    }
+
+    const modelId = data.model || defaultModelId
+    const modelConfig = getVideoModelById(modelId)
 
     if (!modelConfig) {
-      throw new Error(`Unknown model: ${modelId}`)
+      throw new Error(`Unknown video model: ${modelId}`)
+    }
+
+    // Validate model supports the requested generation type
+    if (!modelConfig.capabilities.includes(data.generationType)) {
+      throw new Error(
+        `Model ${modelConfig.name} does not support ${data.generationType}`,
+      )
+    }
+
+    // Validate required inputs based on generation type
+    if (data.generationType === 'image-to-video' && !data.imageUrl) {
+      throw new Error('imageUrl is required for image-to-video generation')
+    }
+    if (
+      data.generationType === 'keyframes' &&
+      !data.keyframeUrls &&
+      (!data.firstFrameUrl || !data.lastFrameUrl)
+    ) {
+      throw new Error(
+        'Either keyframeUrls or both firstFrameUrl and lastFrameUrl are required for keyframes generation',
+      )
     }
 
     // Check user credits (admins have unlimited)
@@ -70,18 +139,40 @@ export const generateVideoFn = createServerFn({ method: 'POST' })
       select: { credits: true },
     })
 
-    if (!isAdmin && (!user || user.credits < modelConfig.credits)) {
+    // Calculate credits (for Pika, add extra per additional frame)
+    let creditCost = modelConfig.credits
+    if (
+      modelId.includes('pika') &&
+      data.keyframeUrls &&
+      data.keyframeUrls.length > 2
+    ) {
+      creditCost += (data.keyframeUrls.length - 2) * 5 // +5 per extra frame
+    }
+
+    if (!isAdmin && (!user || user.credits < creditCost)) {
       throw new Error(
-        `Insufficient credits. Required: ${modelConfig.credits}, Available: ${user?.credits || 0}`,
+        `Insufficient credits. Required: ${creditCost}, Available: ${user?.credits || 0}`,
       )
     }
 
     // Start generation job via Fal.ai
     const job = await generateVideo({
-      imageUrl: data.imageUrl,
+      generationType: data.generationType,
       prompt: data.prompt,
       model: modelId,
-      duration: data.duration || 5,
+      duration: data.duration,
+      // Image-to-video
+      imageUrl: data.imageUrl,
+      // Keyframes
+      firstFrameUrl: data.firstFrameUrl,
+      lastFrameUrl: data.lastFrameUrl,
+      keyframeUrls: data.keyframeUrls,
+      keyframeTransitions: data.keyframeTransitions,
+      // Settings
+      aspectRatio: data.aspectRatio,
+      resolution: data.resolution,
+      generateAudio: data.generateAudio,
+      negativePrompt: data.negativePrompt,
     })
 
     // Create job record in database with Fal.ai URLs for status polling
@@ -94,17 +185,28 @@ export const generateVideoFn = createServerFn({ method: 'POST' })
         provider: 'fal',
         model: modelId,
         input: JSON.stringify({
-          imageUrl: data.imageUrl,
+          generationType: data.generationType,
           prompt: data.prompt,
-          duration: data.duration || 5,
+          duration: data.duration,
+          // Image-to-video
+          imageUrl: data.imageUrl,
           sourceImageId: data.sourceImageId,
+          // Keyframes
+          firstFrameUrl: data.firstFrameUrl,
+          lastFrameUrl: data.lastFrameUrl,
+          keyframeUrls: data.keyframeUrls,
+          keyframeTransitions: data.keyframeTransitions,
+          // Settings
+          aspectRatio: data.aspectRatio,
+          resolution: data.resolution,
+          generateAudio: data.generateAudio,
         }),
         externalId: job.requestId,
         // Store Fal.ai URLs for reliable status polling
         statusUrl: job.statusUrl,
         responseUrl: job.responseUrl,
         cancelUrl: job.cancelUrl,
-        creditsUsed: modelConfig.credits,
+        creditsUsed: creditCost,
       },
     })
 
@@ -112,7 +214,7 @@ export const generateVideoFn = createServerFn({ method: 'POST' })
     if (!isAdmin) {
       await prisma.user.update({
         where: { id: context.user.id },
-        data: { credits: { decrement: modelConfig.credits } },
+        data: { credits: { decrement: creditCost } },
       })
     }
 
@@ -120,8 +222,9 @@ export const generateVideoFn = createServerFn({ method: 'POST' })
       jobId: dbJob.id,
       externalId: job.requestId,
       model: modelId,
-      credits: modelConfig.credits,
+      credits: creditCost,
       status: 'pending',
+      generationType: data.generationType,
     }
   })
 
@@ -365,12 +468,23 @@ export const deleteVideoFn = createServerFn({ method: 'POST' })
 // =============================================================================
 
 /**
- * Get available video models
+ * Get available video models with capabilities
  */
 export const getVideoModelsFn = createServerFn({ method: 'GET' }).handler(
   () => {
+    const models = getVideoModels()
     return {
-      models: getVideoModels(),
+      models,
+      // Group by capability for easy UI filtering
+      byCapability: {
+        textToVideo: models.filter((m) =>
+          m.capabilities.includes('text-to-video'),
+        ),
+        imageToVideo: models.filter((m) =>
+          m.capabilities.includes('image-to-video'),
+        ),
+        keyframes: models.filter((m) => m.capabilities.includes('keyframes')),
+      },
     }
   },
 )

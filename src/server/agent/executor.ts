@@ -286,6 +286,7 @@ export async function executeGenerateVideo(
 
     // Start async generation
     const falJob = await generateVideo({
+      generationType: 'image-to-video',
       imageUrl: imageAsset.storageUrl,
       prompt: args.motionPrompt,
       model:
