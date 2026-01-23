@@ -298,6 +298,9 @@ function ImagesPage() {
       return loadedCount < lastPage.total ? allPages.length : undefined
     },
     initialPageParam: 0,
+    staleTime: 1000 * 60 * 5, // 5 minutes - data stays fresh
+    gcTime: 1000 * 60 * 30, // 30 minutes - keep in cache
+    refetchOnWindowFocus: false, // Prevent refetch on tab switch
   })
 
   const models = modelsData?.models || []
