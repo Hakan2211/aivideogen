@@ -247,12 +247,36 @@ export const getImageJobStatusFn = createServerFn({ method: 'GET' })
     }
 
     console.log('[IMAGE] Polling FAL for status using stored URLs...')
-    const falStatus = await getJobStatus(job.statusUrl, job.responseUrl)
-    console.log('[IMAGE] FAL status response:', {
-      status: falStatus.status,
-      hasResult: !!falStatus.result,
-      progress: falStatus.progress,
-    })
+    let falStatus: Awaited<ReturnType<typeof getJobStatus>>
+    try {
+      falStatus = await getJobStatus(job.statusUrl, job.responseUrl)
+      console.log('[IMAGE] FAL status response:', {
+        status: falStatus.status,
+        hasResult: !!falStatus.result,
+        progress: falStatus.progress,
+      })
+    } catch (pollError) {
+      // Handle unexpected errors during status polling
+      const errorMessage =
+        pollError instanceof Error ? pollError.message : 'Status check failed'
+      console.error('[IMAGE] Status polling error:', errorMessage)
+
+      // Update job as failed in database
+      await prisma.generationJob.update({
+        where: { id: job.id },
+        data: {
+          status: 'failed',
+          error: errorMessage,
+        },
+      })
+
+      return {
+        jobId: job.id,
+        status: 'failed' as const,
+        progress: 0,
+        error: errorMessage,
+      }
+    }
 
     // Update job status in database
     if (falStatus.status === 'completed' && falStatus.result) {

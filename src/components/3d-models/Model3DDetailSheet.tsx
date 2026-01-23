@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/sheet'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Model3DViewer } from './Model3DViewer'
 import { get3DModelFn } from '@/server/model3d.fn'
 import { get3DModelById } from '@/server/services/types'
@@ -44,6 +45,7 @@ export function Model3DDetailSheet({
   onDelete,
 }: Model3DDetailSheetProps) {
   const [copiedPrompt, setCopiedPrompt] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   const { data: asset, isLoading } = useQuery({
     queryKey: ['3d-model', assetId],
@@ -73,10 +75,13 @@ export function Model3DDetailSheet({
 
   const handleDelete = () => {
     if (!assetId) return
-    if (confirm('Are you sure you want to delete this 3D model?')) {
-      onDelete?.(assetId)
-      onOpenChange(false)
-    }
+    setDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (!assetId) return
+    onDelete?.(assetId)
+    onOpenChange(false)
   }
 
   const availableFormats = asset?.modelUrls
@@ -324,6 +329,17 @@ export function Model3DDetailSheet({
           </div>
         )}
       </SheetContent>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete 3D Model?"
+        description="This action cannot be undone. The 3D model will be permanently removed from your library."
+        confirmText="Delete"
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+      />
     </Sheet>
   )
 }

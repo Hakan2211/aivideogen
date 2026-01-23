@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../components/ui/select'
+import { ConfirmDialog } from '../../../components/ui/confirm-dialog'
 
 export const Route = createFileRoute('/_app/projects/')({
   component: ProjectsPage,
@@ -48,6 +49,10 @@ function ProjectsPage() {
   const queryClient = useQueryClient()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean
+    projectId: string | null
+  }>({ open: false, projectId: null })
   const [aspectRatio, setAspectRatio] = useState('vertical')
 
   // Fetch projects
@@ -96,9 +101,12 @@ function ProjectsPage() {
   const handleDeleteProject = (projectId: string, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (confirm('Are you sure you want to delete this project?')) {
-      deleteMutation.mutate({ data: { projectId } })
-    }
+    setDeleteDialog({ open: true, projectId })
+  }
+
+  const handleConfirmDelete = () => {
+    if (!deleteDialog.projectId) return
+    deleteMutation.mutate({ data: { projectId: deleteDialog.projectId } })
   }
 
   const formatDuration = (frames: number, fps: number = 30) => {
@@ -310,6 +318,18 @@ function ProjectsPage() {
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog((prev) => ({ ...prev, open }))}
+        title="Delete Project?"
+        description="This action cannot be undone. The project and all its contents will be permanently removed."
+        confirmText="Delete"
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }

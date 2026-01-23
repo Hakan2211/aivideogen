@@ -48,6 +48,7 @@ import type {
 import {
   deleteImageFn,
   generateImageFn,
+  getImageFn,
   getImageJobStatusFn,
   getImageModelsFn,
   listUserImagesFn,
@@ -90,11 +91,13 @@ import {
   UploadDropZone,
   UpscalePanel,
 } from '@/components/images'
+import { BeforeAfterSlider } from '@/components/images/BeforeAfterSlider'
 import {
   GPT_IMAGE_QUALITY_TIERS,
   RECRAFT_STYLES,
   getEditModelById,
 } from '@/server/services/types'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export const Route = createFileRoute('/_app/images/')({
   component: ImagesPage,
@@ -141,7 +144,15 @@ interface GeneratedImage {
   url: string
   prompt: string | null
   model: string | null
-  metadata: { width?: number; height?: number; seed?: number } | null
+  metadata: {
+    width?: number
+    height?: number
+    seed?: number
+    // Source tracking for before/after comparison
+    sourceAssetId?: string // For edit/upscale/aging single mode
+    motherAssetId?: string // For aging multi mode
+    fatherAssetId?: string // For aging multi mode
+  } | null
   createdAt: Date
 }
 
@@ -232,6 +243,20 @@ function ImagesPage() {
     'generate' | 'edit' | 'upscale' | 'aging' | null
   >(null)
 
+  // Completed result for before/after comparison in preview area
+  const [completedResult, setCompletedResult] = useState<{
+    sourceUrl: string // Empty string for aging multi mode (no comparison)
+    resultUrl: string
+    resultAssetId: string // Needed for delete/animate actions
+  } | null>(null)
+
+  // Delete confirmation dialog state
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean
+    imageId: string | null
+    onSuccess?: () => void
+  }>({ open: false, imageId: null })
+
   // Pagination
   const limit = 20
   const loadMoreRef = useRef<HTMLDivElement>(null)
@@ -240,6 +265,8 @@ function ImagesPage() {
   const handleModeChange = useCallback(
     (newMode: ImageMode) => {
       setMode(newMode)
+      // Clear comparison when switching modes
+      setCompletedResult(null)
       navigate({
         to: '/images',
         search: { mode: newMode },
@@ -342,7 +369,7 @@ function ImagesPage() {
   })
 
   // Poll job status (for generate)
-  const { data: jobStatus } = useQuery({
+  const { data: jobStatus, error: jobStatusError } = useQuery({
     queryKey: ['imageJob', currentJobId],
     queryFn: () => getImageJobStatusFn({ data: { jobId: currentJobId! } }),
     enabled: !!currentJobId && currentJobType === 'generate',
@@ -356,7 +383,7 @@ function ImagesPage() {
   })
 
   // Poll edit job status (edit, upscale)
-  const { data: editJobStatus } = useQuery({
+  const { data: editJobStatus, error: editJobStatusError } = useQuery({
     queryKey: ['editJob', currentJobId],
     queryFn: () => getEditJobStatusFn({ data: { jobId: currentJobId! } }),
     enabled:
@@ -372,7 +399,7 @@ function ImagesPage() {
   })
 
   // Poll aging job status
-  const { data: agingJobStatus } = useQuery({
+  const { data: agingJobStatus, error: agingJobStatusError } = useQuery({
     queryKey: ['agingJob', currentJobId],
     queryFn: () => getAgingJobStatusFn({ data: { jobId: currentJobId! } }),
     enabled: !!currentJobId && currentJobType === 'aging',
@@ -385,22 +412,74 @@ function ImagesPage() {
     },
   })
 
-  // Handle job completion
+  // Handle job completion or failure
   useEffect(() => {
     let status
+    let queryError: Error | null = null
     if (currentJobType === 'generate') {
       status = jobStatus
+      queryError = jobStatusError
     } else if (currentJobType === 'aging') {
       status = agingJobStatus
+      queryError = agingJobStatusError
     } else {
       status = editJobStatus
+      queryError = editJobStatusError
     }
+
+    // Handle completion
     if (status?.status === 'completed') {
+      // Extract result URL and asset ID from output
+      const resultUrl =
+        status.output?.url || status.output?.images?.[0]?.url || null
+      const resultAssetId =
+        status.output?.assetId || status.output?.images?.[0]?.assetId || ''
+
+      if (resultUrl && currentJobType !== 'generate') {
+        // For aging multi mode (two parents), skip comparison - just show result
+        if (currentJobType === 'aging' && agingSubMode === 'multi') {
+          setCompletedResult({
+            sourceUrl: '', // Empty = no comparison, just show result
+            resultUrl,
+            resultAssetId,
+          })
+        } else {
+          // For edit/upscale/aging single - show comparison
+          const sourceUrl = selectedEditImages[0]?.url || ''
+          setCompletedResult({
+            sourceUrl,
+            resultUrl,
+            resultAssetId,
+          })
+        }
+      }
+
       setCurrentJobId(null)
       setCurrentJobType(null)
       queryClient.invalidateQueries({ queryKey: ['images'] })
     }
-  }, [jobStatus, editJobStatus, agingJobStatus, currentJobType, queryClient])
+
+    // Handle failure - show toast and clear job state
+    if (status?.status === 'failed' || queryError) {
+      const errorMessage =
+        status?.error ||
+        (queryError instanceof Error ? queryError.message : 'Generation failed')
+      toast.error(errorMessage)
+      setCurrentJobId(null)
+      setCurrentJobType(null)
+    }
+  }, [
+    jobStatus,
+    editJobStatus,
+    agingJobStatus,
+    jobStatusError,
+    editJobStatusError,
+    agingJobStatusError,
+    currentJobType,
+    queryClient,
+    agingSubMode,
+    selectedEditImages,
+  ])
 
   // Auto-resize textarea
   const adjustTextareaHeight = useCallback(() => {
@@ -568,9 +647,21 @@ function ImagesPage() {
   }
 
   const handleDelete = (imageId: string) => {
-    if (confirm('Delete this image?')) {
-      deleteMutation.mutate({ data: { imageId } })
-    }
+    setDeleteDialog({ open: true, imageId, onSuccess: undefined })
+  }
+
+  const handleConfirmDelete = () => {
+    if (!deleteDialog.imageId) return
+
+    deleteMutation.mutate(
+      { data: { imageId: deleteDialog.imageId } },
+      {
+        onSuccess: () => {
+          deleteDialog.onSuccess?.()
+          toast.success('Image deleted')
+        },
+      },
+    )
   }
 
   const handleAnimate = (image: GeneratedImage) => {
@@ -589,6 +680,64 @@ function ImagesPage() {
     handleModeChange('edit')
   }
 
+  // Handle ending comparison - set result as new selected image
+  const handleEndComparison = () => {
+    if (completedResult) {
+      // Set the result as the new selected image (so it can be edited/upscaled again)
+      setSelectedEditImages([
+        {
+          id: completedResult.resultAssetId,
+          url: completedResult.resultUrl,
+          prompt: null,
+        },
+      ])
+      setCompletedResult(null)
+    }
+  }
+
+  // Handle animating the selected/result image
+  const handleAnimateSelected = () => {
+    // Get current action image (result if comparing, otherwise selected)
+    const actionImage = completedResult
+      ? { id: completedResult.resultAssetId, url: completedResult.resultUrl }
+      : selectedEditImages.length === 1
+        ? { id: selectedEditImages[0].id, url: selectedEditImages[0].url }
+        : null
+
+    if (!actionImage) return
+
+    sessionStorage.setItem(
+      'animateImage',
+      JSON.stringify({
+        url: actionImage.url,
+        id: actionImage.id,
+      }),
+    )
+    navigate({ to: '/videos' })
+  }
+
+  // Handle deleting the selected/result image
+  const handleDeleteSelected = () => {
+    // Get current action image (result if comparing, otherwise selected)
+    const actionImage = completedResult
+      ? { id: completedResult.resultAssetId, url: completedResult.resultUrl }
+      : selectedEditImages.length === 1
+        ? { id: selectedEditImages[0].id, url: selectedEditImages[0].url }
+        : null
+
+    if (!actionImage?.id) return
+
+    setDeleteDialog({
+      open: true,
+      imageId: actionImage.id,
+      onSuccess: () => {
+        // Clear both states to reset preview area
+        setCompletedResult(null)
+        setSelectedEditImages([])
+      },
+    })
+  }
+
   // Get current model's max images
   const currentEditModelConfig = getEditModelById(editModel)
   const maxImagesForModel = currentEditModelConfig?.maxImages || 1
@@ -599,6 +748,11 @@ function ImagesPage() {
     url: string
     prompt: string | null
   }) => {
+    // Clear comparison when selecting a new image
+    if (completedResult) {
+      setCompletedResult(null)
+    }
+
     setSelectedEditImages((prev) => {
       const isAlreadySelected = prev.some((img) => img.id === image.id)
 
@@ -647,12 +801,16 @@ function ImagesPage() {
     !!(
       currentJobId &&
       (currentJobType === 'generate'
-        ? jobStatus?.status !== 'completed' && jobStatus?.status !== 'failed'
+        ? jobStatus?.status !== 'completed' &&
+          jobStatus?.status !== 'failed' &&
+          !jobStatusError
         : currentJobType === 'aging'
           ? agingJobStatus?.status !== 'completed' &&
-            agingJobStatus?.status !== 'failed'
+            agingJobStatus?.status !== 'failed' &&
+            !agingJobStatusError
           : editJobStatus?.status !== 'completed' &&
-            editJobStatus?.status !== 'failed')
+            editJobStatus?.status !== 'failed' &&
+            !editJobStatusError)
     )
 
   const selectedModel = models.find((m) => m.id === model)
@@ -667,7 +825,20 @@ function ImagesPage() {
     generateMutation.error ||
     editMutation.error ||
     upscaleMutation.error ||
-    agingMutation.error
+    agingMutation.error ||
+    jobStatusError ||
+    editJobStatusError ||
+    agingJobStatusError
+
+  // Get the current image to act on (result if comparing, otherwise selected single image)
+  const currentActionImage = completedResult
+    ? { id: completedResult.resultAssetId, url: completedResult.resultUrl }
+    : selectedEditImages.length === 1
+      ? { id: selectedEditImages[0].id, url: selectedEditImages[0].url }
+      : null
+
+  // Check if multi-image is selected (for tooltip on disabled buttons)
+  const isMultiImageSelected = selectedEditImages.length > 1
 
   return (
     <div className="flex h-[calc(100vh-theme(spacing.16))] flex-col">
@@ -866,7 +1037,25 @@ function ImagesPage() {
             {/* Preview Area - Premium Styling */}
             <div className="space-y-4">
               <div className="aspect-square rounded-2xl border border-border/30 bg-card/30 overflow-hidden shadow-lg">
-                {selectedEditImages.length > 0 ? (
+                {completedResult ? (
+                  // Show comparison slider OR just result (for aging multi)
+                  completedResult.sourceUrl ? (
+                    <BeforeAfterSlider
+                      beforeImage={completedResult.sourceUrl}
+                      afterImage={completedResult.resultUrl}
+                      beforeLabel="Original"
+                      afterLabel="Result"
+                      className="h-full w-full"
+                    />
+                  ) : (
+                    // Aging multi mode - just show result
+                    <img
+                      src={completedResult.resultUrl}
+                      alt="Result"
+                      className="h-full w-full object-cover"
+                    />
+                  )
+                ) : selectedEditImages.length > 0 ? (
                   selectedEditImages.length === 1 ? (
                     // Single image preview - fills container
                     <img
@@ -914,6 +1103,95 @@ function ImagesPage() {
                   </div>
                 )}
               </div>
+
+              {/* End Comparison button - ONLY shown during comparison */}
+              {completedResult && (
+                <Button
+                  variant="outline"
+                  className="w-full rounded-xl border-border/50 hover:bg-primary/10 hover:border-primary/30"
+                  onClick={handleEndComparison}
+                >
+                  End Comparison
+                </Button>
+              )}
+
+              {/* Action buttons - shown when there's a single image OR during comparison */}
+              {(currentActionImage || isMultiImageSelected) && (
+                <div className="grid grid-cols-3 gap-3">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="w-full">
+                          <Button
+                            variant="outline"
+                            className="w-full rounded-xl border-border/50 hover:bg-primary/10 hover:border-primary/30 disabled:opacity-50"
+                            disabled={isMultiImageSelected}
+                            onClick={() =>
+                              currentActionImage &&
+                              handleDownload(currentActionImage.url)
+                            }
+                          >
+                            <Download className="mr-2 h-4 w-4" />
+                            Download
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {isMultiImageSelected && (
+                        <TooltipContent>
+                          Select a single image for actions
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="w-full">
+                          <Button
+                            variant="outline"
+                            className="w-full rounded-xl border-border/50 hover:bg-primary/10 hover:border-primary/30 disabled:opacity-50"
+                            disabled={isMultiImageSelected}
+                            onClick={handleAnimateSelected}
+                          >
+                            <Play className="mr-2 h-4 w-4" />
+                            Animate
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {isMultiImageSelected && (
+                        <TooltipContent>
+                          Select a single image for actions
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="w-full">
+                          <Button
+                            variant="outline"
+                            className="w-full rounded-xl border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive/30 disabled:opacity-50"
+                            disabled={isMultiImageSelected}
+                            onClick={handleDeleteSelected}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {isMultiImageSelected && (
+                        <TooltipContent>
+                          Select a single image for actions
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
+
               {isGenerating && (
                 <div className="flex items-center gap-3 rounded-xl bg-primary/10 border border-primary/20 px-4 py-3">
                   <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -1054,7 +1332,10 @@ function ImagesPage() {
               error={
                 editMutation.error instanceof Error
                   ? editMutation.error.message
-                  : editJobStatus?.error
+                  : editJobStatus?.error ||
+                    (editJobStatusError instanceof Error
+                      ? editJobStatusError.message
+                      : undefined)
               }
             />
           )}
@@ -1090,7 +1371,10 @@ function ImagesPage() {
               error={
                 upscaleMutation.error instanceof Error
                   ? upscaleMutation.error.message
-                  : editJobStatus?.error
+                  : editJobStatus?.error ||
+                    (editJobStatusError instanceof Error
+                      ? editJobStatusError.message
+                      : undefined)
               }
             />
           )}
@@ -1117,7 +1401,10 @@ function ImagesPage() {
               error={
                 agingMutation.error instanceof Error
                   ? agingMutation.error.message
-                  : agingJobStatus?.error
+                  : agingJobStatus?.error ||
+                    (agingJobStatusError instanceof Error
+                      ? agingJobStatusError.message
+                      : undefined)
               }
             />
           )}
@@ -1148,6 +1435,18 @@ function ImagesPage() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog((prev) => ({ ...prev, open }))}
+        title="Delete Image?"
+        description="This action cannot be undone. The image will be permanently removed from your library."
+        confirmText="Delete"
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }
@@ -1539,16 +1838,39 @@ function ImageDetailPanel({
   onEdit,
   onUsePrompt,
 }: ImageDetailPanelProps) {
+  // Get the source asset ID for before/after comparison
+  const sourceAssetId = image.metadata?.sourceAssetId
+
+  // Fetch source image if this image was derived from another (edit/upscale/aging)
+  const { data: sourceImage } = useQuery({
+    queryKey: ['sourceImage', sourceAssetId],
+    queryFn: () => getImageFn({ data: { imageId: sourceAssetId! } }),
+    enabled: !!sourceAssetId,
+    staleTime: Infinity, // Source images don't change
+  })
+
+  const hasBeforeAfter = !!sourceAssetId && !!sourceImage?.url
+
   return (
     <div className="space-y-6 px-6 pb-6">
-      {/* Image Preview with Glow Border */}
-      <div className="overflow-hidden rounded-2xl border border-primary/20 premium-glow aspect-square">
-        <img
-          src={image.url}
-          alt={image.prompt || 'Generated image'}
-          className="h-full w-full object-cover"
+      {/* Image Preview - Before/After Slider or Single Image */}
+      {hasBeforeAfter ? (
+        <BeforeAfterSlider
+          beforeImage={sourceImage.url}
+          afterImage={image.url}
+          beforeLabel="Original"
+          afterLabel="Result"
+          className="border border-primary/20 premium-glow"
         />
-      </div>
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-primary/20 premium-glow aspect-square">
+          <img
+            src={image.url}
+            alt={image.prompt || 'Generated image'}
+            className="h-full w-full object-cover"
+          />
+        </div>
+      )}
 
       {/* Prompt Card */}
       {image.prompt && (

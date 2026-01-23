@@ -324,9 +324,30 @@ export async function getEditJobStatus(
         resultResponse.status,
         errorText,
       )
-      throw new Error(
-        `Failed to get result: ${resultResponse.status} - ${errorText}`,
-      )
+
+      // Parse FAL error response to extract user-friendly message
+      let userFriendlyError = `Generation failed (${resultResponse.status})`
+      try {
+        const errorJson = JSON.parse(errorText)
+        if (errorJson.detail?.[0]) {
+          const detail = errorJson.detail[0]
+          if (detail.type === 'content_policy_violation') {
+            userFriendlyError =
+              'Content policy violation: Your image or prompt was flagged by the safety checker. Please try different content.'
+          } else if (detail.msg) {
+            userFriendlyError = detail.msg
+          }
+        }
+      } catch {
+        // If we can't parse the error, use the raw text (truncated)
+        userFriendlyError = errorText.slice(0, 200)
+      }
+
+      // Return a failure status instead of throwing
+      return {
+        status: 'failed' as const,
+        error: userFriendlyError,
+      }
     }
 
     const result = await resultResponse.json()
@@ -345,6 +366,10 @@ export async function getEditJobStatus(
 
   if (status === 'failed') {
     console.error('[EDIT] Job FAILED! Status data:', statusData)
+    // Extract error message from status data if available
+    const errorMessage =
+      statusData.error || statusData.message || 'Generation failed'
+    return { status, error: errorMessage }
   }
 
   return { status }

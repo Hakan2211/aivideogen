@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Box, RefreshCw, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Model3DCard } from './Model3DCard'
 import {
   listUser3DModelsFn,
@@ -27,6 +28,10 @@ export function Model3DGallery({
   className,
 }: Model3DGalleryProps) {
   const queryClient = useQueryClient()
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean
+    assetId: string | null
+  }>({ open: false, assetId: null })
 
   // Fetch models
   const { data, isLoading, error, refetch } = useQuery({
@@ -89,10 +94,27 @@ export function Model3DGallery({
   })
 
   const handleDelete = (assetId: string) => {
-    if (confirm('Are you sure you want to delete this model?')) {
-      deleteMutation.mutate(assetId)
-    }
+    setDeleteDialog({ open: true, assetId })
   }
+
+  const handleConfirmDelete = () => {
+    if (!deleteDialog.assetId) return
+    deleteMutation.mutate(deleteDialog.assetId)
+  }
+
+  // Shared delete dialog component for all render paths
+  const DeleteDialogComponent = (
+    <ConfirmDialog
+      open={deleteDialog.open}
+      onOpenChange={(open) => setDeleteDialog((prev) => ({ ...prev, open }))}
+      title="Delete 3D Model?"
+      description="This action cannot be undone. The 3D model will be permanently removed from your library."
+      confirmText="Delete"
+      variant="destructive"
+      onConfirm={handleConfirmDelete}
+      isLoading={deleteMutation.isPending}
+    />
+  )
 
   // Helper function for mode-specific messaging
   const getModeLabel = () => {
@@ -131,87 +153,106 @@ export function Model3DGallery({
   // If loading AND we have no previous data, show empty state immediately
   // This prevents jarring loading → error flow for new users
   if (isLoading && !data) {
-    return <EmptyState />
+    return (
+      <>
+        <EmptyState />
+        {DeleteDialogComponent}
+      </>
+    )
   }
 
   // If loading but we have cached data, show skeletons while refreshing
   if (isLoading && data && assets.length > 0) {
     return (
-      <div
-        className={cn(
-          'grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-2',
-          className,
-        )}
-      >
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Skeleton key={i} className="aspect-square rounded-2xl" />
-        ))}
-      </div>
+      <>
+        <div
+          className={cn(
+            'grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-2',
+            className,
+          )}
+        >
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} className="aspect-square rounded-2xl" />
+          ))}
+        </div>
+        {DeleteDialogComponent}
+      </>
     )
   }
 
   // Only show error state if we had data before and now failed (genuine error)
   if (error && data && assets.length > 0) {
     return (
-      <div
-        className={cn(
-          'flex flex-col items-center justify-center py-24',
-          className,
-        )}
-      >
-        <div className="rounded-2xl bg-destructive/10 p-8 border border-destructive/20">
-          <AlertCircle className="h-16 w-16 text-destructive/70" />
-        </div>
-        <h3 className="mt-8 text-xl font-semibold">Something went wrong</h3>
-        <p className="mt-3 text-muted-foreground text-center max-w-md">
-          We couldn't load your 3D models. Please try again.
-        </p>
-        <Button
-          variant="outline"
-          onClick={() => refetch()}
-          className="mt-6 rounded-xl"
+      <>
+        <div
+          className={cn(
+            'flex flex-col items-center justify-center py-24',
+            className,
+          )}
         >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Try Again
-        </Button>
-      </div>
+          <div className="rounded-2xl bg-destructive/10 p-8 border border-destructive/20">
+            <AlertCircle className="h-16 w-16 text-destructive/70" />
+          </div>
+          <h3 className="mt-8 text-xl font-semibold">Something went wrong</h3>
+          <p className="mt-3 text-muted-foreground text-center max-w-md">
+            We couldn't load your 3D models. Please try again.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => refetch()}
+            className="mt-6 rounded-xl"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Try Again
+          </Button>
+        </div>
+        {DeleteDialogComponent}
+      </>
     )
   }
 
   // If error on first load OR no assets, show empty state (graceful fallback)
   if (assets.length === 0) {
-    return <EmptyState />
+    return (
+      <>
+        <EmptyState />
+        {DeleteDialogComponent}
+      </>
+    )
   }
 
   return (
-    <div
-      className={cn(
-        'grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-2',
-        className,
-      )}
-    >
-      {assets.map(
-        (asset: {
-          id: string
-          modelId: string
-          mode: string
-          prompt?: string | null
-          status: string
-          modelGlbUrl?: string | null
-          thumbnailUrl?: string | null
-          modelUrls?: Record<string, string> | null
-          error?: string | null
-          progress?: number | null
-          createdAt: Date | string
-        }) => (
-          <Model3DCard
-            key={asset.id}
-            asset={asset}
-            onView={() => onSelectAsset?.(asset.id)}
-            onDelete={() => handleDelete(asset.id)}
-          />
-        ),
-      )}
-    </div>
+    <>
+      <div
+        className={cn(
+          'grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 px-2',
+          className,
+        )}
+      >
+        {assets.map(
+          (asset: {
+            id: string
+            modelId: string
+            mode: string
+            prompt?: string | null
+            status: string
+            modelGlbUrl?: string | null
+            thumbnailUrl?: string | null
+            modelUrls?: Record<string, string> | null
+            error?: string | null
+            progress?: number | null
+            createdAt: Date | string
+          }) => (
+            <Model3DCard
+              key={asset.id}
+              asset={asset}
+              onView={() => onSelectAsset?.(asset.id)}
+              onDelete={() => handleDelete(asset.id)}
+            />
+          ),
+        )}
+      </div>
+      {DeleteDialogComponent}
+    </>
   )
 }

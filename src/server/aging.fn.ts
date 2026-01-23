@@ -249,11 +249,35 @@ export const getAgingJobStatusFn = createServerFn({ method: 'GET' })
     }
 
     console.log('[AGING_FN] Polling fal.ai for status using saved URLs...')
-    const falStatus = await getJobStatus(statusUrl, responseUrl)
-    console.log('[AGING_FN] fal.ai status result:', {
-      status: falStatus.status,
-      hasResult: !!falStatus.result,
-    })
+    let falStatus: Awaited<ReturnType<typeof getJobStatus>>
+    try {
+      falStatus = await getJobStatus(statusUrl, responseUrl)
+      console.log('[AGING_FN] fal.ai status result:', {
+        status: falStatus.status,
+        hasResult: !!falStatus.result,
+      })
+    } catch (pollError) {
+      // Handle unexpected errors during status polling
+      const errorMessage =
+        pollError instanceof Error ? pollError.message : 'Status check failed'
+      console.error('[AGING_FN] Status polling error:', errorMessage)
+
+      // Update job as failed in database
+      await prisma.generationJob.update({
+        where: { id: job.id },
+        data: {
+          status: 'failed',
+          error: errorMessage,
+        },
+      })
+
+      return {
+        jobId: job.id,
+        status: 'failed' as const,
+        progress: 0,
+        error: errorMessage,
+      }
+    }
 
     // Update job status in database
     if (falStatus.status === 'completed' && falStatus.result) {

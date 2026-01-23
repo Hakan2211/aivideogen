@@ -84,6 +84,7 @@ import { Switch } from '../../../components/ui/switch'
 import { Label } from '../../../components/ui/label'
 import { VideoModeToggle } from '../../../components/videos/VideoModeToggle'
 import { VideoUpscalePanel } from '../../../components/videos/VideoUpscalePanel'
+import { ConfirmDialog } from '../../../components/ui/confirm-dialog'
 import type { VideoMode } from '../../../components/videos/VideoModeToggle'
 import type {
   BytedanceVideoTargetFps,
@@ -190,6 +191,12 @@ function VideosPage() {
   const [currentUpscaleJobId, setCurrentUpscaleJobId] = useState<string | null>(
     null,
   )
+
+  // Delete confirmation dialog state
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean
+    videoId: string | null
+  }>({ open: false, videoId: null })
 
   // Pagination
   const limit = 12
@@ -542,9 +549,12 @@ function VideosPage() {
   }
 
   const handleDelete = (videoId: string) => {
-    if (confirm('Delete this video?')) {
-      deleteMutation.mutate({ data: { videoId } })
-    }
+    setDeleteDialog({ open: true, videoId })
+  }
+
+  const handleConfirmDelete = () => {
+    if (!deleteDialog.videoId) return
+    deleteMutation.mutate({ data: { videoId: deleteDialog.videoId } })
   }
 
   // Video upscale handler
@@ -1302,6 +1312,18 @@ function VideosPage() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog((prev) => ({ ...prev, open }))}
+        title="Delete Video?"
+        description="This action cannot be undone. The video will be permanently removed from your library."
+        confirmText="Delete"
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }
