@@ -39,6 +39,16 @@ model User {
   // DirectorAI: Credits system (1 credit = $0.01)
   credits Int @default(50) // New users get 50 credits ($0.50)
 
+  // BYOK (Bring Your Own Key) Access
+  hasByokAccess       Boolean   @default(false) // Set true after $99 one-time payment
+  byokPurchaseDate    DateTime?                  // When they purchased BYOK access
+  byokStripePaymentId String?                    // Stripe payment_intent ID for reference
+
+  // User's fal.ai API key (encrypted with AES-256-GCM)
+  falApiKey        String?   // Encrypted API key
+  falApiKeyLastFour String?  // Last 4 chars for display (e.g., "...xxxx")
+  falApiKeyAddedAt DateTime? // When the key was added/updated
+
   // DirectorAI: User preferences
   preferredLlmModel   String? // e.g., "anthropic/claude-3.5-sonnet"
   preferredImageModel String? // e.g., "flux-pro"

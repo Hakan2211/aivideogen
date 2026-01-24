@@ -4,8 +4,10 @@
  * Handles AI image and video generation via Fal.ai API.
  * Supports multiple models for both image and video generation.
  *
- * Environment variables required:
- * - FAL_KEY: Fal.ai API key
+ * BYOK (Bring Your Own Key) Support:
+ * - Functions accept an optional `apiKey` parameter for user-provided keys
+ * - Falls back to FAL_KEY environment variable for admin/testing
+ * - Use getUserFalApiKey() from byok.fn.ts to get user's decrypted key
  */
 
 import {
@@ -26,6 +28,29 @@ import type {
 
 const MOCK_FAL = process.env.MOCK_GENERATION === 'true'
 const FAL_API_URL = 'https://queue.fal.run'
+
+/**
+ * Get the fal.ai API key to use for requests
+ * Prioritizes user-provided key, falls back to environment variable
+ *
+ * @param userApiKey - Optional user-provided API key (from BYOK)
+ * @returns The API key to use
+ * @throws Error if no API key is available
+ */
+function getApiKey(userApiKey?: string): string {
+  if (userApiKey) {
+    return userApiKey
+  }
+
+  const envKey = process.env.FAL_KEY
+  if (envKey) {
+    return envKey
+  }
+
+  throw new Error(
+    'No fal.ai API key available. Please add your API key in settings.',
+  )
+}
 
 // =============================================================================
 // Types
@@ -135,9 +160,13 @@ export interface GenerationJob {
 /**
  * Start an image generation job (queued)
  * Returns a request ID for polling status
+ *
+ * @param input - Image generation parameters
+ * @param userApiKey - Optional user's fal.ai API key (for BYOK)
  */
 export async function generateImage(
   input: ImageGenerationInput,
+  userApiKey?: string,
 ): Promise<GenerationJob> {
   const modelId =
     input.model || 'imagineart/imagineart-1.5-preview/text-to-image'
@@ -156,11 +185,7 @@ export async function generateImage(
     return mockGenerateJob(modelId)
   }
 
-  const apiKey = process.env.FAL_KEY
-  if (!apiKey) {
-    console.error('[FAL] FAL_KEY not configured!')
-    throw new Error('FAL_KEY not configured')
-  }
+  const apiKey = getApiKey(userApiKey)
 
   // Build the request payload based on the model
   const payload = buildImagePayload(input, modelId)
@@ -207,9 +232,13 @@ export async function generateImage(
 /**
  * Start a video generation job (queued)
  * Supports text-to-video, image-to-video, and keyframes generation
+ *
+ * @param input - Video generation parameters
+ * @param userApiKey - Optional user's fal.ai API key (for BYOK)
  */
 export async function generateVideo(
   input: VideoGenerationInput,
+  userApiKey?: string,
 ): Promise<GenerationJob> {
   // Determine default model based on generation type
   let defaultModelId: string
@@ -252,10 +281,7 @@ export async function generateVideo(
     return mockGenerateJob(modelId)
   }
 
-  const apiKey = process.env.FAL_KEY
-  if (!apiKey) {
-    throw new Error('FAL_KEY not configured')
-  }
+  const apiKey = getApiKey(userApiKey)
 
   // Build the request payload based on model and generation type
   const payload = buildVideoPayload(input, modelId, modelConfig)
@@ -301,10 +327,12 @@ export async function generateVideo(
  *
  * @param statusUrl - The status URL returned by Fal.ai when the job was submitted
  * @param responseUrl - The response URL returned by Fal.ai when the job was submitted
+ * @param userApiKey - Optional user's fal.ai API key (for BYOK)
  */
 export async function getJobStatus(
   statusUrl: string,
   responseUrl: string,
+  userApiKey?: string,
 ): Promise<{
   status: 'pending' | 'processing' | 'completed' | 'failed'
   progress?: number
@@ -321,11 +349,7 @@ export async function getJobStatus(
     return mockGetStatus(mockRequestId)
   }
 
-  const apiKey = process.env.FAL_KEY
-  if (!apiKey) {
-    console.error('[FAL] FAL_KEY not configured!')
-    throw new Error('FAL_KEY not configured')
-  }
+  const apiKey = getApiKey(userApiKey)
 
   // Use the status URL directly as provided by Fal.ai
   console.log('[FAL] Fetching status from:', statusUrl)
@@ -441,16 +465,17 @@ export async function getJobStatus(
  * Cancel a pending job using the cancel URL provided by Fal.ai
  *
  * @param cancelUrl - The cancel URL returned by Fal.ai when the job was submitted
+ * @param userApiKey - Optional user's fal.ai API key (for BYOK)
  */
-export async function cancelJob(cancelUrl: string): Promise<boolean> {
+export async function cancelJob(
+  cancelUrl: string,
+  userApiKey?: string,
+): Promise<boolean> {
   if (MOCK_FAL) {
     return true
   }
 
-  const apiKey = process.env.FAL_KEY
-  if (!apiKey) {
-    throw new Error('FAL_KEY not configured')
-  }
+  const apiKey = getApiKey(userApiKey)
 
   console.log('[FAL] Cancelling job at:', cancelUrl)
 
@@ -466,7 +491,8 @@ export async function cancelJob(cancelUrl: string): Promise<boolean> {
 }
 
 /**
- * Check if Fal.ai is configured
+ * Check if Fal.ai is configured at the platform level
+ * Note: In BYOK mode, users provide their own keys, so this is mainly for admin/testing
  */
 export function isFalConfigured(): boolean {
   if (MOCK_FAL) return true
@@ -513,9 +539,13 @@ export interface AgingGenerationInput {
  * Supports:
  * - Single: Age progression/regression from a single face photo
  * - Multi: Baby prediction from two parent photos
+ *
+ * @param input - Aging generation parameters
+ * @param userApiKey - Optional user's fal.ai API key (for BYOK)
  */
 export async function generateAging(
   input: AgingGenerationInput,
+  userApiKey?: string,
 ): Promise<GenerationJob> {
   const modelConfig = getAgingModelByType(input.subMode)
   if (!modelConfig) {
@@ -536,11 +566,7 @@ export async function generateAging(
     return mockGenerateJob(modelId)
   }
 
-  const apiKey = process.env.FAL_KEY
-  if (!apiKey) {
-    console.error('[FAL] FAL_KEY not configured!')
-    throw new Error('FAL_KEY not configured')
-  }
+  const apiKey = getApiKey(userApiKey)
 
   // Build the request payload based on the sub-mode
   const payload = buildAgingPayload(input)
@@ -1144,9 +1170,13 @@ export interface Fal3DModelResult {
 /**
  * Start a 3D model generation job (queued)
  * Supports text-to-3d, image-to-3d, and image-to-world generation
+ *
+ * @param input - 3D model generation parameters
+ * @param userApiKey - Optional user's fal.ai API key (for BYOK)
  */
 export async function generate3DModel(
   input: Model3DGenerationInput,
+  userApiKey?: string,
 ): Promise<GenerationJob> {
   const modelConfig = get3DModelById(input.modelId)
 
@@ -1165,10 +1195,7 @@ export async function generate3DModel(
     return mockGenerate3DJob(modelConfig.endpoint)
   }
 
-  const apiKey = process.env.FAL_KEY
-  if (!apiKey) {
-    throw new Error('FAL_KEY not configured')
-  }
+  const apiKey = getApiKey(userApiKey)
 
   // Build the request payload based on model
   const payload = build3DModelPayload(input, modelConfig)

@@ -37,6 +37,14 @@ export function LandingHeader() {
     }
   }
 
+  const navItems = [
+    { id: 'features', label: 'Features' },
+    { id: 'showcase', label: 'Showcase' },
+    { id: 'models', label: 'Models' },
+    { id: 'pricing', label: 'Pricing' },
+    { id: 'faq', label: 'FAQ' },
+  ]
+
   return (
     <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
       <motion.header
@@ -55,24 +63,26 @@ export function LandingHeader() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group cursor-pointer">
-            <div className="h-8 w-8 rounded-lg bg-primary shadow-md transition-transform group-hover:scale-105" />
-            <span className="text-xl font-bold">AppStarter</span>
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 shadow-md transition-transform group-hover:scale-105 flex items-center justify-center text-primary-foreground font-bold text-sm">
+              D
+            </div>
+            <span className="text-xl font-bold">DirectorAI</span>
           </Link>
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {['features', 'how-it-works', 'pricing', 'faq'].map((section) => (
+            {navItems.map((item) => (
               <button
-                key={section}
-                onClick={() => scrollToSection(section)}
+                key={item.id}
+                onClick={() => scrollToSection(item.id)}
                 className={cn(
-                  'text-sm font-medium transition-colors cursor-pointer relative group capitalize',
+                  'text-sm font-medium transition-colors cursor-pointer relative group',
                   isScrolled
                     ? 'text-muted-foreground hover:text-foreground'
                     : 'text-muted-foreground hover:text-foreground',
                 )}
               >
-                {section.replace(/-/g, ' ')}
+                {item.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
               </button>
             ))}

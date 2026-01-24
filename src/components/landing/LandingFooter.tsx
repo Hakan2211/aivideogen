@@ -1,19 +1,22 @@
 import { Link } from '@tanstack/react-router'
+import { Github, Twitter } from 'lucide-react'
 
 const footerLinks = {
   product: [
     { label: 'Features', href: '#features' },
+    { label: 'Showcase', href: '#showcase' },
+    { label: 'AI Models', href: '#models' },
     { label: 'Pricing', href: '#pricing' },
     { label: 'FAQ', href: '#faq' },
   ],
   resources: [
-    { label: 'Documentation', href: '#' },
-    { label: 'GitHub', href: '#' },
-    { label: 'Discord', href: '#' },
+    { label: 'fal.ai', href: 'https://fal.ai' },
+    { label: 'Get API Key', href: 'https://fal.ai/dashboard/keys' },
+    { label: 'API Pricing', href: 'https://fal.ai/pricing' },
   ],
   legal: [
-    { label: 'Privacy', href: '/privacy' },
-    { label: 'Terms', href: '/terms' },
+    { label: 'Privacy Policy', href: '/privacy' },
+    { label: 'Terms of Service', href: '/terms' },
   ],
 }
 
@@ -35,12 +38,34 @@ export function LandingFooter() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-primary shadow-md" />
-              <span className="text-xl font-bold">AppStarter</span>
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 shadow-md flex items-center justify-center text-primary-foreground font-bold text-sm">
+                D
+              </div>
+              <span className="text-xl font-bold">DirectorAI</span>
             </Link>
-            <p className="text-sm text-muted-foreground max-w-xs">
-              The fastest way to build and ship your SaaS product.
+            <p className="text-sm text-muted-foreground max-w-xs mb-4">
+              Your AI creative studio. Generate images, videos, and 3D models
+              with cutting-edge AI. BYOK - Bring Your Own Key.
             </p>
+            {/* Social Links */}
+            <div className="flex items-center gap-3">
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+              >
+                <Twitter className="h-4 w-4" />
+              </a>
+              <a
+                href="https://github.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+              >
+                <Github className="h-4 w-4" />
+              </a>
+            </div>
           </div>
 
           {/* Product Links */}
@@ -83,10 +108,10 @@ export function LandingFooter() {
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} AppStarter. All rights reserved.
+            &copy; {new Date().getFullYear()} DirectorAI. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
-            Built with TanStack Start
+            Built with TanStack Start & fal.ai
           </p>
         </div>
       </div>

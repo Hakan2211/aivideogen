@@ -4,8 +4,9 @@
  * Handles AI voice generation via Fal.ai's ElevenLabs TTS endpoint.
  * Provides word-level timestamps for karaoke sync.
  *
- * Environment variables required:
- * - FAL_KEY: Fal.ai API key (same key used for image/video generation)
+ * BYOK (Bring Your Own Key) Support:
+ * - Functions accept an optional `apiKey` parameter for user-provided keys
+ * - Falls back to FAL_KEY environment variable for admin/testing
  */
 
 import { uploadFromUrl } from './bunny.service'
@@ -13,6 +14,18 @@ import { AUDIO_MODELS, getModelById } from './types'
 
 const MOCK_TTS = process.env.MOCK_GENERATION === 'true'
 const FAL_API_URL = 'https://queue.fal.run'
+
+/**
+ * Get the fal.ai API key to use for requests
+ */
+function getApiKey(userApiKey?: string): string {
+  if (userApiKey) return userApiKey
+  const envKey = process.env.FAL_KEY
+  if (envKey) return envKey
+  throw new Error(
+    'No fal.ai API key available. Please add your API key in settings.',
+  )
+}
 
 // =============================================================================
 // Types
@@ -93,18 +106,19 @@ export const DEFAULT_VOICES: Array<Voice> = [
 /**
  * Generate speech with word-level timestamps
  * Uses Fal.ai's ElevenLabs TTS endpoint
+ *
+ * @param input - Speech generation parameters
+ * @param userApiKey - Optional user's fal.ai API key (for BYOK)
  */
 export async function generateSpeech(
   input: SpeechGenerationInput,
+  userApiKey?: string,
 ): Promise<SpeechResult> {
   if (MOCK_TTS) {
     return mockGenerateSpeech(input)
   }
 
-  const apiKey = process.env.FAL_KEY
-  if (!apiKey) {
-    throw new Error('FAL_KEY not configured')
-  }
+  const apiKey = getApiKey(userApiKey)
 
   const modelId = input.model || 'fal-ai/elevenlabs/tts/multilingual-v2'
   // Validate model exists
@@ -182,7 +196,8 @@ export async function generateSpeechSimple(
 }
 
 /**
- * Check if TTS service is configured
+ * Check if TTS service is configured (platform-level)
+ * Note: In BYOK mode, users provide their own keys, so this is mainly for admin/testing
  */
 export function isTtsConfigured(): boolean {
   if (MOCK_TTS) return true

@@ -5,8 +5,9 @@
  * - Prompt-based editing (describe what to change - no masks!)
  * - Upscaling (enhance resolution with AI)
  *
- * Environment variables required:
- * - FAL_KEY: Fal.ai API key
+ * BYOK (Bring Your Own Key) Support:
+ * - Functions accept an optional `apiKey` parameter for user-provided keys
+ * - Falls back to FAL_KEY environment variable for admin/testing
  */
 
 import {
@@ -18,6 +19,18 @@ import {
 
 const MOCK_EDIT = process.env.MOCK_GENERATION === 'true'
 const FAL_API_URL = 'https://queue.fal.run'
+
+/**
+ * Get the fal.ai API key to use for requests
+ */
+function getApiKey(userApiKey?: string): string {
+  if (userApiKey) return userApiKey
+  const envKey = process.env.FAL_KEY
+  if (envKey) return envKey
+  throw new Error(
+    'No fal.ai API key available. Please add your API key in settings.',
+  )
+}
 
 // =============================================================================
 // Types
@@ -89,8 +102,14 @@ export interface FalEditResult {
 /**
  * Edit an image using prompt-based AI models (no mask required!)
  * Supports single or multiple reference images depending on model.
+ *
+ * @param input - Edit parameters
+ * @param userApiKey - Optional user's fal.ai API key (for BYOK)
  */
-export async function editImage(input: EditInput): Promise<EditJob> {
+export async function editImage(
+  input: EditInput,
+  userApiKey?: string,
+): Promise<EditJob> {
   const modelId = input.model || 'fal-ai/flux-pro/kontext'
   const modelConfig = getEditModelById(modelId)
 
@@ -121,11 +140,7 @@ export async function editImage(input: EditInput): Promise<EditJob> {
     return mockEditJob(modelId, 'edit')
   }
 
-  const apiKey = process.env.FAL_KEY
-  if (!apiKey) {
-    console.error('[EDIT] FAL_KEY not configured!')
-    throw new Error('FAL_KEY not configured')
-  }
+  const apiKey = getApiKey(userApiKey)
 
   const payload = buildEditPayload(input, modelId)
   const submitUrl = `${FAL_API_URL}/${modelId}`
@@ -172,8 +187,14 @@ export async function editImage(input: EditInput): Promise<EditJob> {
 /**
  * Upscale an image with AI enhancement
  * Supports SeedVR2 (up to 10x, target resolution mode) and Topaz (up to 4x, face enhancement)
+ *
+ * @param input - Upscale parameters
+ * @param userApiKey - Optional user's fal.ai API key (for BYOK)
  */
-export async function upscaleImage(input: UpscaleInput): Promise<EditJob> {
+export async function upscaleImage(
+  input: UpscaleInput,
+  userApiKey?: string,
+): Promise<EditJob> {
   const modelId = input.model || 'fal-ai/seedvr/upscale/image'
   getModelById(modelId, UPSCALE_MODELS)
 
@@ -181,10 +202,7 @@ export async function upscaleImage(input: UpscaleInput): Promise<EditJob> {
     return mockEditJob(modelId, 'upscale')
   }
 
-  const apiKey = process.env.FAL_KEY
-  if (!apiKey) {
-    throw new Error('FAL_KEY not configured')
-  }
+  const apiKey = getApiKey(userApiKey)
 
   const payload = buildUpscalePayload(input, modelId)
 
@@ -222,10 +240,12 @@ export async function upscaleImage(input: UpscaleInput): Promise<EditJob> {
  *
  * @param statusUrl - The status URL returned by Fal.ai when the job was submitted
  * @param responseUrl - The response URL returned by Fal.ai when the job was submitted
+ * @param userApiKey - Optional user's fal.ai API key (for BYOK)
  */
 export async function getEditJobStatus(
   statusUrl: string,
   responseUrl: string,
+  userApiKey?: string,
 ): Promise<{
   status: 'pending' | 'processing' | 'completed' | 'failed'
   progress?: number
@@ -242,11 +262,7 @@ export async function getEditJobStatus(
     return mockGetEditStatus(mockRequestId)
   }
 
-  const apiKey = process.env.FAL_KEY
-  if (!apiKey) {
-    console.error('[EDIT] FAL_KEY not configured!')
-    throw new Error('FAL_KEY not configured')
-  }
+  const apiKey = getApiKey(userApiKey)
 
   // Use the status URL directly as provided by Fal.ai
   console.log('[EDIT] Fetching status from:', statusUrl)

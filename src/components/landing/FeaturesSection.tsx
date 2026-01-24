@@ -1,62 +1,61 @@
 import { motion } from 'framer-motion'
-import {
-  CreditCard,
-  Database,
-  Lock,
-  Paintbrush,
-  Shield,
-  Zap,
-} from 'lucide-react'
+import { Baby, Box, Image, Key, Video, Wand2, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const features = [
   {
-    icon: Lock,
-    title: 'Authentication',
+    icon: Image,
+    title: 'AI Image Studio',
     description:
-      'Email/password and OAuth with Better-Auth. Session management and RBAC built-in.',
+      'Generate, edit, upscale, and transform images with FLUX Pro, GPT-4o, Recraft, ImagineArt and more.',
+    color: 'text-violet-500',
+    bgColor: 'bg-violet-500/10',
+    borderColor: 'border-violet-500/20',
+  },
+  {
+    icon: Video,
+    title: 'Video Generator',
+    description:
+      'Text-to-video, image animation, and keyframe transitions with Kling, Pika, Wan, and Luma.',
     color: 'text-blue-500',
     bgColor: 'bg-blue-500/10',
+    borderColor: 'border-blue-500/20',
   },
   {
-    icon: CreditCard,
-    title: 'Payments',
+    icon: Box,
+    title: '3D Model Creator',
     description:
-      'Stripe integration with subscription management. Mock mode for development.',
-    color: 'text-green-500',
-    bgColor: 'bg-green-500/10',
+      'Transform text or images into 3D models with Meshy, Tripo AI, and other cutting-edge tools.',
+    color: 'text-emerald-500',
+    bgColor: 'bg-emerald-500/10',
+    borderColor: 'border-emerald-500/20',
   },
   {
-    icon: Database,
-    title: 'Database',
+    icon: Baby,
+    title: 'AI Age Transform',
     description:
-      'SQLite with Prisma ORM. Production-ready with Turso/Litestream support.',
-    color: 'text-purple-500',
-    bgColor: 'bg-purple-500/10',
-  },
-  {
-    icon: Paintbrush,
-    title: 'UI Components',
-    description:
-      'Shadcn UI with Tailwind CSS. Beautiful, accessible, and customizable.',
+      'Predict babies from parent photos, age faces forward or backward, create future versions.',
     color: 'text-pink-500',
     bgColor: 'bg-pink-500/10',
-  },
-  {
-    icon: Shield,
-    title: 'Security',
-    description:
-      'CSRF protection, honeypot fields, rate limiting, and secure headers.',
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-500/10',
+    borderColor: 'border-pink-500/20',
   },
   {
     icon: Zap,
-    title: 'Performance',
+    title: 'Smart Upscaling',
     description:
-      'Server-side rendering, code splitting, and optimized bundle size.',
-    color: 'text-yellow-500',
-    bgColor: 'bg-yellow-500/10',
+      'Enhance image and video resolution with SeedVR, Topaz, and Bytedance AI upscalers.',
+    color: 'text-amber-500',
+    bgColor: 'bg-amber-500/10',
+    borderColor: 'border-amber-500/20',
+  },
+  {
+    icon: Key,
+    title: 'BYOK Model',
+    description:
+      'Connect your fal.ai API key and pay only for what you use. No platform fees, no hidden costs.',
+    color: 'text-primary',
+    bgColor: 'bg-primary/10',
+    borderColor: 'border-primary/20',
   },
 ]
 
@@ -72,12 +71,16 @@ export function FeaturesSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
+          <span className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 text-sm font-medium shadow-sm mb-6">
+            <Wand2 className="h-4 w-4 text-primary" />
+            Powerful Features
+          </span>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-            Everything you need to build
+            Everything you need to create
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Pre-configured with best practices and modern tooling so you can
-            focus on what matters - your product.
+            One platform for all your AI-powered creative needs. Generate
+            images, videos, and 3D models with the best AI models available.
           </p>
         </motion.div>
 
@@ -104,20 +107,36 @@ function FeatureCard({ feature }: { feature: (typeof features)[0] }) {
   const Icon = feature.icon
 
   return (
-    <div className="group relative h-full rounded-xl border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-      {/* Icon */}
+    <div
+      className={cn(
+        'group relative h-full rounded-xl border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1',
+        feature.borderColor,
+      )}
+    >
+      {/* Gradient overlay on hover */}
       <div
         className={cn(
-          'mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg',
+          'absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100',
           feature.bgColor,
         )}
-      >
-        <Icon className={cn('h-6 w-6', feature.color)} />
-      </div>
+        style={{ opacity: 0 }}
+      />
 
-      {/* Content */}
-      <h3 className="mb-2 text-xl font-semibold">{feature.title}</h3>
-      <p className="text-muted-foreground">{feature.description}</p>
+      <div className="relative z-10">
+        {/* Icon */}
+        <div
+          className={cn(
+            'mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg',
+            feature.bgColor,
+          )}
+        >
+          <Icon className={cn('h-6 w-6', feature.color)} />
+        </div>
+
+        {/* Content */}
+        <h3 className="mb-2 text-xl font-semibold">{feature.title}</h3>
+        <p className="text-muted-foreground">{feature.description}</p>
+      </div>
     </div>
   )
 }

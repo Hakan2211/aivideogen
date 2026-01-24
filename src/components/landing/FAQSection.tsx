@@ -8,34 +8,49 @@ import {
 
 const faqs = [
   {
-    question: 'What is included in the starter template?',
+    question: 'What is BYOK (Bring Your Own Key)?',
     answer:
-      'The template includes authentication (email/password + OAuth), database setup with Prisma, Stripe payment integration, Shadcn UI components, and Docker deployment configuration. Everything you need to start building a SaaS product.',
+      'BYOK means you connect your own fal.ai API key to use DirectorAI. This way, you pay fal.ai directly for the AI generations at their rates, and we charge nothing extra. You get full transparency on costs and no platform fees.',
   },
   {
-    question: 'Do I need to pay for the template?',
+    question: 'How do I get a fal.ai API key?',
     answer:
-      'The template itself is free and open source. You only pay for the services you choose to use (hosting, Stripe fees, etc.). We also offer premium support plans if you need dedicated help.',
+      'Visit fal.ai and create a free account. Once signed up, navigate to your dashboard to generate an API key. New accounts typically come with free starting credits to try out the platform. Then simply paste your key into DirectorAI settings.',
   },
   {
-    question: 'What database does it support?',
+    question: 'How much does each generation cost?',
     answer:
-      'Out of the box, the template uses SQLite with Prisma ORM. For production, you can easily switch to Turso (SQLite at the edge) or use Litestream for SQLite replication. Prisma also supports PostgreSQL, MySQL, and other databases.',
+      'Costs vary by model and output type. Typical ranges: images ~$0.01-0.05 each, videos ~$0.05-0.20 each, 3D models ~$0.03-0.10 each. Upscaling and editing operations are generally cheaper. Check fal.ai pricing for exact current rates.',
   },
   {
-    question: 'How do I deploy the application?',
+    question: 'What AI models are supported?',
     answer:
-      'The template includes a Dockerfile and GitHub Actions workflow for CI/CD. You can deploy to any platform that supports Docker containers - Railway, Fly.io, Render, Coolify, or your own VPS.',
+      'We support 10+ leading AI models including FLUX Pro, GPT-4o Image, Recraft for images; Kling, Pika, Wan, Luma for videos; Meshy and Tripo AI for 3D models; and SeedVR, Topaz, Bytedance for upscaling. New models are added regularly.',
   },
   {
-    question: 'Can I use this for commercial projects?',
+    question: 'Can I use my own images and videos as input?',
     answer:
-      'Absolutely! The template is licensed under MIT, which means you can use it for any purpose, including commercial projects. No attribution required.',
+      'Yes! Many features support your own content as input. You can upload images for image-to-video, image-to-3D, editing, upscaling, and age transformation. Videos can be uploaded for upscaling. All uploads are processed securely.',
   },
   {
-    question: 'How do I get support?',
+    question: 'What formats can I export?',
     answer:
-      'For community support, you can open issues on GitHub or join our Discord server. For enterprise customers, we offer dedicated support with guaranteed response times.',
+      'Images export as PNG or JPG at full resolution. Videos export as MP4 or WebM. 3D models export as GLB, OBJ, or FBX depending on the model. All exports are high-quality and ready for professional use.',
+  },
+  {
+    question: 'Is my content private and secure?',
+    answer:
+      "Yes. Your generations are private to your account. We don't share your content or use it for training. API calls go directly to fal.ai through encrypted connections. You can delete any of your content at any time.",
+  },
+  {
+    question: 'Do you train AI models on my generations?',
+    answer:
+      'No. DirectorAI is purely an interface to existing AI models. We never use your prompts or generated content for training. Your creative work remains yours. We simply provide tools to access and use AI models more effectively.',
+  },
+  {
+    question: 'Is there a Team or Enterprise option?',
+    answer:
+      'Yes! For teams needing shared workspaces, centralized API key management, and priority support, contact us for custom enterprise solutions. We can also help with custom integrations and dedicated account management.',
   },
 ]
 
@@ -56,7 +71,7 @@ export function FAQSection() {
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Got questions? We've got answers. If you can't find what you're
-            looking for, feel free to reach out.
+            looking for, reach out to us directly.
           </p>
         </motion.div>
 

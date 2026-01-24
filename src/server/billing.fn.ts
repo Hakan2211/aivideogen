@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import {
   createBillingPortalSession,
+  createByokCheckoutSession,
   createCheckoutSession,
   getSubscriptionStatus,
 } from '../lib/stripe.server'
@@ -53,6 +54,23 @@ export const createBillingPortalFn = createServerFn({ method: 'POST' })
     const result = await createBillingPortalSession(
       context.user.id,
       `${baseUrl}/dashboard`,
+    )
+
+    return result
+  })
+
+/**
+ * Create Stripe Checkout Session for BYOK one-time payment ($99)
+ */
+export const createByokCheckoutFn = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000'
+
+    const result = await createByokCheckoutSession(
+      context.user.id,
+      `${baseUrl}/setup?success=true`,
+      `${baseUrl}/pricing?canceled=true`,
     )
 
     return result

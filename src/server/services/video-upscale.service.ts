@@ -6,8 +6,9 @@
  * - SeedVR2: Temporal consistency, flexible output formats
  * - Bytedance: Simple resolution targeting
  *
- * Environment variables required:
- * - FAL_KEY: Fal.ai API key
+ * BYOK (Bring Your Own Key) Support:
+ * - Functions accept an optional `apiKey` parameter for user-provided keys
+ * - Falls back to FAL_KEY environment variable for admin/testing
  */
 
 import { VIDEO_UPSCALE_MODELS, getVideoUpscaleModelById } from './types'
@@ -15,6 +16,18 @@ import type { VideoUpscaleInput } from './types'
 
 const MOCK_UPSCALE = process.env.MOCK_GENERATION === 'true'
 const FAL_API_URL = 'https://queue.fal.run'
+
+/**
+ * Get the fal.ai API key to use for requests
+ */
+function getApiKey(userApiKey?: string): string {
+  if (userApiKey) return userApiKey
+  const envKey = process.env.FAL_KEY
+  if (envKey) return envKey
+  throw new Error(
+    'No fal.ai API key available. Please add your API key in settings.',
+  )
+}
 
 // =============================================================================
 // Types
@@ -48,9 +61,13 @@ export interface FalVideoUpscaleResult {
 /**
  * Upscale a video using AI enhancement models
  * Supports Topaz (frame interpolation), SeedVR2 (temporal consistency), Bytedance (simple)
+ *
+ * @param input - Video upscale parameters
+ * @param userApiKey - Optional user's fal.ai API key (for BYOK)
  */
 export async function upscaleVideo(
   input: VideoUpscaleInput,
+  userApiKey?: string,
 ): Promise<VideoUpscaleJob> {
   const modelId = input.model || 'fal-ai/seedvr/upscale/video'
   const modelConfig = getVideoUpscaleModelById(modelId)
@@ -70,11 +87,7 @@ export async function upscaleVideo(
     return mockVideoUpscaleJob(modelId)
   }
 
-  const apiKey = process.env.FAL_KEY
-  if (!apiKey) {
-    console.error('[VIDEO-UPSCALE] FAL_KEY not configured!')
-    throw new Error('FAL_KEY not configured')
-  }
+  const apiKey = getApiKey(userApiKey)
 
   const payload = buildVideoUpscalePayload(input, modelId)
   const submitUrl = `${FAL_API_URL}/${modelId}`
@@ -124,10 +137,12 @@ export async function upscaleVideo(
  *
  * @param statusUrl - The status URL returned by Fal.ai when the job was submitted
  * @param responseUrl - The response URL returned by Fal.ai when the job was submitted
+ * @param userApiKey - Optional user's fal.ai API key (for BYOK)
  */
 export async function getVideoUpscaleJobStatus(
   statusUrl: string,
   responseUrl: string,
+  userApiKey?: string,
 ): Promise<{
   status: 'pending' | 'processing' | 'completed' | 'failed'
   progress?: number
@@ -146,11 +161,7 @@ export async function getVideoUpscaleJobStatus(
     return mockGetVideoUpscaleStatus(mockRequestId)
   }
 
-  const apiKey = process.env.FAL_KEY
-  if (!apiKey) {
-    console.error('[VIDEO-UPSCALE] FAL_KEY not configured!')
-    throw new Error('FAL_KEY not configured')
-  }
+  const apiKey = getApiKey(userApiKey)
 
   console.log('[VIDEO-UPSCALE] Fetching status from:', statusUrl)
 

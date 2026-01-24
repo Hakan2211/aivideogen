@@ -7,7 +7,10 @@ import {
   HowItWorksSection,
   LandingFooter,
   LandingHeader,
+  ModelsSection,
   PricingSection,
+  ShowcaseSection,
+  UseCasesSection,
 } from '@/components/landing'
 
 export const Route = createFileRoute('/')({
@@ -21,6 +24,9 @@ function LandingPage() {
       <main className="flex-1">
         <HeroSection />
         <FeaturesSection />
+        <ShowcaseSection />
+        <ModelsSection />
+        <UseCasesSection />
         <HowItWorksSection />
         <PricingSection />
         <FAQSection />

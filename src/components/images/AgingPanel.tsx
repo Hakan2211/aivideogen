@@ -25,17 +25,15 @@ import {
   UserCircle,
   Users,
 } from 'lucide-react'
-import type {AgeGroup, AgingGender, AgingSubMode} from '@/server/services/types';
+import type {
+  AgeGroup,
+  AgingGender,
+  AgingSubMode,
+} from '@/server/services/types'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
-import {
-  AGE_GROUPS,
-  AGING_MODELS
-  
-  
-  
-} from '@/server/services/types'
+import { AGE_GROUPS, AGING_MODELS } from '@/server/services/types'
 import { cn } from '@/lib/utils'
 
 // Icon mapping for age groups

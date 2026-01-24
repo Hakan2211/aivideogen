@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight, Key, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function HeroSection() {
@@ -17,6 +17,31 @@ export function HeroSection() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 -left-1/4 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl" />
+        {/* Animated gradient orbs */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          className="absolute top-1/3 left-1/4 w-96 h-96 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-full blur-3xl"
+        />
       </div>
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
@@ -29,8 +54,8 @@ export function HeroSection() {
             className="mb-6"
           >
             <span className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 text-sm font-medium shadow-sm">
-              <Sparkles className="h-4 w-4 text-primary" />
-              Built with TanStack Start
+              <Key className="h-4 w-4 text-primary" />
+              BYOK - Bring Your Own Key
             </span>
           </motion.div>
 
@@ -41,11 +66,11 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6"
           >
-            Ship your next{' '}
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              SaaS product
+            AI Images, Videos & 3D.{' '}
+            <span className="bg-gradient-to-r from-primary via-violet-500 to-primary bg-clip-text text-transparent">
+              One Studio.
             </span>{' '}
-            in record time
+            Your API Key.
           </motion.h1>
 
           {/* Subheadline */}
@@ -55,8 +80,9 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl"
           >
-            A production-ready starter template with authentication, payments,
-            database, and everything you need to go from idea to MVP.
+            Create stunning visuals with cutting-edge AI models like FLUX,
+            Kling, and Meshy. No subscription fees - just connect your fal.ai
+            key and start creating.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -68,7 +94,7 @@ export function HeroSection() {
           >
             <Link to="/signup">
               <Button size="lg" className="min-w-[180px] group">
-                Start Building
+                Get Started Free
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
@@ -76,9 +102,9 @@ export function HeroSection() {
               variant="outline"
               size="lg"
               className="min-w-[180px]"
-              onClick={() => scrollToSection('how-it-works')}
+              onClick={() => scrollToSection('showcase')}
             >
-              See How It Works
+              See What's Possible
             </Button>
           </motion.div>
 
@@ -90,10 +116,10 @@ export function HeroSection() {
             className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 border-t pt-8"
           >
             {[
-              { value: '10+', label: 'UI Components' },
-              { value: '100%', label: 'Type-Safe' },
-              { value: '< 5min', label: 'Setup Time' },
-              { value: 'Free', label: 'Open Source' },
+              { value: '10+', label: 'AI Models' },
+              { value: '3', label: 'Creation Modes' },
+              { value: '$0', label: 'Platform Fee' },
+              { value: '< 2min', label: 'Setup Time' },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-primary">
@@ -104,6 +130,76 @@ export function HeroSection() {
                 </div>
               </div>
             ))}
+          </motion.div>
+
+          {/* Hero Visual Preview */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.5 }}
+            className="mt-16 w-full max-w-5xl"
+          >
+            <div className="relative rounded-2xl border bg-gradient-to-b from-muted/50 to-muted/20 p-2 shadow-2xl">
+              {/* Browser chrome */}
+              <div className="flex items-center gap-2 px-4 py-3 border-b bg-background/50 rounded-t-xl">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                </div>
+                <div className="flex-1 flex justify-center">
+                  <div className="px-4 py-1 rounded-md bg-muted text-xs text-muted-foreground">
+                    app.directorai.com
+                  </div>
+                </div>
+              </div>
+              {/* Preview content */}
+              <div className="aspect-[16/9] rounded-b-xl bg-gradient-to-br from-background via-muted/50 to-background overflow-hidden">
+                <div className="h-full flex items-center justify-center">
+                  <div className="grid grid-cols-3 gap-4 p-8 w-full max-w-3xl">
+                    {/* Image preview */}
+                    <motion.div
+                      animate={{ y: [0, -8, 0] }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                      className="aspect-square rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30 flex items-center justify-center"
+                    >
+                      <Sparkles className="h-8 w-8 text-violet-500/60" />
+                    </motion.div>
+                    {/* Video preview */}
+                    <motion.div
+                      animate={{ y: [0, -8, 0] }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                        delay: 0.5,
+                      }}
+                      className="aspect-square rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 flex items-center justify-center"
+                    >
+                      <div className="w-0 h-0 border-l-[16px] border-l-blue-500/60 border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent ml-1" />
+                    </motion.div>
+                    {/* 3D preview */}
+                    <motion.div
+                      animate={{ y: [0, -8, 0], rotateY: [0, 180, 360] }}
+                      transition={{
+                        duration: 6,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                        delay: 1,
+                      }}
+                      className="aspect-square rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center"
+                      style={{ perspective: 1000 }}
+                    >
+                      <div className="w-10 h-10 bg-gradient-to-br from-emerald-500/40 to-teal-500/40 rounded-lg transform rotate-45" />
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>

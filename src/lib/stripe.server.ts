@@ -122,11 +122,30 @@ export async function handleWebhook(
     case 'checkout.session.completed': {
       const session = event.data.object
       const userId = session.metadata?.userId
+      const paymentType = session.metadata?.type
+
       if (userId) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { subscriptionStatus: 'active' },
-        })
+        if (paymentType === 'byok_access' && session.mode === 'payment') {
+          // BYOK one-time payment completed
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              hasByokAccess: true,
+              byokPurchaseDate: new Date(),
+              byokStripePaymentId:
+                typeof session.payment_intent === 'string'
+                  ? session.payment_intent
+                  : (session.payment_intent?.id ?? null),
+            },
+          })
+          console.log(`[STRIPE] BYOK access granted to user: ${userId}`)
+        } else if (session.mode === 'subscription') {
+          // Subscription payment (existing logic)
+          await prisma.user.update({
+            where: { id: userId },
+            data: { subscriptionStatus: 'active' },
+          })
+        }
       }
       break
     }
@@ -193,6 +212,85 @@ export async function createBillingPortalSession(
     customer: user.stripeCustomerId,
     return_url: returnUrl,
   })
+
+  return { url: session.url }
+}
+
+// =============================================================================
+// BYOK One-Time Payment
+// =============================================================================
+
+/**
+ * Create a Stripe Checkout Session for BYOK one-time payment ($99)
+ */
+export async function createByokCheckoutSession(
+  userId: string,
+  successUrl: string,
+  cancelUrl: string,
+): Promise<CheckoutResult> {
+  const stripe = getStripeClient()
+
+  if (!stripe) {
+    // In mock mode, simulate successful purchase
+    console.log(
+      `[MOCK STRIPE] Created BYOK checkout session for user: ${userId}`,
+    )
+
+    // Update user to have BYOK access in mock mode
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        hasByokAccess: true,
+        byokPurchaseDate: new Date(),
+        byokStripePaymentId: `mock_pi_${Date.now()}`,
+      },
+    })
+
+    return { url: `${successUrl}?session_id=mock_byok_session_${Date.now()}` }
+  }
+
+  // Get or create Stripe customer
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (!user) throw new Error('User not found')
+
+  let customerId = user.stripeCustomerId
+
+  if (!customerId) {
+    const customer = await stripe.customers.create({
+      email: user.email,
+      name: user.name ?? undefined,
+      metadata: { userId },
+    })
+    customerId = customer.id
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { stripeCustomerId: customerId },
+    })
+  }
+
+  // Get the BYOK price ID from environment
+  const priceId = process.env.STRIPE_BYOK_PRICE_ID
+  if (!priceId) {
+    throw new Error('STRIPE_BYOK_PRICE_ID environment variable not configured')
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    customer: customerId,
+    payment_method_types: ['card'],
+    line_items: [{ price: priceId, quantity: 1 }],
+    mode: 'payment', // One-time payment, not subscription
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    metadata: {
+      userId,
+      type: 'byok_access', // Important: identifies this as a BYOK purchase
+    },
+  })
+
+  if (!session.url) {
+    throw new Error('Failed to create BYOK checkout session')
+  }
 
   return { url: session.url }
 }

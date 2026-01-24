@@ -17,6 +17,7 @@ import { Route as ApiProxyGlbRouteImport } from './routes/api/proxy-glb'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as AppSetupRouteImport } from './routes/_app/setup'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppAdminRouteImport } from './routes/_app/admin'
@@ -64,6 +65,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => AuthRoute,
+} as any)
+const AppSetupRoute = AppSetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AppAdminRoute
   '/dashboard': typeof AppDashboardRoute
   '/profile': typeof AppProfileRoute
+  '/setup': typeof AppSetupRoute
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/api/chat': typeof ApiChatRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AppAdminRoute
   '/dashboard': typeof AppDashboardRoute
   '/profile': typeof AppProfileRoute
+  '/setup': typeof AppSetupRoute
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/api/chat': typeof ApiChatRoute
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   '/_app/admin': typeof AppAdminRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/profile': typeof AppProfileRoute
+  '/_app/setup': typeof AppSetupRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/signup': typeof AuthSignupRoute
   '/api/chat': typeof ApiChatRoute
@@ -174,6 +183,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/profile'
+    | '/setup'
     | '/login'
     | '/signup'
     | '/api/chat'
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/profile'
+    | '/setup'
     | '/login'
     | '/signup'
     | '/api/chat'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/_app/admin'
     | '/_app/dashboard'
     | '/_app/profile'
+    | '/_app/setup'
     | '/_auth/login'
     | '/_auth/signup'
     | '/api/chat'
@@ -289,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_app/setup': {
+      id: '/_app/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof AppSetupRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/profile': {
       id: '/_app/profile'
       path: '/profile'
@@ -360,6 +379,7 @@ interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppProfileRoute: typeof AppProfileRoute
+  AppSetupRoute: typeof AppSetupRoute
   AppProjectsProjectIdRoute: typeof AppProjectsProjectIdRoute
   AppImagesIndexRoute: typeof AppImagesIndexRoute
   AppProjectsIndexRoute: typeof AppProjectsIndexRoute
@@ -371,6 +391,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppProfileRoute: AppProfileRoute,
+  AppSetupRoute: AppSetupRoute,
   AppProjectsProjectIdRoute: AppProjectsProjectIdRoute,
   AppImagesIndexRoute: AppImagesIndexRoute,
   AppProjectsIndexRoute: AppProjectsIndexRoute,
