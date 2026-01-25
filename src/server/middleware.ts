@@ -1,6 +1,7 @@
 import { createMiddleware } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/start-server-core'
 import { auth } from '../lib/auth'
+import { prisma } from '../db'
 
 // Define user type based on Better-Auth with our custom fields
 export interface AuthUser {
@@ -75,3 +76,31 @@ export const optionalAuthMiddleware = createMiddleware().server(
     })
   },
 )
+
+/**
+ * Platform Access Middleware
+ * Extends authMiddleware to check for platform access (paid $149 one-time)
+ * Admins bypass this check automatically
+ */
+export const platformAccessMiddleware = createMiddleware()
+  .middleware([authMiddleware])
+  .server(async ({ next, context }) => {
+    // Admin users always have platform access
+    if (context.user.role === 'admin') {
+      return next({ context: { ...context, hasPlatformAccess: true } })
+    }
+
+    // Check if user has platform access
+    const user = await prisma.user.findUnique({
+      where: { id: context.user.id },
+      select: { hasPlatformAccess: true },
+    })
+
+    if (!user?.hasPlatformAccess) {
+      throw new Error(
+        'Platform access required. Please purchase access at /pricing',
+      )
+    }
+
+    return next({ context: { ...context, hasPlatformAccess: true } })
+  })

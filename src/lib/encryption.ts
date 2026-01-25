@@ -7,7 +7,7 @@
  * Generate a key with: openssl rand -base64 32
  */
 
-import { createCipheriv, createDecipheriv, randomBytes } from 'crypto'
+import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
 
 const ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 16 // 128 bits for GCM

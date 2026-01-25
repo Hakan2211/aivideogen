@@ -1,32 +1,46 @@
 import { createServerFn } from '@tanstack/react-start'
-import { z } from 'zod'
 import {
   createBillingPortalSession,
-  createByokCheckoutSession,
-  createCheckoutSession,
-  getSubscriptionStatus,
+  createPlatformCheckoutSession,
+  getPlatformStatus,
+  verifyAndActivatePlatformAccess,
 } from '../lib/stripe.server'
 import { authMiddleware } from './middleware'
 
 /**
- * Create Stripe Checkout Session
+ * Get current user's platform access status
  */
-const checkoutSchema = z.object({
-  priceId: z.string().optional(),
-})
-
-export const createCheckoutFn = createServerFn({ method: 'POST' })
+export const getPlatformStatusFn = createServerFn({ method: 'GET' })
   .middleware([authMiddleware])
-  .inputValidator(checkoutSchema)
-  .handler(async ({ data, context }) => {
-    const priceId =
-      data.priceId || process.env.STRIPE_PRICE_ID || 'price_default'
+  .handler(async ({ context }) => {
+    // Admin always has platform access
+    if (context.user.role === 'admin') {
+      return {
+        hasPlatformAccess: true,
+        purchaseDate: null,
+        isAdmin: true,
+      }
+    }
+
+    const status = await getPlatformStatus(context.user.id)
+    return {
+      ...status,
+      isAdmin: false,
+    }
+  })
+
+/**
+ * Create Stripe Checkout Session for platform one-time payment ($149)
+ * Grants lifetime access to DirectorAI
+ */
+export const createPlatformCheckoutFn = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
     const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000'
 
-    const result = await createCheckoutSession(
+    const result = await createPlatformCheckoutSession(
       context.user.id,
-      priceId,
-      `${baseUrl}/dashboard?success=true`,
+      `${baseUrl}/purchase-success?success=true`,
       `${baseUrl}/pricing?canceled=true`,
     )
 
@@ -34,17 +48,18 @@ export const createCheckoutFn = createServerFn({ method: 'POST' })
   })
 
 /**
- * Get current user's subscription status
+ * Verify and activate platform access (fallback for when webhook doesn't fire)
  */
-export const getSubscriptionFn = createServerFn({ method: 'GET' })
+export const verifyPlatformAccessFn = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
-    const status = await getSubscriptionStatus(context.user.id)
-    return status
+    const result = await verifyAndActivatePlatformAccess(context.user.id)
+    return result
   })
 
 /**
  * Create Stripe Billing Portal Session
+ * Allows users to manage their payment methods
  */
 export const createBillingPortalFn = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
@@ -53,24 +68,7 @@ export const createBillingPortalFn = createServerFn({ method: 'POST' })
 
     const result = await createBillingPortalSession(
       context.user.id,
-      `${baseUrl}/dashboard`,
-    )
-
-    return result
-  })
-
-/**
- * Create Stripe Checkout Session for BYOK one-time payment ($99)
- */
-export const createByokCheckoutFn = createServerFn({ method: 'POST' })
-  .middleware([authMiddleware])
-  .handler(async ({ context }) => {
-    const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000'
-
-    const result = await createByokCheckoutSession(
-      context.user.id,
-      `${baseUrl}/setup?success=true`,
-      `${baseUrl}/pricing?canceled=true`,
+      `${baseUrl}/profile`,
     )
 
     return result

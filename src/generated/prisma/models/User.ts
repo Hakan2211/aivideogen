@@ -48,9 +48,9 @@ export type UserMinAggregateOutputType = {
   cancelAtPeriodEnd: boolean | null
   onboardingComplete: boolean | null
   credits: number | null
-  hasByokAccess: boolean | null
-  byokPurchaseDate: Date | null
-  byokStripePaymentId: string | null
+  hasPlatformAccess: boolean | null
+  platformPurchaseDate: Date | null
+  platformStripePaymentId: string | null
   falApiKey: string | null
   falApiKeyLastFour: string | null
   falApiKeyAddedAt: Date | null
@@ -76,9 +76,9 @@ export type UserMaxAggregateOutputType = {
   cancelAtPeriodEnd: boolean | null
   onboardingComplete: boolean | null
   credits: number | null
-  hasByokAccess: boolean | null
-  byokPurchaseDate: Date | null
-  byokStripePaymentId: string | null
+  hasPlatformAccess: boolean | null
+  platformPurchaseDate: Date | null
+  platformStripePaymentId: string | null
   falApiKey: string | null
   falApiKeyLastFour: string | null
   falApiKeyAddedAt: Date | null
@@ -104,9 +104,9 @@ export type UserCountAggregateOutputType = {
   cancelAtPeriodEnd: number
   onboardingComplete: number
   credits: number
-  hasByokAccess: number
-  byokPurchaseDate: number
-  byokStripePaymentId: number
+  hasPlatformAccess: number
+  platformPurchaseDate: number
+  platformStripePaymentId: number
   falApiKey: number
   falApiKeyLastFour: number
   falApiKeyAddedAt: number
@@ -142,9 +142,9 @@ export type UserMinAggregateInputType = {
   cancelAtPeriodEnd?: true
   onboardingComplete?: true
   credits?: true
-  hasByokAccess?: true
-  byokPurchaseDate?: true
-  byokStripePaymentId?: true
+  hasPlatformAccess?: true
+  platformPurchaseDate?: true
+  platformStripePaymentId?: true
   falApiKey?: true
   falApiKeyLastFour?: true
   falApiKeyAddedAt?: true
@@ -170,9 +170,9 @@ export type UserMaxAggregateInputType = {
   cancelAtPeriodEnd?: true
   onboardingComplete?: true
   credits?: true
-  hasByokAccess?: true
-  byokPurchaseDate?: true
-  byokStripePaymentId?: true
+  hasPlatformAccess?: true
+  platformPurchaseDate?: true
+  platformStripePaymentId?: true
   falApiKey?: true
   falApiKeyLastFour?: true
   falApiKeyAddedAt?: true
@@ -198,9 +198,9 @@ export type UserCountAggregateInputType = {
   cancelAtPeriodEnd?: true
   onboardingComplete?: true
   credits?: true
-  hasByokAccess?: true
-  byokPurchaseDate?: true
-  byokStripePaymentId?: true
+  hasPlatformAccess?: true
+  platformPurchaseDate?: true
+  platformStripePaymentId?: true
   falApiKey?: true
   falApiKeyLastFour?: true
   falApiKeyAddedAt?: true
@@ -313,9 +313,9 @@ export type UserGroupByOutputType = {
   cancelAtPeriodEnd: boolean
   onboardingComplete: boolean
   credits: number
-  hasByokAccess: boolean
-  byokPurchaseDate: Date | null
-  byokStripePaymentId: string | null
+  hasPlatformAccess: boolean
+  platformPurchaseDate: Date | null
+  platformStripePaymentId: string | null
   falApiKey: string | null
   falApiKeyLastFour: string | null
   falApiKeyAddedAt: Date | null
@@ -364,9 +364,9 @@ export type UserWhereInput = {
   cancelAtPeriodEnd?: Prisma.BoolFilter<"User"> | boolean
   onboardingComplete?: Prisma.BoolFilter<"User"> | boolean
   credits?: Prisma.IntFilter<"User"> | number
-  hasByokAccess?: Prisma.BoolFilter<"User"> | boolean
-  byokPurchaseDate?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
-  byokStripePaymentId?: Prisma.StringNullableFilter<"User"> | string | null
+  hasPlatformAccess?: Prisma.BoolFilter<"User"> | boolean
+  platformPurchaseDate?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  platformStripePaymentId?: Prisma.StringNullableFilter<"User"> | string | null
   falApiKey?: Prisma.StringNullableFilter<"User"> | string | null
   falApiKeyLastFour?: Prisma.StringNullableFilter<"User"> | string | null
   falApiKeyAddedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -399,9 +399,9 @@ export type UserOrderByWithRelationInput = {
   cancelAtPeriodEnd?: Prisma.SortOrder
   onboardingComplete?: Prisma.SortOrder
   credits?: Prisma.SortOrder
-  hasByokAccess?: Prisma.SortOrder
-  byokPurchaseDate?: Prisma.SortOrderInput | Prisma.SortOrder
-  byokStripePaymentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  hasPlatformAccess?: Prisma.SortOrder
+  platformPurchaseDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  platformStripePaymentId?: Prisma.SortOrderInput | Prisma.SortOrder
   falApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
   falApiKeyLastFour?: Prisma.SortOrderInput | Prisma.SortOrder
   falApiKeyAddedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -437,9 +437,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   cancelAtPeriodEnd?: Prisma.BoolFilter<"User"> | boolean
   onboardingComplete?: Prisma.BoolFilter<"User"> | boolean
   credits?: Prisma.IntFilter<"User"> | number
-  hasByokAccess?: Prisma.BoolFilter<"User"> | boolean
-  byokPurchaseDate?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
-  byokStripePaymentId?: Prisma.StringNullableFilter<"User"> | string | null
+  hasPlatformAccess?: Prisma.BoolFilter<"User"> | boolean
+  platformPurchaseDate?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  platformStripePaymentId?: Prisma.StringNullableFilter<"User"> | string | null
   falApiKey?: Prisma.StringNullableFilter<"User"> | string | null
   falApiKeyLastFour?: Prisma.StringNullableFilter<"User"> | string | null
   falApiKeyAddedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
@@ -472,9 +472,9 @@ export type UserOrderByWithAggregationInput = {
   cancelAtPeriodEnd?: Prisma.SortOrder
   onboardingComplete?: Prisma.SortOrder
   credits?: Prisma.SortOrder
-  hasByokAccess?: Prisma.SortOrder
-  byokPurchaseDate?: Prisma.SortOrderInput | Prisma.SortOrder
-  byokStripePaymentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  hasPlatformAccess?: Prisma.SortOrder
+  platformPurchaseDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  platformStripePaymentId?: Prisma.SortOrderInput | Prisma.SortOrder
   falApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
   falApiKeyLastFour?: Prisma.SortOrderInput | Prisma.SortOrder
   falApiKeyAddedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -508,9 +508,9 @@ export type UserScalarWhereWithAggregatesInput = {
   cancelAtPeriodEnd?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   onboardingComplete?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   credits?: Prisma.IntWithAggregatesFilter<"User"> | number
-  hasByokAccess?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
-  byokPurchaseDate?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
-  byokStripePaymentId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  hasPlatformAccess?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  platformPurchaseDate?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  platformStripePaymentId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   falApiKey?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   falApiKeyLastFour?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   falApiKeyAddedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
@@ -536,9 +536,9 @@ export type UserCreateInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -571,9 +571,9 @@ export type UserUncheckedCreateInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -606,9 +606,9 @@ export type UserUpdateInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -641,9 +641,9 @@ export type UserUncheckedUpdateInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -676,9 +676,9 @@ export type UserCreateManyInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -704,9 +704,9 @@ export type UserUpdateManyMutationInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -732,9 +732,9 @@ export type UserUncheckedUpdateManyInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -760,9 +760,9 @@ export type UserCountOrderByAggregateInput = {
   cancelAtPeriodEnd?: Prisma.SortOrder
   onboardingComplete?: Prisma.SortOrder
   credits?: Prisma.SortOrder
-  hasByokAccess?: Prisma.SortOrder
-  byokPurchaseDate?: Prisma.SortOrder
-  byokStripePaymentId?: Prisma.SortOrder
+  hasPlatformAccess?: Prisma.SortOrder
+  platformPurchaseDate?: Prisma.SortOrder
+  platformStripePaymentId?: Prisma.SortOrder
   falApiKey?: Prisma.SortOrder
   falApiKeyLastFour?: Prisma.SortOrder
   falApiKeyAddedAt?: Prisma.SortOrder
@@ -792,9 +792,9 @@ export type UserMaxOrderByAggregateInput = {
   cancelAtPeriodEnd?: Prisma.SortOrder
   onboardingComplete?: Prisma.SortOrder
   credits?: Prisma.SortOrder
-  hasByokAccess?: Prisma.SortOrder
-  byokPurchaseDate?: Prisma.SortOrder
-  byokStripePaymentId?: Prisma.SortOrder
+  hasPlatformAccess?: Prisma.SortOrder
+  platformPurchaseDate?: Prisma.SortOrder
+  platformStripePaymentId?: Prisma.SortOrder
   falApiKey?: Prisma.SortOrder
   falApiKeyLastFour?: Prisma.SortOrder
   falApiKeyAddedAt?: Prisma.SortOrder
@@ -820,9 +820,9 @@ export type UserMinOrderByAggregateInput = {
   cancelAtPeriodEnd?: Prisma.SortOrder
   onboardingComplete?: Prisma.SortOrder
   credits?: Prisma.SortOrder
-  hasByokAccess?: Prisma.SortOrder
-  byokPurchaseDate?: Prisma.SortOrder
-  byokStripePaymentId?: Prisma.SortOrder
+  hasPlatformAccess?: Prisma.SortOrder
+  platformPurchaseDate?: Prisma.SortOrder
+  platformStripePaymentId?: Prisma.SortOrder
   falApiKey?: Prisma.SortOrder
   falApiKeyLastFour?: Prisma.SortOrder
   falApiKeyAddedAt?: Prisma.SortOrder
@@ -983,9 +983,9 @@ export type UserCreateWithoutSessionsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1017,9 +1017,9 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1067,9 +1067,9 @@ export type UserUpdateWithoutSessionsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1101,9 +1101,9 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1135,9 +1135,9 @@ export type UserCreateWithoutAccountsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1169,9 +1169,9 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1219,9 +1219,9 @@ export type UserUpdateWithoutAccountsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1253,9 +1253,9 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1287,9 +1287,9 @@ export type UserCreateWithoutProjectsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1321,9 +1321,9 @@ export type UserUncheckedCreateWithoutProjectsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1371,9 +1371,9 @@ export type UserUpdateWithoutProjectsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1405,9 +1405,9 @@ export type UserUncheckedUpdateWithoutProjectsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1439,9 +1439,9 @@ export type UserCreateWithoutAssetsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1473,9 +1473,9 @@ export type UserUncheckedCreateWithoutAssetsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1523,9 +1523,9 @@ export type UserUpdateWithoutAssetsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1557,9 +1557,9 @@ export type UserUncheckedUpdateWithoutAssetsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1591,9 +1591,9 @@ export type UserCreateWithoutGenerationJobsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1625,9 +1625,9 @@ export type UserUncheckedCreateWithoutGenerationJobsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1675,9 +1675,9 @@ export type UserUpdateWithoutGenerationJobsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1709,9 +1709,9 @@ export type UserUncheckedUpdateWithoutGenerationJobsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1743,9 +1743,9 @@ export type UserCreateWithoutSubscriptionEventsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1777,9 +1777,9 @@ export type UserUncheckedCreateWithoutSubscriptionEventsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1827,9 +1827,9 @@ export type UserUpdateWithoutSubscriptionEventsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1861,9 +1861,9 @@ export type UserUncheckedUpdateWithoutSubscriptionEventsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1895,9 +1895,9 @@ export type UserCreateWithoutModel3DAssetsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1929,9 +1929,9 @@ export type UserUncheckedCreateWithoutModel3DAssetsInput = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: number
-  hasByokAccess?: boolean
-  byokPurchaseDate?: Date | string | null
-  byokStripePaymentId?: string | null
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
   falApiKey?: string | null
   falApiKeyLastFour?: string | null
   falApiKeyAddedAt?: Date | string | null
@@ -1979,9 +1979,9 @@ export type UserUpdateWithoutModel3DAssetsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2013,9 +2013,9 @@ export type UserUncheckedUpdateWithoutModel3DAssetsInput = {
   cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
   credits?: Prisma.IntFieldUpdateOperationsInput | number
-  hasByokAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  byokPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  byokStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2132,9 +2132,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: boolean
-  hasByokAccess?: boolean
-  byokPurchaseDate?: boolean
-  byokStripePaymentId?: boolean
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: boolean
+  platformStripePaymentId?: boolean
   falApiKey?: boolean
   falApiKeyLastFour?: boolean
   falApiKeyAddedAt?: boolean
@@ -2168,9 +2168,9 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: boolean
-  hasByokAccess?: boolean
-  byokPurchaseDate?: boolean
-  byokStripePaymentId?: boolean
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: boolean
+  platformStripePaymentId?: boolean
   falApiKey?: boolean
   falApiKeyLastFour?: boolean
   falApiKeyAddedAt?: boolean
@@ -2196,9 +2196,9 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: boolean
-  hasByokAccess?: boolean
-  byokPurchaseDate?: boolean
-  byokStripePaymentId?: boolean
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: boolean
+  platformStripePaymentId?: boolean
   falApiKey?: boolean
   falApiKeyLastFour?: boolean
   falApiKeyAddedAt?: boolean
@@ -2224,9 +2224,9 @@ export type UserSelectScalar = {
   cancelAtPeriodEnd?: boolean
   onboardingComplete?: boolean
   credits?: boolean
-  hasByokAccess?: boolean
-  byokPurchaseDate?: boolean
-  byokStripePaymentId?: boolean
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: boolean
+  platformStripePaymentId?: boolean
   falApiKey?: boolean
   falApiKeyLastFour?: boolean
   falApiKeyAddedAt?: boolean
@@ -2238,7 +2238,7 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "image" | "emailVerified" | "role" | "stripeCustomerId" | "subscriptionStatus" | "subscriptionTier" | "subscriptionPeriodEnd" | "cancelAtPeriodEnd" | "onboardingComplete" | "credits" | "hasByokAccess" | "byokPurchaseDate" | "byokStripePaymentId" | "falApiKey" | "falApiKeyLastFour" | "falApiKeyAddedAt" | "preferredLlmModel" | "preferredImageModel" | "preferredVideoModel" | "preferredVoiceId" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "image" | "emailVerified" | "role" | "stripeCustomerId" | "subscriptionStatus" | "subscriptionTier" | "subscriptionPeriodEnd" | "cancelAtPeriodEnd" | "onboardingComplete" | "credits" | "hasPlatformAccess" | "platformPurchaseDate" | "platformStripePaymentId" | "falApiKey" | "falApiKeyLastFour" | "falApiKeyAddedAt" | "preferredLlmModel" | "preferredImageModel" | "preferredVideoModel" | "preferredVoiceId" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
@@ -2277,9 +2277,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     cancelAtPeriodEnd: boolean
     onboardingComplete: boolean
     credits: number
-    hasByokAccess: boolean
-    byokPurchaseDate: Date | null
-    byokStripePaymentId: string | null
+    hasPlatformAccess: boolean
+    platformPurchaseDate: Date | null
+    platformStripePaymentId: string | null
     falApiKey: string | null
     falApiKeyLastFour: string | null
     falApiKeyAddedAt: Date | null
@@ -2732,9 +2732,9 @@ export interface UserFieldRefs {
   readonly cancelAtPeriodEnd: Prisma.FieldRef<"User", 'Boolean'>
   readonly onboardingComplete: Prisma.FieldRef<"User", 'Boolean'>
   readonly credits: Prisma.FieldRef<"User", 'Int'>
-  readonly hasByokAccess: Prisma.FieldRef<"User", 'Boolean'>
-  readonly byokPurchaseDate: Prisma.FieldRef<"User", 'DateTime'>
-  readonly byokStripePaymentId: Prisma.FieldRef<"User", 'String'>
+  readonly hasPlatformAccess: Prisma.FieldRef<"User", 'Boolean'>
+  readonly platformPurchaseDate: Prisma.FieldRef<"User", 'DateTime'>
+  readonly platformStripePaymentId: Prisma.FieldRef<"User", 'String'>
   readonly falApiKey: Prisma.FieldRef<"User", 'String'>
   readonly falApiKeyLastFour: Prisma.FieldRef<"User", 'String'>
   readonly falApiKeyAddedAt: Prisma.FieldRef<"User", 'DateTime'>

@@ -7,8 +7,9 @@ interface PreviewBannerProps {
 }
 
 /**
- * Banner shown to users who haven't purchased BYOK access yet.
- * Displays in preview mode at the top of the app layout.
+ * Banner shown to users who haven't purchased platform access yet.
+ * Note: With the new flow, users without access are redirected to /pricing,
+ * so this banner is mostly used for informational purposes.
  */
 export function PreviewBanner({ onUnlock }: PreviewBannerProps) {
   return (
@@ -20,7 +21,7 @@ export function PreviewBanner({ onUnlock }: PreviewBannerProps) {
             <span className="font-medium">Preview Mode</span>
             <span className="hidden sm:inline">
               {' '}
-              - Unlock full access for $99 one-time
+              - Get lifetime access for $149 one-time
             </span>
           </span>
         </div>

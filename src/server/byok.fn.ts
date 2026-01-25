@@ -24,10 +24,9 @@ async function getEncryption() {
 // =============================================================================
 
 export interface ByokStatus {
-  hasByokAccess: boolean
+  hasPlatformAccess: boolean
   hasApiKey: boolean
   apiKeyLastFour: string | null
-  isPreviewMode: boolean
   purchaseDate: Date | null
 }
 
@@ -41,7 +40,8 @@ export interface FalUsage {
 // =============================================================================
 
 /**
- * Get the current user's BYOK access status
+ * Get the current user's BYOK (API key) status
+ * Note: Platform access is checked separately via getPlatformStatusFn
  */
 export const getByokStatusFn = createServerFn({ method: 'GET' })
   .middleware([authMiddleware])
@@ -49,9 +49,9 @@ export const getByokStatusFn = createServerFn({ method: 'GET' })
     const user = await prisma.user.findUnique({
       where: { id: context.user.id },
       select: {
-        hasByokAccess: true,
+        hasPlatformAccess: true,
         falApiKeyLastFour: true,
-        byokPurchaseDate: true,
+        platformPurchaseDate: true,
         role: true,
       },
     })
@@ -60,16 +60,15 @@ export const getByokStatusFn = createServerFn({ method: 'GET' })
       throw new Error('User not found')
     }
 
-    // Admins always have access
+    // Admins always have platform access
     const isAdmin = user.role === 'admin'
-    const hasByokAccess = isAdmin || user.hasByokAccess
+    const hasPlatformAccess = isAdmin || user.hasPlatformAccess
 
     return {
-      hasByokAccess,
+      hasPlatformAccess,
       hasApiKey: !!user.falApiKeyLastFour,
       apiKeyLastFour: user.falApiKeyLastFour,
-      isPreviewMode: !hasByokAccess,
-      purchaseDate: user.byokPurchaseDate,
+      purchaseDate: user.platformPurchaseDate,
     }
   })
 
@@ -88,10 +87,10 @@ export const saveApiKeyFn = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
   .inputValidator(saveApiKeySchema)
   .handler(async ({ data, context }) => {
-    // Check if user has BYOK access (or is admin)
+    // Check if user has platform access (or is admin)
     const user = await prisma.user.findUnique({
       where: { id: context.user.id },
-      select: { hasByokAccess: true, role: true },
+      select: { hasPlatformAccess: true, role: true },
     })
 
     if (!user) {
@@ -99,8 +98,8 @@ export const saveApiKeyFn = createServerFn({ method: 'POST' })
     }
 
     const isAdmin = user.role === 'admin'
-    if (!isAdmin && !user.hasByokAccess) {
-      throw new Error('BYOK access required. Please purchase access first.')
+    if (!isAdmin && !user.hasPlatformAccess) {
+      throw new Error('Platform access required. Please purchase access first.')
     }
 
     // Dynamic import encryption utilities (server-only)
@@ -281,7 +280,7 @@ export const getFalUsageFn = createServerFn({ method: 'GET' })
         currency: string
       }
 
-      const summary = data.summary as UsageSummaryItem[] | undefined
+      const summary = data.summary as Array<UsageSummaryItem> | undefined
       const totalCost =
         summary?.reduce(
           (sum: number, item: UsageSummaryItem) => sum + (item.cost || 0),
@@ -314,7 +313,7 @@ export async function getUserFalApiKey(userId: string): Promise<string> {
     where: { id: userId },
     select: {
       falApiKey: true,
-      hasByokAccess: true,
+      hasPlatformAccess: true,
       role: true,
     },
   })
@@ -329,10 +328,10 @@ export async function getUserFalApiKey(userId: string): Promise<string> {
     return process.env.FAL_KEY
   }
 
-  // Check BYOK access
-  if (!isAdmin && !user.hasByokAccess) {
+  // Check platform access
+  if (!isAdmin && !user.hasPlatformAccess) {
     throw new Error(
-      'BYOK access required. Please unlock the platform to use this feature.',
+      'Platform access required. Please unlock the platform to use this feature.',
     )
   }
 

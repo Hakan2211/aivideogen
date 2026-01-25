@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { getSubscriptionFn } from '../../server/billing.fn'
+import { getPlatformStatusFn } from '../../server/billing.fn'
 import { Button } from '../../components/ui/button'
 
 export const Route = createFileRoute('/_app/dashboard')({
@@ -12,9 +12,9 @@ function DashboardPage() {
   const user = routeContext.user as { name?: string | null } | undefined
   const userName = user?.name || 'there'
 
-  const { data: subscription } = useQuery({
-    queryKey: ['subscription'],
-    queryFn: () => getSubscriptionFn(),
+  const { data: platformStatus } = useQuery({
+    queryKey: ['platformStatus'],
+    queryFn: () => getPlatformStatusFn(),
   })
 
   return (
@@ -38,11 +38,9 @@ function DashboardPage() {
           change="+12% from last month"
         />
         <StatCard
-          title="Subscription"
-          value={subscription?.status === 'active' ? 'Pro' : 'Free'}
-          change={
-            subscription?.status === 'active' ? 'Active' : 'Upgrade available'
-          }
+          title="Platform Access"
+          value="Lifetime"
+          change={platformStatus?.isAdmin ? 'Admin' : 'Active'}
         />
       </div>
 

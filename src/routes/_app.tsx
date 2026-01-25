@@ -9,7 +9,7 @@ import {
 } from '../components/ui/sidebar'
 import { AppSidebar } from '../components/app-sidebar'
 import { Separator } from '../components/ui/separator'
-import { PreviewBanner, SetupBanner } from '../components/byok'
+import { SetupBanner } from '../components/byok'
 
 // Type for the user from Better-Auth session
 interface AppUser {
@@ -23,16 +23,16 @@ interface AppUser {
 
 // Type for BYOK status (avoid importing from server file)
 interface ByokStatus {
-  hasByokAccess: boolean
+  hasPlatformAccess: boolean
   hasApiKey: boolean
   apiKeyLastFour: string | null
-  isPreviewMode: boolean
   purchaseDate: Date | null
 }
 
 /**
  * Protected App Layout
  * Requires authentication - redirects to login if not authenticated
+ * Requires platform access - redirects to pricing if not paid
  * Includes sidebar navigation and user dropdown
  */
 export const Route = createFileRoute('/_app')({
@@ -42,8 +42,27 @@ export const Route = createFileRoute('/_app')({
       throw redirect({ to: '/login' })
     }
 
+    const user = session.user as AppUser
+
+    // Admin users bypass platform access check
+    if (user.role === 'admin') {
+      return {
+        user,
+        hasPlatformAccess: true,
+      }
+    }
+
+    // Check platform access for non-admin users
+    const { getPlatformStatusFn } = await import('../server/billing.fn')
+    const platformStatus = await getPlatformStatusFn()
+
+    if (!platformStatus.hasPlatformAccess) {
+      throw redirect({ to: '/pricing' })
+    }
+
     return {
-      user: session.user as AppUser,
+      user,
+      hasPlatformAccess: true,
     }
   },
   component: AppLayout,
@@ -68,18 +87,16 @@ function AppLayout() {
     staleTime: 30000, // Consider fresh for 30 seconds
   })
 
-  // Determine which banner to show
-  const showPreviewBanner = currentByokStatus?.isPreviewMode
+  // Show setup banner if user has platform access but no API key configured
   const showSetupBanner =
-    currentByokStatus?.hasByokAccess && !currentByokStatus?.hasApiKey
+    currentByokStatus?.hasPlatformAccess && !currentByokStatus?.hasApiKey
 
   return (
     <SidebarProvider>
       <AppSidebar user={user} />
       <SidebarInset>
         <div className="flex flex-1 flex-col overflow-hidden h-full">
-          {/* BYOK Status Banners */}
-          {showPreviewBanner && <PreviewBanner />}
+          {/* Setup Banner - shown when user needs to add API key */}
           {showSetupBanner && <SetupBanner />}
 
           {/* Header with Sidebar Trigger */}

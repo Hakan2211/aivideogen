@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Key, ArrowRight } from 'lucide-react'
+import { ArrowRight, Key } from 'lucide-react'
 import { Button } from '../ui/button'
 
 /**

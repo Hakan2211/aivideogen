@@ -3,18 +3,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
-import { updateProfileFn } from '../../server/auth.fn'
-import {
-  createBillingPortalFn,
-  createCheckoutFn,
-  getSubscriptionFn,
-} from '../../server/billing.fn'
-// NOTE: byok.fn and createByokCheckoutFn imports are done dynamically to prevent
-// server code from being bundled into the client. See FalApiKeySection component.
-import { useSession } from '../../lib/auth-client'
-import { Button } from '../../components/ui/button'
-import { Input } from '../../components/ui/input'
-import { Label } from '../../components/ui/label'
 import {
   AlertCircle,
   CheckCircle2,
@@ -22,10 +10,16 @@ import {
   Key,
   Loader2,
   Shield,
+  Sparkles,
   Trash2,
   Wallet,
   Zap,
 } from 'lucide-react'
+import { updateProfileFn } from '../../server/auth.fn'
+import { useSession } from '../../lib/auth-client'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
+import { Label } from '../../components/ui/label'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,11 +39,6 @@ interface ProfileUser {
   name: string | null
   image?: string | null
   role?: string
-}
-
-// Type for checkout/portal response
-interface UrlResponse {
-  url: string
 }
 
 export const Route = createFileRoute('/_app/profile')({
@@ -74,9 +63,13 @@ function ProfilePage() {
   const userEmail = user?.email || ''
   const userRole = user?.role || 'user'
 
-  const { data: subscription } = useQuery({
-    queryKey: ['subscription'],
-    queryFn: () => getSubscriptionFn(),
+  // Get platform status
+  const { data: platformStatus } = useQuery({
+    queryKey: ['platform-status'],
+    queryFn: async () => {
+      const { getPlatformStatusFn } = await import('../../server/billing.fn')
+      return getPlatformStatusFn()
+    },
   })
 
   const updateMutation = useMutation({
@@ -85,20 +78,6 @@ function ProfilePage() {
       setSuccess(true)
       void queryClient.invalidateQueries({ queryKey: ['session'] })
       setTimeout(() => setSuccess(false), 3000)
-    },
-  })
-
-  const checkoutMutation = useMutation({
-    mutationFn: () => createCheckoutFn({ data: {} }),
-    onSuccess: (response: UrlResponse) => {
-      window.location.href = response.url
-    },
-  })
-
-  const portalMutation = useMutation({
-    mutationFn: () => createBillingPortalFn(),
-    onSuccess: (data: UrlResponse) => {
-      window.location.href = data.url
     },
   })
 
@@ -116,6 +95,37 @@ function ProfilePage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
         <p className="text-muted-foreground">Manage your account settings</p>
+      </div>
+
+      {/* Platform Access Status */}
+      <div className="max-w-2xl rounded-lg border bg-card p-6">
+        <h2 className="mb-4 text-xl font-semibold flex items-center gap-2">
+          <Sparkles className="h-5 w-5" />
+          Platform Access
+        </h2>
+
+        <div className="rounded-lg bg-muted/50 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10">
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="font-medium">Lifetime Access Active</p>
+                <p className="text-sm text-muted-foreground">
+                  {platformStatus?.isAdmin
+                    ? 'Admin account - full access'
+                    : platformStatus?.purchaseDate
+                      ? `Purchased on ${new Date(platformStatus.purchaseDate).toLocaleDateString()}`
+                      : 'You have full access to DirectorAI'}
+                </p>
+              </div>
+            </div>
+            <span className="inline-flex items-center rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-600">
+              Active
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Profile Form */}
@@ -197,56 +207,6 @@ function ProfilePage() {
 
       {/* fal.ai Connection (BYOK) */}
       <FalApiKeySection />
-
-      {/* Subscription (Legacy - hidden if using BYOK) */}
-      <div className="max-w-2xl rounded-lg border bg-card p-6">
-        <h2 className="mb-4 text-xl font-semibold">Subscription</h2>
-
-        <div className="mb-6 rounded-lg bg-muted/50 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">
-                {subscription?.status === 'active' ? 'Pro Plan' : 'Free Plan'}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {subscription?.status === 'active'
-                  ? 'You have access to all features'
-                  : 'Upgrade to unlock all features'}
-              </p>
-            </div>
-            <div className="text-right">
-              <span
-                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  subscription?.status === 'active'
-                    ? 'bg-green-500/10 text-green-600'
-                    : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                {subscription?.status === 'active' ? 'Active' : 'Free'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-4">
-          {subscription?.status === 'active' ? (
-            <Button
-              variant="outline"
-              onClick={() => portalMutation.mutate()}
-              disabled={portalMutation.isPending}
-            >
-              {portalMutation.isPending ? 'Loading...' : 'Manage Subscription'}
-            </Button>
-          ) : (
-            <Button
-              onClick={() => checkoutMutation.mutate()}
-              disabled={checkoutMutation.isPending}
-            >
-              {checkoutMutation.isPending ? 'Loading...' : 'Upgrade to Pro'}
-            </Button>
-          )}
-        </div>
-      </div>
     </div>
   )
 }
@@ -338,17 +298,6 @@ function FalApiKeySection() {
     },
   })
 
-  // BYOK checkout mutation
-  const byokCheckoutMutation = useMutation({
-    mutationFn: async () => {
-      const { createByokCheckoutFn } = await import('../../server/billing.fn')
-      return createByokCheckoutFn()
-    },
-    onSuccess: (data) => {
-      window.location.href = data.url
-    },
-  })
-
   const handleSaveKey = () => {
     if (!newApiKey.trim()) {
       setError('Please enter an API key')
@@ -369,51 +318,7 @@ function FalApiKeySection() {
     )
   }
 
-  // User doesn't have BYOK access - show purchase prompt
-  if (!byokStatus?.hasByokAccess) {
-    return (
-      <div className="max-w-2xl rounded-lg border bg-card p-6">
-        <h2 className="mb-4 text-xl font-semibold flex items-center gap-2">
-          <Key className="h-5 w-5" />
-          fal.ai Connection
-        </h2>
-
-        <div className="rounded-lg border border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 p-4 mb-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
-            <div>
-              <p className="font-medium text-amber-800 dark:text-amber-200">
-                Unlock Platform Access
-              </p>
-              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                Pay a one-time fee to unlock DirectorAI and connect your own
-                fal.ai API key. No subscription required.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <Button
-          onClick={() => byokCheckoutMutation.mutate()}
-          disabled={byokCheckoutMutation.isPending}
-        >
-          {byokCheckoutMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Redirecting...
-            </>
-          ) : (
-            <>
-              <Zap className="mr-2 h-4 w-4" />
-              Unlock Platform - $99
-            </>
-          )}
-        </Button>
-      </div>
-    )
-  }
-
-  // User has BYOK access - show API key management
+  // User has platform access - show API key management
   return (
     <div className="max-w-2xl rounded-lg border bg-card p-6">
       <h2 className="mb-4 text-xl font-semibold flex items-center gap-2">
@@ -444,7 +349,7 @@ function FalApiKeySection() {
         </div>
       )}
 
-      {byokStatus.hasApiKey && !isUpdating ? (
+      {byokStatus?.hasApiKey && !isUpdating ? (
         // Show connected state
         <div className="space-y-4">
           <div className="rounded-lg bg-muted/50 p-4">
@@ -546,7 +451,7 @@ function FalApiKeySection() {
       ) : (
         // Show setup/update form
         <div className="space-y-4">
-          {!byokStatus.hasApiKey && (
+          {!byokStatus?.hasApiKey && (
             <div className="rounded-lg border border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/20 p-4 mb-4">
               <p className="text-sm text-blue-700 dark:text-blue-300">
                 Connect your fal.ai API key to start generating AI content. Get

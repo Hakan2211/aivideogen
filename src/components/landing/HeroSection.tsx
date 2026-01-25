@@ -92,9 +92,9 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-4"
           >
-            <Link to="/signup">
-              <Button size="lg" className="min-w-[180px] group">
-                Get Started Free
+            <Link to="/pricing">
+              <Button size="lg" className="min-w-[200px] group">
+                Get Lifetime Access - $149
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
@@ -118,8 +118,8 @@ export function HeroSection() {
             {[
               { value: '10+', label: 'AI Models' },
               { value: '3', label: 'Creation Modes' },
-              { value: '$0', label: 'Platform Fee' },
-              { value: '< 2min', label: 'Setup Time' },
+              { value: '$149', label: 'One-Time Payment' },
+              { value: 'Lifetime', label: 'Access' },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-primary">

@@ -8,7 +8,13 @@ import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import { Honeypot, isHoneypotFilled } from '../../components/common/Honeypot'
 
+// Search params validation
+const searchSchema = z.object({
+  redirect: z.string().optional(),
+})
+
 export const Route = createFileRoute('/_auth/signup')({
+  validateSearch: searchSchema,
   component: SignupPage,
 })
 
@@ -21,8 +27,27 @@ const signupSchema = z.object({
 
 function SignupPage() {
   const router = useRouter()
+  const { redirect } = Route.useSearch()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // Determine where to redirect after signup
+  const getRedirectUrl = async () => {
+    if (redirect === 'checkout') {
+      // User came from pricing page, start checkout after signup
+      try {
+        const { createPlatformCheckoutFn } =
+          await import('../../server/billing.fn')
+        const result = await createPlatformCheckoutFn()
+        return result.url
+      } catch {
+        // If checkout fails, go to pricing page
+        return '/pricing'
+      }
+    }
+    // Default: go to dashboard (which will redirect to pricing if no access)
+    return '/dashboard'
+  }
 
   const form = useForm({
     defaultValues: {
@@ -56,7 +81,10 @@ function SignupPage() {
 
         // Force full page reload to pick up new session cookie
         await router.invalidate()
-        window.location.href = '/dashboard'
+
+        // Get redirect URL (might trigger checkout)
+        const redirectUrl = await getRedirectUrl()
+        window.location.href = redirectUrl
       } catch (err) {
         setError('An unexpected error occurred')
         setLoading(false)

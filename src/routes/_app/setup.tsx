@@ -3,6 +3,14 @@ import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 // NOTE: byok.fn imports are done dynamically to prevent server code from being
 // bundled into the client. See below in beforeLoad and query functions.
+import {
+  CheckCircle2,
+  ExternalLink,
+  Key,
+  Loader2,
+  Shield,
+  Wallet,
+} from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
@@ -13,14 +21,6 @@ import {
   CardHeader,
   CardTitle,
 } from '../../components/ui/card'
-import {
-  CheckCircle2,
-  ExternalLink,
-  Key,
-  Loader2,
-  Shield,
-  Wallet,
-} from 'lucide-react'
 
 export const Route = createFileRoute('/_app/setup')({
   beforeLoad: async () => {
@@ -30,8 +30,9 @@ export const Route = createFileRoute('/_app/setup')({
     // Check if user already has API key set up
     const status = await getByokStatusFn()
 
-    // If user doesn't have BYOK access (and isn't admin), redirect to pricing
-    if (!status.hasByokAccess) {
+    // If user doesn't have platform access (and isn't admin), redirect to pricing
+    // Note: This is redundant with _app.tsx check but provides extra safety
+    if (!status.hasPlatformAccess) {
       throw redirect({ to: '/pricing' })
     }
 

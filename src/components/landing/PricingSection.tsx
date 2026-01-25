@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils'
 
 const plans = [
   {
-    name: 'BYOK Access',
-    price: '$99',
+    name: 'Lifetime Access',
+    price: '$149',
     period: 'one-time',
     description: 'Full lifetime access with your own API key',
     features: [
@@ -20,8 +20,8 @@ const plans = [
       'Export in any format',
       'Lifetime updates included',
     ],
-    cta: 'Unlock Platform',
-    href: '/signup',
+    cta: 'Get Lifetime Access',
+    href: '/pricing',
     popular: true,
     icon: Key,
   },
@@ -30,7 +30,7 @@ const plans = [
     price: 'Custom',
     description: 'For teams and organizations',
     features: [
-      'Everything in BYOK',
+      'Everything in Lifetime Access',
       'Multi-user workspaces',
       'Shared asset library',
       'Team API key management',
@@ -63,10 +63,10 @@ export function PricingSection() {
             Transparent Pricing
           </span>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-            One-time payment. No subscription.
+            One-time payment. Lifetime access.
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Pay $99 once for lifetime access. Connect your fal.ai API key and
+            Pay $149 once for lifetime access. Connect your fal.ai API key and
             pay them directly for AI generations. No monthly fees, no hidden
             costs.
           </p>

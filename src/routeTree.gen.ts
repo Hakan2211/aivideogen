@@ -18,6 +18,7 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AppSetupRouteImport } from './routes/_app/setup'
+import { Route as AppPurchaseSuccessRouteImport } from './routes/_app/purchase-success'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppAdminRouteImport } from './routes/_app/admin'
@@ -25,6 +26,7 @@ import { Route as App3dModelsRouteImport } from './routes/_app/3d-models'
 import { Route as AppVideosIndexRouteImport } from './routes/_app/videos/index'
 import { Route as AppProjectsIndexRouteImport } from './routes/_app/projects/index'
 import { Route as AppImagesIndexRouteImport } from './routes/_app/images/index'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppProjectsProjectIdRouteImport } from './routes/_app/projects/$projectId'
 
@@ -71,6 +73,11 @@ const AppSetupRoute = AppSetupRouteImport.update({
   path: '/setup',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPurchaseSuccessRoute = AppPurchaseSuccessRouteImport.update({
+  id: '/purchase-success',
+  path: '/purchase-success',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -106,6 +113,11 @@ const AppImagesIndexRoute = AppImagesIndexRouteImport.update({
   path: '/images/',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe/webhook',
+  path: '/api/stripe/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -124,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AppAdminRoute
   '/dashboard': typeof AppDashboardRoute
   '/profile': typeof AppProfileRoute
+  '/purchase-success': typeof AppPurchaseSuccessRoute
   '/setup': typeof AppSetupRoute
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
@@ -131,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/api/proxy-glb': typeof ApiProxyGlbRoute
   '/projects/$projectId': typeof AppProjectsProjectIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/images': typeof AppImagesIndexRoute
   '/projects': typeof AppProjectsIndexRoute
   '/videos': typeof AppVideosIndexRoute
@@ -142,6 +156,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AppAdminRoute
   '/dashboard': typeof AppDashboardRoute
   '/profile': typeof AppProfileRoute
+  '/purchase-success': typeof AppPurchaseSuccessRoute
   '/setup': typeof AppSetupRoute
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
@@ -149,6 +164,7 @@ export interface FileRoutesByTo {
   '/api/proxy-glb': typeof ApiProxyGlbRoute
   '/projects/$projectId': typeof AppProjectsProjectIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/images': typeof AppImagesIndexRoute
   '/projects': typeof AppProjectsIndexRoute
   '/videos': typeof AppVideosIndexRoute
@@ -163,6 +179,7 @@ export interface FileRoutesById {
   '/_app/admin': typeof AppAdminRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/profile': typeof AppProfileRoute
+  '/_app/purchase-success': typeof AppPurchaseSuccessRoute
   '/_app/setup': typeof AppSetupRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/signup': typeof AuthSignupRoute
@@ -170,6 +187,7 @@ export interface FileRoutesById {
   '/api/proxy-glb': typeof ApiProxyGlbRoute
   '/_app/projects/$projectId': typeof AppProjectsProjectIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/_app/images/': typeof AppImagesIndexRoute
   '/_app/projects/': typeof AppProjectsIndexRoute
   '/_app/videos/': typeof AppVideosIndexRoute
@@ -183,6 +201,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/profile'
+    | '/purchase-success'
     | '/setup'
     | '/login'
     | '/signup'
@@ -190,6 +209,7 @@ export interface FileRouteTypes {
     | '/api/proxy-glb'
     | '/projects/$projectId'
     | '/api/auth/$'
+    | '/api/stripe/webhook'
     | '/images'
     | '/projects'
     | '/videos'
@@ -201,6 +221,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/profile'
+    | '/purchase-success'
     | '/setup'
     | '/login'
     | '/signup'
@@ -208,6 +229,7 @@ export interface FileRouteTypes {
     | '/api/proxy-glb'
     | '/projects/$projectId'
     | '/api/auth/$'
+    | '/api/stripe/webhook'
     | '/images'
     | '/projects'
     | '/videos'
@@ -221,6 +243,7 @@ export interface FileRouteTypes {
     | '/_app/admin'
     | '/_app/dashboard'
     | '/_app/profile'
+    | '/_app/purchase-success'
     | '/_app/setup'
     | '/_auth/login'
     | '/_auth/signup'
@@ -228,6 +251,7 @@ export interface FileRouteTypes {
     | '/api/proxy-glb'
     | '/_app/projects/$projectId'
     | '/api/auth/$'
+    | '/api/stripe/webhook'
     | '/_app/images/'
     | '/_app/projects/'
     | '/_app/videos/'
@@ -241,6 +265,7 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiProxyGlbRoute: typeof ApiProxyGlbRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -308,6 +333,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSetupRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/purchase-success': {
+      id: '/_app/purchase-success'
+      path: '/purchase-success'
+      fullPath: '/purchase-success'
+      preLoaderRoute: typeof AppPurchaseSuccessRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/profile': {
       id: '/_app/profile'
       path: '/profile'
@@ -357,6 +389,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppImagesIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/stripe/webhook': {
+      id: '/api/stripe/webhook'
+      path: '/api/stripe/webhook'
+      fullPath: '/api/stripe/webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -379,6 +418,7 @@ interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppProfileRoute: typeof AppProfileRoute
+  AppPurchaseSuccessRoute: typeof AppPurchaseSuccessRoute
   AppSetupRoute: typeof AppSetupRoute
   AppProjectsProjectIdRoute: typeof AppProjectsProjectIdRoute
   AppImagesIndexRoute: typeof AppImagesIndexRoute
@@ -391,6 +431,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppProfileRoute: AppProfileRoute,
+  AppPurchaseSuccessRoute: AppPurchaseSuccessRoute,
   AppSetupRoute: AppSetupRoute,
   AppProjectsProjectIdRoute: AppProjectsProjectIdRoute,
   AppImagesIndexRoute: AppImagesIndexRoute,
@@ -420,6 +461,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiProxyGlbRoute: ApiProxyGlbRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

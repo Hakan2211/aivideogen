@@ -60,19 +60,19 @@ export function CTASection() {
             Ready to create something amazing?
           </h2>
           <p className="text-lg md:text-xl opacity-90 mb-10">
-            No credit card required. No subscription. Just connect your fal.ai
-            API key and unleash your creativity with cutting-edge AI.
+            Pay $149 once for lifetime access. Connect your fal.ai API key and
+            unleash your creativity with cutting-edge AI.
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/signup">
+            <Link to="/pricing">
               <Button
                 size="lg"
                 variant="secondary"
                 className="min-w-[200px] group"
               >
-                Get Started Now
+                Get Lifetime Access - $149
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
@@ -98,11 +98,11 @@ export function CTASection() {
           >
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-green-400" />
-              <span>No platform fees</span>
+              <span>One-time payment</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-green-400" />
-              <span>Cancel anytime</span>
+              <span>Lifetime access</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-green-400" />

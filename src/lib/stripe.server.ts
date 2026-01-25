@@ -20,80 +20,29 @@ export interface CheckoutResult {
   url: string
 }
 
-export interface SubscriptionStatus {
-  status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'none'
-  plan: string | null
+export interface PlatformStatus {
+  hasPlatformAccess: boolean
+  purchaseDate: Date | null
 }
 
-export async function createCheckoutSession(
+/**
+ * Get platform access status for a user
+ */
+export async function getPlatformStatus(
   userId: string,
-  priceId: string,
-  successUrl: string,
-  cancelUrl: string,
-): Promise<CheckoutResult> {
+): Promise<PlatformStatus> {
   const stripe = getStripeClient()
 
   if (!stripe) {
-    console.log(`[MOCK STRIPE] Created checkout session for user: ${userId}`)
-    return { url: `${successUrl}?session_id=mock_session_${Date.now()}` }
-  }
-
-  // Get or create Stripe customer
-  const user = await prisma.user.findUnique({ where: { id: userId } })
-  if (!user) throw new Error('User not found')
-
-  let customerId = user.stripeCustomerId
-
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: user.email,
-      name: user.name ?? undefined,
-      metadata: { userId },
-    })
-    customerId = customer.id
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: { stripeCustomerId: customerId },
-    })
-  }
-
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    payment_method_types: ['card'],
-    line_items: [{ price: priceId, quantity: 1 }],
-    mode: 'subscription',
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    metadata: { userId },
-  })
-
-  if (!session.url) {
-    throw new Error('Failed to create checkout session')
-  }
-
-  return { url: session.url }
-}
-
-export async function getSubscriptionStatus(
-  userId: string,
-): Promise<SubscriptionStatus> {
-  const stripe = getStripeClient()
-
-  if (!stripe) {
-    // In mock mode, always return active Pro subscription
-    return { status: 'active', plan: 'pro' }
+    // In mock mode, always return active platform access
+    return { hasPlatformAccess: true, purchaseDate: new Date() }
   }
 
   const user = await prisma.user.findUnique({ where: { id: userId } })
-
-  if (!user?.subscriptionStatus) {
-    return { status: 'none', plan: null }
-  }
 
   return {
-    status: user.subscriptionStatus as SubscriptionStatus['status'],
-    plan: user.subscriptionStatus === 'active' ? 'pro' : null,
+    hasPlatformAccess: user?.hasPlatformAccess ?? false,
+    purchaseDate: user?.platformPurchaseDate ?? null,
   }
 }
 
@@ -124,67 +73,61 @@ export async function handleWebhook(
       const userId = session.metadata?.userId
       const paymentType = session.metadata?.type
 
-      if (userId) {
-        if (paymentType === 'byok_access' && session.mode === 'payment') {
-          // BYOK one-time payment completed
+      if (
+        userId &&
+        paymentType === 'platform_access' &&
+        session.mode === 'payment'
+      ) {
+        // Platform access one-time payment completed ($149)
+        await prisma.user.update({
+          where: { id: userId },
+          data: {
+            hasPlatformAccess: true,
+            platformPurchaseDate: new Date(),
+            platformStripePaymentId:
+              typeof session.payment_intent === 'string'
+                ? session.payment_intent
+                : (session.payment_intent?.id ?? null),
+          },
+        })
+        console.log(`[STRIPE] Platform access granted to user: ${userId}`)
+      }
+      break
+    }
+
+    case 'payment_intent.succeeded': {
+      // Fallback handler for one-time payments
+      // This ensures access is granted even if checkout.session.completed is missed
+      const paymentIntent = event.data.object
+      const userId = paymentIntent.metadata?.userId
+      const paymentType = paymentIntent.metadata?.type
+
+      if (userId && paymentType === 'platform_access') {
+        const user = await prisma.user.findUnique({ where: { id: userId } })
+
+        // Only update if not already granted (avoid duplicate updates)
+        if (user && !user.hasPlatformAccess) {
           await prisma.user.update({
             where: { id: userId },
             data: {
-              hasByokAccess: true,
-              byokPurchaseDate: new Date(),
-              byokStripePaymentId:
-                typeof session.payment_intent === 'string'
-                  ? session.payment_intent
-                  : (session.payment_intent?.id ?? null),
+              hasPlatformAccess: true,
+              platformPurchaseDate: new Date(),
+              platformStripePaymentId: paymentIntent.id,
             },
           })
-          console.log(`[STRIPE] BYOK access granted to user: ${userId}`)
-        } else if (session.mode === 'subscription') {
-          // Subscription payment (existing logic)
-          await prisma.user.update({
-            where: { id: userId },
-            data: { subscriptionStatus: 'active' },
-          })
+          console.log(
+            `[STRIPE] Platform access granted via payment_intent to user: ${userId}`,
+          )
         }
       }
       break
     }
-    case 'customer.subscription.deleted': {
-      const subscription = event.data.object
-      const customer = subscription.customer
-      const customerId = typeof customer === 'string' ? customer : customer.id
-      if (customerId) {
-        const user = await prisma.user.findFirst({
-          where: { stripeCustomerId: customerId },
-        })
-        if (user) {
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { subscriptionStatus: 'canceled' },
-          })
-        }
-      }
-      break
-    }
-    case 'invoice.payment_failed': {
-      const invoice = event.data.object
-      const invoiceCustomer = invoice.customer
-      if (!invoiceCustomer) break
-      const customerId =
-        typeof invoiceCustomer === 'string'
-          ? invoiceCustomer
-          : invoiceCustomer.id
-      if (customerId) {
-        const user = await prisma.user.findFirst({
-          where: { stripeCustomerId: customerId },
-        })
-        if (user) {
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { subscriptionStatus: 'past_due' },
-          })
-        }
-      }
+
+    case 'payment_intent.payment_failed': {
+      const paymentIntent = event.data.object
+      console.log(
+        `[STRIPE] Payment failed for payment intent: ${paymentIntent.id}`,
+      )
       break
     }
   }
@@ -217,13 +160,14 @@ export async function createBillingPortalSession(
 }
 
 // =============================================================================
-// BYOK One-Time Payment
+// Platform One-Time Payment ($149)
 // =============================================================================
 
 /**
- * Create a Stripe Checkout Session for BYOK one-time payment ($99)
+ * Create a Stripe Checkout Session for platform one-time payment ($149)
+ * Grants lifetime access to DirectorAI platform
  */
-export async function createByokCheckoutSession(
+export async function createPlatformCheckoutSession(
   userId: string,
   successUrl: string,
   cancelUrl: string,
@@ -233,20 +177,22 @@ export async function createByokCheckoutSession(
   if (!stripe) {
     // In mock mode, simulate successful purchase
     console.log(
-      `[MOCK STRIPE] Created BYOK checkout session for user: ${userId}`,
+      `[MOCK STRIPE] Created platform checkout session for user: ${userId}`,
     )
 
-    // Update user to have BYOK access in mock mode
+    // Update user to have platform access in mock mode
     await prisma.user.update({
       where: { id: userId },
       data: {
-        hasByokAccess: true,
-        byokPurchaseDate: new Date(),
-        byokStripePaymentId: `mock_pi_${Date.now()}`,
+        hasPlatformAccess: true,
+        platformPurchaseDate: new Date(),
+        platformStripePaymentId: `mock_pi_${Date.now()}`,
       },
     })
 
-    return { url: `${successUrl}?session_id=mock_byok_session_${Date.now()}` }
+    return {
+      url: `${successUrl}?session_id=mock_platform_session_${Date.now()}`,
+    }
   }
 
   // Get or create Stripe customer
@@ -269,10 +215,12 @@ export async function createByokCheckoutSession(
     })
   }
 
-  // Get the BYOK price ID from environment
-  const priceId = process.env.STRIPE_BYOK_PRICE_ID
+  // Get the platform price ID from environment
+  const priceId = process.env.STRIPE_PLATFORM_PRICE_ID
   if (!priceId) {
-    throw new Error('STRIPE_BYOK_PRICE_ID environment variable not configured')
+    throw new Error(
+      'STRIPE_PLATFORM_PRICE_ID environment variable not configured',
+    )
   }
 
   const session = await stripe.checkout.sessions.create({
@@ -284,13 +232,87 @@ export async function createByokCheckoutSession(
     cancel_url: cancelUrl,
     metadata: {
       userId,
-      type: 'byok_access', // Important: identifies this as a BYOK purchase
+      type: 'platform_access', // Identifies this as a platform purchase
+    },
+    // Pass userId to payment_intent for webhook reliability
+    payment_intent_data: {
+      metadata: {
+        userId,
+        type: 'platform_access',
+      },
     },
   })
 
   if (!session.url) {
-    throw new Error('Failed to create BYOK checkout session')
+    throw new Error('Failed to create platform checkout session')
   }
 
   return { url: session.url }
+}
+
+/**
+ * Verify and activate platform access directly with Stripe
+ * Used as a fallback when webhook doesn't fire (e.g., redirect before webhook)
+ */
+export async function verifyAndActivatePlatformAccess(userId: string): Promise<{
+  success: boolean
+  alreadyActive?: boolean
+  activatedViaFallback?: boolean
+}> {
+  const stripe = getStripeClient()
+
+  if (!stripe) {
+    // In mock mode, just return success
+    return { success: true, alreadyActive: true }
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (!user) {
+    return { success: false }
+  }
+
+  // Already active? Skip
+  if (user.hasPlatformAccess) {
+    return { success: true, alreadyActive: true }
+  }
+
+  // No Stripe customer ID means they never started checkout
+  if (!user.stripeCustomerId) {
+    return { success: false }
+  }
+
+  // Verify directly with Stripe API
+  const paymentIntents = await stripe.paymentIntents.list({
+    customer: user.stripeCustomerId,
+    limit: 10,
+  })
+
+  // Find a successful payment with matching metadata
+  const twentyFourHoursAgo = Math.floor(Date.now() / 1000) - 24 * 60 * 60
+
+  const matchingPayment = paymentIntents.data.find(
+    (pi) =>
+      pi.status === 'succeeded' &&
+      pi.metadata?.type === 'platform_access' &&
+      pi.metadata?.userId === userId,
+  )
+
+  // Fallback: Find any recent successful payment from this customer
+  const recentPayment = paymentIntents.data.find(
+    (pi) => pi.status === 'succeeded' && pi.created > twentyFourHoursAgo,
+  )
+
+  if (matchingPayment || recentPayment) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        hasPlatformAccess: true,
+        platformPurchaseDate: new Date(),
+        platformStripePaymentId: matchingPayment?.id || recentPayment?.id,
+      },
+    })
+    return { success: true, activatedViaFallback: true }
+  }
+
+  return { success: false }
 }
