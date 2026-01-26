@@ -9,8 +9,11 @@
 
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { getProjectFn } from '../../../server/project.fn'
 import { Workspace } from '../../../components/studio/Workspace'
+
+// NOTE: Server functions are dynamically imported in queryFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 
 export const Route = createFileRoute('/_app/projects/$projectId')({
   component: ProjectWorkspacePage,
@@ -26,7 +29,10 @@ function ProjectWorkspacePage() {
     error,
   } = useQuery({
     queryKey: ['project', projectId],
-    queryFn: () => getProjectFn({ data: { projectId } }),
+    queryFn: async () => {
+      const { getProjectFn } = await import('../../../server/project.server')
+      return getProjectFn({ data: { projectId } })
+    },
   })
 
   if (isLoading) {

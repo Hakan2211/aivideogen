@@ -6,9 +6,12 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { Check, ImageIcon, Loader2 } from 'lucide-react'
-import { listUserImagesFn } from '@/server/image.fn'
 
 import { Skeleton } from '@/components/ui/skeleton'
+
+// NOTE: Server functions are dynamically imported in queryFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -121,7 +124,10 @@ export function ImageSelector({
 function useInfiniteImages() {
   const { data, isLoading } = useQuery({
     queryKey: ['images-selector'],
-    queryFn: () => listUserImagesFn({ data: { limit: 24, offset: 0 } }),
+    queryFn: async () => {
+      const { listUserImagesFn } = await import('@/server/image.server')
+      return listUserImagesFn({ data: { limit: 24, offset: 0 } })
+    },
   })
 
   return {

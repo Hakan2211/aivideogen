@@ -7,15 +7,15 @@
 
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { prisma } from '../db'
-import { authMiddleware } from './middleware'
+import { prisma } from '../db.server'
+import { authMiddleware } from './middleware.server'
 import {
   generateVideo,
   getJobStatus,
   getVideoModels,
-} from './services/fal.service'
+} from './services/fal.server'
 import { getVideoModelById } from './services/types'
-import type { FalVideoResult } from './services/fal.service'
+import type { FalVideoResult } from './services/fal.server'
 
 // =============================================================================
 // Schemas

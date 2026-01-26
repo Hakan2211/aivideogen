@@ -9,24 +9,45 @@ import {
   Loader2,
   Sparkles,
 } from 'lucide-react'
-import { Button } from '../../components/ui/button'
+import { Button } from '../components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '../../components/ui/card'
+} from '../components/ui/card'
 
-// Search params validation
+// NOTE: Server functions are dynamically imported in beforeLoad and queryFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
+
+// Search params validation - handles both string and boolean values
+// This is needed because URL params may be serialized differently
 const searchSchema = z.object({
-  success: z.string().optional(),
+  success: z
+    .union([z.string(), z.boolean()])
+    .optional()
+    .transform((v) => (v === true || v === 'true' ? 'true' : undefined)),
   session_id: z.string().optional(),
 })
 
-export const Route = createFileRoute('/_app/purchase-success')({
+/**
+ * Purchase Success Page
+ * Standalone route (not under /_app) to avoid platform access check
+ * This allows users to see the success page immediately after Stripe checkout
+ * before the webhook has processed their payment
+ */
+export const Route = createFileRoute('/purchase-success')({
   validateSearch: searchSchema,
   beforeLoad: async ({ search }) => {
+    // Require authentication
+    const { getSessionFn } = await import('../server/auth.server')
+    const session = await getSessionFn()
+    if (!session?.user) {
+      throw redirect({ to: '/login' })
+    }
+
     // If not coming from a successful payment, redirect to pricing
     if (!search.success && !search.session_id) {
       throw redirect({ to: '/pricing' })
@@ -34,13 +55,15 @@ export const Route = createFileRoute('/_app/purchase-success')({
 
     // Try to verify and activate access (fallback for webhook)
     try {
-      const { verifyPlatformAccessFn } = await import('../../server/billing.fn')
+      const { verifyPlatformAccessFn } =
+        await import('../server/billing.server')
       await verifyPlatformAccessFn()
-    } catch {
-      // Ignore errors - webhook might have already handled it
+    } catch (error) {
+      // Log but don't fail - webhook might have already handled it
+      console.error('Failed to verify platform access:', error)
     }
 
-    return {}
+    return { user: session.user }
   },
   component: PurchaseSuccessPage,
 })
@@ -50,7 +73,7 @@ function PurchaseSuccessPage() {
   const { data: byokStatus, isLoading } = useQuery({
     queryKey: ['byok-status'],
     queryFn: async () => {
-      const { getByokStatusFn } = await import('../../server/byok.fn')
+      const { getByokStatusFn } = await import('../server/byok.server')
       return getByokStatusFn()
     },
   })
@@ -59,14 +82,14 @@ function PurchaseSuccessPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-muted/40">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-muted/40">
       <Card className="max-w-lg w-full border-2 border-green-500/30">
         <CardHeader className="text-center pb-4">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">

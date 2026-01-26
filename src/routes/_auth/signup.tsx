@@ -32,18 +32,11 @@ function SignupPage() {
   const [loading, setLoading] = useState(false)
 
   // Determine where to redirect after signup
-  const getRedirectUrl = async () => {
+  const getRedirectUrl = () => {
     if (redirect === 'checkout') {
-      // User came from pricing page, start checkout after signup
-      try {
-        const { createPlatformCheckoutFn } =
-          await import('../../server/billing.fn')
-        const result = await createPlatformCheckoutFn()
-        return result.url
-      } catch {
-        // If checkout fails, go to pricing page
-        return '/pricing'
-      }
+      // Redirect to pricing with auto_checkout flag
+      // The pricing page will trigger checkout once session is fully established
+      return '/pricing?auto_checkout=true'
     }
     // Default: go to dashboard (which will redirect to pricing if no access)
     return '/dashboard'
@@ -82,8 +75,8 @@ function SignupPage() {
         // Force full page reload to pick up new session cookie
         await router.invalidate()
 
-        // Get redirect URL (might trigger checkout)
-        const redirectUrl = await getRedirectUrl()
+        // Get redirect URL
+        const redirectUrl = getRedirectUrl()
         window.location.href = redirectUrl
       } catch (err) {
         setError('An unexpected error occurred')
@@ -215,6 +208,7 @@ function SignupPage() {
           </Button>
         </form>
 
+        {/* Google OAuth - uncomment when GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are configured
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -256,6 +250,7 @@ function SignupPage() {
             Google
           </Button>
         </div>
+        */}
       </div>
 
       <p className="text-center text-sm text-muted-foreground">

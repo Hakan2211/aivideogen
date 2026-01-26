@@ -29,8 +29,11 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { get3DModelFn } from '@/server/model3d.fn'
 import { get3DModelById } from '@/server/services/types'
+
+// NOTE: Server functions are dynamically imported in queryFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 
 interface Model3DDetailSheetProps {
   assetId: string | null
@@ -53,7 +56,10 @@ export function Model3DDetailSheet({
 
   const { data: asset, isLoading } = useQuery({
     queryKey: ['3d-model', assetId],
-    queryFn: () => get3DModelFn({ data: { assetId: assetId! } }),
+    queryFn: async () => {
+      const { get3DModelFn } = await import('@/server/model3d.server')
+      return get3DModelFn({ data: { assetId: assetId! } })
+    },
     enabled: !!assetId && open,
   })
 

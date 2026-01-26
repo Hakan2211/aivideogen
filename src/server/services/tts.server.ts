@@ -9,7 +9,7 @@
  * - Falls back to FAL_KEY environment variable for admin/testing
  */
 
-import { uploadFromUrl } from './bunny.service'
+import { uploadFromUrl } from './bunny.server'
 import { AUDIO_MODELS, getModelById } from './types'
 
 const MOCK_TTS = process.env.MOCK_GENERATION === 'true'

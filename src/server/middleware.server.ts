@@ -1,7 +1,18 @@
 import { createMiddleware } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/start-server-core'
-import { auth } from '../lib/auth'
-import { prisma } from '../db'
+
+// NOTE: Server-only dependencies (prisma, auth) are dynamically imported
+// inside middleware handlers to prevent them from being bundled into the client.
+
+async function getAuthInstance() {
+  const { getAuth } = await import('../lib/auth.server')
+  return getAuth()
+}
+
+async function getPrisma() {
+  const { prisma } = await import('../db.server')
+  return prisma
+}
 
 // Define user type based on Better-Auth with our custom fields
 export interface AuthUser {
@@ -32,6 +43,7 @@ export interface AuthSession {
  */
 export const authMiddleware = createMiddleware().server(async ({ next }) => {
   const request = getRequest()
+  const auth = await getAuthInstance()
   const session = await auth.api.getSession({ headers: request.headers })
 
   if (!session) {
@@ -66,6 +78,7 @@ export const adminMiddleware = createMiddleware()
 export const optionalAuthMiddleware = createMiddleware().server(
   async ({ next }) => {
     const request = getRequest()
+    const auth = await getAuthInstance()
     const session = await auth.api.getSession({ headers: request.headers })
 
     return next({
@@ -91,6 +104,7 @@ export const platformAccessMiddleware = createMiddleware()
     }
 
     // Check if user has platform access
+    const prisma = await getPrisma()
     const user = await prisma.user.findUnique({
       where: { id: context.user.id },
       select: { hasPlatformAccess: true },

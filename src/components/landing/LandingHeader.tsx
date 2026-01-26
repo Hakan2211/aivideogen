@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useUserAccess } from '@/hooks/use-user-access'
 
 export function LandingHeader() {
   const { scrollY } = useScroll()
   const [isScrolled, setIsScrolled] = useState(false)
   const isMobile = useIsMobile()
+  const { isLoggedIn, hasPlatformAccess } = useUserAccess()
 
   // Transform values based on scroll
   const headerWidth = useTransform(
@@ -88,16 +90,34 @@ export function LandingHeader() {
             ))}
           </nav>
 
-          {/* Auth Buttons */}
+          {/* Auth Buttons - Smart navigation based on user state */}
+          {/* Note: isLoggedIn/hasPlatformAccess return false during SSR to avoid hydration mismatch */}
           <div className="flex items-center gap-3">
-            <Link to="/login">
-              <Button variant="ghost" size="sm">
-                Sign in
-              </Button>
-            </Link>
-            <Link to="/signup">
-              <Button size="sm">Get Started</Button>
-            </Link>
+            {isLoggedIn ? (
+              hasPlatformAccess ? (
+                // User has access - show Dashboard button
+                <Link to="/dashboard">
+                  <Button size="sm">Dashboard</Button>
+                </Link>
+              ) : (
+                // User logged in but no access - show Buy Now (goes directly to checkout)
+                <Link to="/pricing" search={{ auto_checkout: 'true' }}>
+                  <Button size="sm">Buy Now for €149</Button>
+                </Link>
+              )
+            ) : (
+              // Not logged in (or SSR/initial render) - show Sign in + Buy Now
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">
+                    Sign in
+                  </Button>
+                </Link>
+                <Link to="/signup" search={{ redirect: 'checkout' }}>
+                  <Button size="sm">Buy Now for €149</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </motion.header>

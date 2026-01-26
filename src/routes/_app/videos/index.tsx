@@ -39,18 +39,9 @@ import {
   Zap,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import {
-  deleteVideoFn,
-  generateVideoFn,
-  getVideoJobStatusFn,
-  getVideoModelsFn,
-  listUserVideosFn,
-} from '../../../server/video.fn'
-import {
-  getVideoUpscaleJobStatusFn,
-  upscaleVideoFn,
-} from '../../../server/video-upscale.fn'
-import { listUserImagesFn } from '../../../server/image.fn'
+// NOTE: Server functions are dynamically imported in queryFn/mutationFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 import { Button } from '../../../components/ui/button'
 import { Card } from '../../../components/ui/card'
 import { Textarea } from '../../../components/ui/textarea'
@@ -225,7 +216,10 @@ function VideosPage() {
   // Fetch models
   const { data: modelsData } = useQuery({
     queryKey: ['videoModels'],
-    queryFn: () => getVideoModelsFn(),
+    queryFn: async () => {
+      const { getVideoModelsFn } = await import('../../../server/video.server')
+      return getVideoModelsFn()
+    },
   })
 
   // Get filtered models based on current mode
@@ -279,8 +273,10 @@ function VideosPage() {
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: ['videos'],
-    queryFn: ({ pageParam = 0 }) =>
-      listUserVideosFn({ data: { limit, offset: pageParam * limit } }),
+    queryFn: async ({ pageParam = 0 }) => {
+      const { listUserVideosFn } = await import('../../../server/video.server')
+      return listUserVideosFn({ data: { limit, offset: pageParam * limit } })
+    },
     getNextPageParam: (lastPage, allPages) => {
       const loadedCount = allPages.length * limit
       return loadedCount < lastPage.total ? allPages.length : undefined
@@ -291,7 +287,10 @@ function VideosPage() {
   // Fetch user's images for picker
   const { data: imagesData, isLoading: imagesLoading } = useQuery({
     queryKey: ['images', 'forVideo'],
-    queryFn: () => listUserImagesFn({ data: { limit: 50 } }),
+    queryFn: async () => {
+      const { listUserImagesFn } = await import('../../../server/image.server')
+      return listUserImagesFn({ data: { limit: 50 } })
+    },
     enabled: imagePickerOpen,
   })
 
@@ -320,7 +319,10 @@ function VideosPage() {
 
   // Generate mutation
   const generateMutation = useMutation({
-    mutationFn: generateVideoFn,
+    mutationFn: async (input: { data: Record<string, unknown> }) => {
+      const { generateVideoFn } = await import('../../../server/video.server')
+      return generateVideoFn(input as never)
+    },
     onSuccess: (result) => {
       setCurrentJobId(result.jobId)
     },
@@ -328,7 +330,10 @@ function VideosPage() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: deleteVideoFn,
+    mutationFn: async (input: { data: { videoId: string } }) => {
+      const { deleteVideoFn } = await import('../../../server/video.server')
+      return deleteVideoFn(input as never)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['videos'] })
       setSelectedVideo(null)
@@ -337,7 +342,11 @@ function VideosPage() {
 
   // Video upscale mutation
   const upscaleMutation = useMutation({
-    mutationFn: upscaleVideoFn,
+    mutationFn: async (input: { data: Record<string, unknown> }) => {
+      const { upscaleVideoFn } =
+        await import('../../../server/video-upscale.server')
+      return upscaleVideoFn(input as never)
+    },
     onSuccess: (result) => {
       setCurrentUpscaleJobId(result.jobId)
     },
@@ -346,7 +355,11 @@ function VideosPage() {
   // Poll job status
   const { data: jobStatus } = useQuery({
     queryKey: ['videoJob', currentJobId],
-    queryFn: () => getVideoJobStatusFn({ data: { jobId: currentJobId! } }),
+    queryFn: async () => {
+      const { getVideoJobStatusFn } =
+        await import('../../../server/video.server')
+      return getVideoJobStatusFn({ data: { jobId: currentJobId! } })
+    },
     enabled: !!currentJobId,
     refetchInterval: (query) => {
       const status = query.state.data?.status
@@ -368,8 +381,13 @@ function VideosPage() {
   // Poll video upscale job status
   const { data: upscaleJobStatus } = useQuery({
     queryKey: ['videoUpscaleJob', currentUpscaleJobId],
-    queryFn: () =>
-      getVideoUpscaleJobStatusFn({ data: { jobId: currentUpscaleJobId! } }),
+    queryFn: async () => {
+      const { getVideoUpscaleJobStatusFn } =
+        await import('../../../server/video-upscale.server')
+      return getVideoUpscaleJobStatusFn({
+        data: { jobId: currentUpscaleJobId! },
+      })
+    },
     enabled: !!currentUpscaleJobId,
     refetchInterval: (query) => {
       const status = query.state.data?.status

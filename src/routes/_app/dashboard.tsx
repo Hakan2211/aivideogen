@@ -1,7 +1,10 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { getPlatformStatusFn } from '../../server/billing.fn'
 import { Button } from '../../components/ui/button'
+
+// NOTE: Server functions are dynamically imported in queryFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 
 export const Route = createFileRoute('/_app/dashboard')({
   component: DashboardPage,
@@ -14,7 +17,11 @@ function DashboardPage() {
 
   const { data: platformStatus } = useQuery({
     queryKey: ['platformStatus'],
-    queryFn: () => getPlatformStatusFn(),
+    queryFn: async () => {
+      const { getPlatformStatusFn } =
+        await import('../../server/billing.server')
+      return getPlatformStatusFn()
+    },
   })
 
   return (

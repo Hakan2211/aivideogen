@@ -4,7 +4,7 @@ import { tanstackConfig } from '@tanstack/eslint-config'
 
 export default [
   {
-    ignores: ['.output/**', 'node_modules/**', 'src/generated/**'],
+    ignores: ['.output/**', '.nitro/**', 'node_modules/**', 'src/generated/**'],
   },
   ...tanstackConfig,
 ]

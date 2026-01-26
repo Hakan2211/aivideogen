@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PurchaseSuccessRouteImport } from './routes/purchase-success'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AppRouteImport } from './routes/_app'
@@ -18,7 +19,6 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AppSetupRouteImport } from './routes/_app/setup'
-import { Route as AppPurchaseSuccessRouteImport } from './routes/_app/purchase-success'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppAdminRouteImport } from './routes/_app/admin'
@@ -30,6 +30,11 @@ import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhoo
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AppProjectsProjectIdRouteImport } from './routes/_app/projects/$projectId'
 
+const PurchaseSuccessRoute = PurchaseSuccessRouteImport.update({
+  id: '/purchase-success',
+  path: '/purchase-success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
@@ -71,11 +76,6 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
 const AppSetupRoute = AppSetupRouteImport.update({
   id: '/setup',
   path: '/setup',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPurchaseSuccessRoute = AppPurchaseSuccessRouteImport.update({
-  id: '/purchase-success',
-  path: '/purchase-success',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProfileRoute = AppProfileRouteImport.update({
@@ -132,11 +132,11 @@ const AppProjectsProjectIdRoute = AppProjectsProjectIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/pricing': typeof PricingRoute
+  '/purchase-success': typeof PurchaseSuccessRoute
   '/3d-models': typeof App3dModelsRoute
   '/admin': typeof AppAdminRoute
   '/dashboard': typeof AppDashboardRoute
   '/profile': typeof AppProfileRoute
-  '/purchase-success': typeof AppPurchaseSuccessRoute
   '/setup': typeof AppSetupRoute
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
@@ -152,11 +152,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/pricing': typeof PricingRoute
+  '/purchase-success': typeof PurchaseSuccessRoute
   '/3d-models': typeof App3dModelsRoute
   '/admin': typeof AppAdminRoute
   '/dashboard': typeof AppDashboardRoute
   '/profile': typeof AppProfileRoute
-  '/purchase-success': typeof AppPurchaseSuccessRoute
   '/setup': typeof AppSetupRoute
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
@@ -175,11 +175,11 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_auth': typeof AuthRouteWithChildren
   '/pricing': typeof PricingRoute
+  '/purchase-success': typeof PurchaseSuccessRoute
   '/_app/3d-models': typeof App3dModelsRoute
   '/_app/admin': typeof AppAdminRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/profile': typeof AppProfileRoute
-  '/_app/purchase-success': typeof AppPurchaseSuccessRoute
   '/_app/setup': typeof AppSetupRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/signup': typeof AuthSignupRoute
@@ -197,11 +197,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/pricing'
+    | '/purchase-success'
     | '/3d-models'
     | '/admin'
     | '/dashboard'
     | '/profile'
-    | '/purchase-success'
     | '/setup'
     | '/login'
     | '/signup'
@@ -217,11 +217,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/pricing'
+    | '/purchase-success'
     | '/3d-models'
     | '/admin'
     | '/dashboard'
     | '/profile'
-    | '/purchase-success'
     | '/setup'
     | '/login'
     | '/signup'
@@ -239,11 +239,11 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_auth'
     | '/pricing'
+    | '/purchase-success'
     | '/_app/3d-models'
     | '/_app/admin'
     | '/_app/dashboard'
     | '/_app/profile'
-    | '/_app/purchase-success'
     | '/_app/setup'
     | '/_auth/login'
     | '/_auth/signup'
@@ -262,6 +262,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   PricingRoute: typeof PricingRoute
+  PurchaseSuccessRoute: typeof PurchaseSuccessRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiProxyGlbRoute: typeof ApiProxyGlbRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -270,6 +271,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/purchase-success': {
+      id: '/purchase-success'
+      path: '/purchase-success'
+      fullPath: '/purchase-success'
+      preLoaderRoute: typeof PurchaseSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pricing': {
       id: '/pricing'
       path: '/pricing'
@@ -331,13 +339,6 @@ declare module '@tanstack/react-router' {
       path: '/setup'
       fullPath: '/setup'
       preLoaderRoute: typeof AppSetupRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/purchase-success': {
-      id: '/_app/purchase-success'
-      path: '/purchase-success'
-      fullPath: '/purchase-success'
-      preLoaderRoute: typeof AppPurchaseSuccessRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/profile': {
@@ -418,7 +419,6 @@ interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppProfileRoute: typeof AppProfileRoute
-  AppPurchaseSuccessRoute: typeof AppPurchaseSuccessRoute
   AppSetupRoute: typeof AppSetupRoute
   AppProjectsProjectIdRoute: typeof AppProjectsProjectIdRoute
   AppImagesIndexRoute: typeof AppImagesIndexRoute
@@ -431,7 +431,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppProfileRoute: AppProfileRoute,
-  AppPurchaseSuccessRoute: AppPurchaseSuccessRoute,
   AppSetupRoute: AppSetupRoute,
   AppProjectsProjectIdRoute: AppProjectsProjectIdRoute,
   AppImagesIndexRoute: AppImagesIndexRoute,
@@ -458,6 +457,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   PricingRoute: PricingRoute,
+  PurchaseSuccessRoute: PurchaseSuccessRoute,
   ApiChatRoute: ApiChatRoute,
   ApiProxyGlbRoute: ApiProxyGlbRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

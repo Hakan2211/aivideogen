@@ -8,11 +8,9 @@ import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Calendar, Layers, Play, Plus, Trash2, Video } from 'lucide-react'
-import {
-  createProjectFn,
-  deleteProjectFn,
-  listProjectsFn,
-} from '../../../server/project.fn'
+// NOTE: Server functions are dynamically imported in queryFn/mutationFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 import { Button } from '../../../components/ui/button'
 import { Card } from '../../../components/ui/card'
 import {
@@ -58,12 +56,20 @@ function ProjectsPage() {
   // Fetch projects
   const { data, isLoading, error } = useQuery({
     queryKey: ['projects'],
-    queryFn: () => listProjectsFn({ data: {} }),
+    queryFn: async () => {
+      const { listProjectsFn } = await import('../../../server/project.server')
+      return listProjectsFn({ data: {} })
+    },
   })
 
   // Create project mutation
   const createMutation = useMutation({
-    mutationFn: createProjectFn,
+    mutationFn: async (input: {
+      data: { name: string; width: number; height: number }
+    }) => {
+      const { createProjectFn } = await import('../../../server/project.server')
+      return createProjectFn(input as never)
+    },
     onSuccess: (project) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] })
       setIsCreateOpen(false)
@@ -78,7 +84,10 @@ function ProjectsPage() {
 
   // Delete project mutation
   const deleteMutation = useMutation({
-    mutationFn: deleteProjectFn,
+    mutationFn: async (input: { data: { projectId: string } }) => {
+      const { deleteProjectFn } = await import('../../../server/project.server')
+      return deleteProjectFn(input as never)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] })
     },

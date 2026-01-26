@@ -11,7 +11,10 @@ import {
   Video,
 } from 'lucide-react'
 import { signOut } from '../lib/auth-client'
-import { getUserCreditsFn } from '../server/generation.fn'
+
+// NOTE: Server functions are dynamically imported in queryFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 import {
   Sidebar,
   SidebarContent,
@@ -58,7 +61,10 @@ export function AppSidebar({ user }: AppSidebarProps) {
   // Fetch user credits
   const { data: creditsData } = useQuery({
     queryKey: ['user-credits'],
-    queryFn: () => getUserCreditsFn(),
+    queryFn: async () => {
+      const { getUserCreditsFn } = await import('../server/generation.server')
+      return getUserCreditsFn()
+    },
     refetchInterval: 30000,
   })
 

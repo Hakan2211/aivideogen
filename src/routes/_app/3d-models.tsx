@@ -19,7 +19,10 @@ import {
   Model3DModeToggle,
   TextTo3DPanel,
 } from '@/components/3d-models'
-import { delete3DModelFn, listUser3DModelsFn } from '@/server/model3d.fn'
+
+// NOTE: Server functions are dynamically imported in queryFn/mutationFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 
 export const Route = createFileRoute('/_app/3d-models')({
   component: ThreeDModelsPage,
@@ -43,14 +46,20 @@ function ThreeDModelsPage() {
   // Fetch models count for display
   const { data: modelsData } = useQuery({
     queryKey: ['3d-models'],
-    queryFn: () => listUser3DModelsFn({ data: { limit: 50 } }),
+    queryFn: async () => {
+      const { listUser3DModelsFn } = await import('@/server/model3d.server')
+      return listUser3DModelsFn({ data: { limit: 50 } })
+    },
   })
 
   const total = modelsData?.total ?? 0
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (assetId: string) => delete3DModelFn({ data: { assetId } }),
+    mutationFn: async (assetId: string) => {
+      const { delete3DModelFn } = await import('@/server/model3d.server')
+      return delete3DModelFn({ data: { assetId } })
+    },
     onSuccess: () => {
       toast.success('Model deleted')
       queryClient.invalidateQueries({ queryKey: ['3d-models'] })

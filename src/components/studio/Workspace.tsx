@@ -13,9 +13,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { getManifestFn } from '../../server/project.fn'
-import { getJobStatusFn, listJobsFn } from '../../server/generation.fn'
 import { ChatPanel } from './ChatPanel'
+
+// NOTE: Server functions are dynamically imported in queryFn/callbacks
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 import { VideoPreview } from './VideoPreview'
 import { Timeline } from './Timeline'
 import { AssetPanel } from './AssetPanel'
@@ -88,6 +90,7 @@ export function Workspace({ project }: WorkspaceProps) {
   const { data: jobsData } = useQuery({
     queryKey: ['jobs', project.id, 'processing'],
     queryFn: async () => {
+      const { listJobsFn } = await import('../../server/generation.server')
       const result = await listJobsFn({
         data: { projectId: project.id, status: 'processing', limit: 10 },
       })
@@ -116,6 +119,8 @@ export function Workspace({ project }: WorkspaceProps) {
     // Poll each active job for completion
     const pollJob = async (jobId: string) => {
       try {
+        const { getJobStatusFn } =
+          await import('../../server/generation.server')
         const status = await getJobStatusFn({ data: { jobId } })
         if (status.status === 'completed') {
           // Job completed - refresh assets and manifest
@@ -144,6 +149,7 @@ export function Workspace({ project }: WorkspaceProps) {
 
   const refreshManifest = useCallback(async () => {
     try {
+      const { getManifestFn } = await import('../../server/project.server')
       const result = await getManifestFn({ data: { projectId: project.id } })
 
       // Check if manifest was updated

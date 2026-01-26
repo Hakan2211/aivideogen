@@ -1,8 +1,19 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/start-server-core'
 import { z } from 'zod'
-import { auth } from '../lib/auth'
-import { prisma } from '../db'
+
+// NOTE: Server-only dependencies (prisma, auth) are dynamically imported
+// inside handlers to prevent them from being bundled into the client during dev mode.
+
+async function getAuthInstance() {
+  const { getAuth } = await import('../lib/auth.server')
+  return getAuth()
+}
+
+async function getPrisma() {
+  const { prisma } = await import('../db.server')
+  return prisma
+}
 
 /**
  * Sign up with email and password
@@ -18,6 +29,7 @@ export const signUpAction = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     try {
       // Check if user already exists
+      const prisma = await getPrisma()
       const existingUser = await prisma.user.findUnique({
         where: { email: data.email },
       })
@@ -27,6 +39,7 @@ export const signUpAction = createServerFn({ method: 'POST' })
       }
 
       // Create user via Better-Auth API
+      const auth = await getAuthInstance()
       const result = await auth.api.signUpEmail({
         body: {
           email: data.email,
@@ -73,6 +86,7 @@ export const signInAction = createServerFn({ method: 'POST' })
         },
       )
 
+      const auth = await getAuthInstance()
       const response = await auth.handler(fakeRequest)
 
       if (!response.ok) {
@@ -108,6 +122,7 @@ export const getSessionAction = createServerFn({ method: 'GET' }).handler(
   async () => {
     try {
       const request = getRequest()
+      const auth = await getAuthInstance()
       const session = await auth.api.getSession({ headers: request.headers })
       return session
     } catch (error) {
@@ -134,6 +149,7 @@ export const signOutAction = createServerFn({ method: 'POST' }).handler(
         },
       )
 
+      const auth = await getAuthInstance()
       const response = await auth.handler(fakeRequest)
       const setCookieHeader = response.headers.get('set-cookie')
 

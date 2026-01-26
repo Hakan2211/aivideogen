@@ -1,11 +1,18 @@
 import Stripe from 'stripe'
-import { prisma } from '../db'
 
 /**
  * Stripe Adapter Pattern
  * - When MOCK_PAYMENTS=true or no STRIPE_SECRET_KEY, returns mock responses
  * - This allows development without Stripe credentials
+ *
+ * NOTE: prisma is dynamically imported inside functions to prevent server-only
+ * code from being bundled into the client during dev mode.
  */
+
+async function getPrisma() {
+  const { prisma } = await import('../db.server')
+  return prisma
+}
 
 const MOCK_PAYMENTS = process.env.MOCK_PAYMENTS === 'true'
 
@@ -38,6 +45,7 @@ export async function getPlatformStatus(
     return { hasPlatformAccess: true, purchaseDate: new Date() }
   }
 
+  const prisma = await getPrisma()
   const user = await prisma.user.findUnique({ where: { id: userId } })
 
   return {
@@ -79,6 +87,7 @@ export async function handleWebhook(
         session.mode === 'payment'
       ) {
         // Platform access one-time payment completed ($149)
+        const prisma = await getPrisma()
         await prisma.user.update({
           where: { id: userId },
           data: {
@@ -103,6 +112,7 @@ export async function handleWebhook(
       const paymentType = paymentIntent.metadata?.type
 
       if (userId && paymentType === 'platform_access') {
+        const prisma = await getPrisma()
         const user = await prisma.user.findUnique({ where: { id: userId } })
 
         // Only update if not already granted (avoid duplicate updates)
@@ -146,6 +156,7 @@ export async function createBillingPortalSession(
     return { url: returnUrl }
   }
 
+  const prisma = await getPrisma()
   const user = await prisma.user.findUnique({ where: { id: userId } })
   if (!user?.stripeCustomerId) {
     throw new Error('No Stripe customer found for user')
@@ -181,6 +192,7 @@ export async function createPlatformCheckoutSession(
     )
 
     // Update user to have platform access in mock mode
+    const prisma = await getPrisma()
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -196,6 +208,7 @@ export async function createPlatformCheckoutSession(
   }
 
   // Get or create Stripe customer
+  const prisma = await getPrisma()
   const user = await prisma.user.findUnique({ where: { id: userId } })
   if (!user) throw new Error('User not found')
 
@@ -266,6 +279,7 @@ export async function verifyAndActivatePlatformAccess(userId: string): Promise<{
     return { success: true, alreadyActive: true }
   }
 
+  const prisma = await getPrisma()
   const user = await prisma.user.findUnique({ where: { id: userId } })
   if (!user) {
     return { success: false }

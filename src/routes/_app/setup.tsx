@@ -25,7 +25,7 @@ import {
 export const Route = createFileRoute('/_app/setup')({
   beforeLoad: async () => {
     // Dynamic import to prevent server code from being bundled into client
-    const { getByokStatusFn } = await import('../../server/byok.fn')
+    const { getByokStatusFn } = await import('../../server/byok.server')
 
     // Check if user already has API key set up
     const status = await getByokStatusFn()
@@ -58,21 +58,21 @@ function SetupPage() {
   useQuery({
     queryKey: ['byok-status'],
     queryFn: async () => {
-      const { getByokStatusFn } = await import('../../server/byok.fn')
+      const { getByokStatusFn } = await import('../../server/byok.server')
       return getByokStatusFn()
     },
   })
 
   const validateMutation = useMutation({
     mutationFn: async (key: string) => {
-      const { validateApiKeyFn } = await import('../../server/byok.fn')
+      const { validateApiKeyFn } = await import('../../server/byok.server')
       return validateApiKeyFn({ data: { apiKey: key } })
     },
   })
 
   const saveMutation = useMutation({
     mutationFn: async (key: string) => {
-      const { saveApiKeyFn } = await import('../../server/byok.fn')
+      const { saveApiKeyFn } = await import('../../server/byok.server')
       return saveApiKeyFn({ data: { apiKey: key } })
     },
     onSuccess: () => {

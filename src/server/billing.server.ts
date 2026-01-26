@@ -5,7 +5,7 @@ import {
   getPlatformStatus,
   verifyAndActivatePlatformAccess,
 } from '../lib/stripe.server'
-import { authMiddleware } from './middleware'
+import { authMiddleware } from './middleware.server'
 
 /**
  * Get current user's platform access status

@@ -12,7 +12,17 @@ import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
-import type { User } from '../lib/auth'
+
+// Define User type inline to avoid importing from lib/auth which chains to Prisma
+// This must match the user structure from Better-Auth
+interface User {
+  id: string
+  email: string
+  name: string | null
+  image?: string | null
+  emailVerified: boolean
+  role?: string
+}
 
 interface MyRouterContext {
   queryClient: QueryClient

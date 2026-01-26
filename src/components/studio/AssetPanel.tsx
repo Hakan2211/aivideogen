@@ -16,12 +16,9 @@ import {
   Upload,
   Video,
 } from 'lucide-react'
-import {
-  createAudioJobFn,
-  createImageJobFn,
-  createVideoJobFn,
-  getAvailableModelsFn,
-} from '../../server/generation.fn'
+// NOTE: Server functions are dynamically imported in mutationFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 import { Button } from '../ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import type { ProjectManifest } from '../../remotion/types'
@@ -68,7 +65,13 @@ export function AssetPanel({
 
   // Mutations
   const createImageMutation = useMutation({
-    mutationFn: createImageJobFn,
+    mutationFn: async (input: {
+      data: { prompt: string; projectId: string }
+    }) => {
+      const { createImageJobFn } =
+        await import('../../server/generation.server')
+      return createImageJobFn(input as never)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', projectId] })
       setImagePrompt('')
@@ -76,7 +79,13 @@ export function AssetPanel({
   })
 
   const createVideoMutation = useMutation({
-    mutationFn: createVideoJobFn,
+    mutationFn: async (input: {
+      data: { prompt: string; imageUrl: string; projectId: string }
+    }) => {
+      const { createVideoJobFn } =
+        await import('../../server/generation.server')
+      return createVideoJobFn(input as never)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', projectId] })
       setVideoPrompt('')
@@ -85,7 +94,13 @@ export function AssetPanel({
   })
 
   const createAudioMutation = useMutation({
-    mutationFn: createAudioJobFn,
+    mutationFn: async (input: {
+      data: { text: string; voice?: string; projectId: string }
+    }) => {
+      const { createAudioJobFn } =
+        await import('../../server/generation.server')
+      return createAudioJobFn(input as never)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', projectId] })
       setAudioText('')
@@ -118,7 +133,7 @@ export function AssetPanel({
     createAudioMutation.mutate({
       data: {
         text: audioText,
-        voiceId: '21m00Tcm4TlvDq8ikWAM', // Rachel voice
+        voice: '21m00Tcm4TlvDq8ikWAM', // Rachel voice
         projectId,
       },
     })

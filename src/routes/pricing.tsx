@@ -1,5 +1,7 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
+import { useEffect, useRef } from 'react'
+import { z } from 'zod'
 import {
   Check,
   CreditCard,
@@ -13,20 +15,35 @@ import {
 import { useSession } from '../lib/auth-client'
 import { Button } from '../components/ui/button'
 
+// Search params validation for auto-checkout flow
+// Search schema that handles both string and boolean values for auto_checkout
+// This is needed because TanStack Router's Link component may serialize booleans differently
+const searchSchema = z.object({
+  auto_checkout: z
+    .union([z.string(), z.boolean()])
+    .optional()
+    .transform((v) => (v === true || v === 'true' ? 'true' : undefined)),
+  checkout_error: z.string().optional(),
+  canceled: z.string().optional(),
+})
+
 export const Route = createFileRoute('/pricing')({
+  validateSearch: searchSchema,
   component: PricingPage,
 })
 
 function PricingPage() {
   const navigate = useNavigate()
+  const { auto_checkout } = Route.useSearch()
   const { data: session, isPending: sessionLoading } = useSession()
   const isLoggedIn = !!session?.user
+  const autoCheckoutTriggered = useRef(false)
 
   // Check if user already has platform access
-  const { data: platformStatus } = useQuery({
+  const { data: platformStatus, isLoading: platformStatusLoading } = useQuery({
     queryKey: ['platform-status'],
     queryFn: async () => {
-      const { getPlatformStatusFn } = await import('../server/billing.fn')
+      const { getPlatformStatusFn } = await import('../server/billing.server')
       return getPlatformStatusFn()
     },
     enabled: isLoggedIn,
@@ -35,13 +52,37 @@ function PricingPage() {
   // Checkout mutation
   const checkoutMutation = useMutation({
     mutationFn: async () => {
-      const { createPlatformCheckoutFn } = await import('../server/billing.fn')
+      const { createPlatformCheckoutFn } =
+        await import('../server/billing.server')
       return createPlatformCheckoutFn()
     },
     onSuccess: (data) => {
       window.location.href = data.url
     },
   })
+
+  // Auto-trigger checkout when redirected from signup with auto_checkout flag
+  useEffect(() => {
+    if (
+      auto_checkout === 'true' &&
+      isLoggedIn &&
+      !sessionLoading &&
+      !platformStatusLoading &&
+      !platformStatus?.hasPlatformAccess &&
+      !checkoutMutation.isPending &&
+      !autoCheckoutTriggered.current
+    ) {
+      autoCheckoutTriggered.current = true
+      checkoutMutation.mutate()
+    }
+  }, [
+    auto_checkout,
+    isLoggedIn,
+    sessionLoading,
+    platformStatusLoading,
+    platformStatus?.hasPlatformAccess,
+    checkoutMutation.isPending,
+  ])
 
   const handleGetAccess = () => {
     if (!isLoggedIn) {
@@ -61,6 +102,20 @@ function PricingPage() {
   }
 
   const hasAccess = platformStatus?.hasPlatformAccess
+  const isAutoCheckoutInProgress =
+    auto_checkout === 'true' && checkoutMutation.isPending
+
+  // Show loading screen during auto-checkout
+  if (isAutoCheckoutInProgress) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">Preparing checkout...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -74,7 +129,10 @@ function PricingPage() {
             <span className="text-xl font-bold">DirectorAI</span>
           </Link>
           <nav className="flex items-center space-x-4">
-            {isLoggedIn ? (
+            {sessionLoading ? (
+              // Show placeholder while loading to avoid hydration mismatch
+              <div className="h-9 w-20" />
+            ) : isLoggedIn ? (
               <Link to="/dashboard">
                 <Button variant="ghost" size="sm">
                   Dashboard

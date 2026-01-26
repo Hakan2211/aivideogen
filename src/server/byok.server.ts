@@ -11,12 +11,19 @@
 
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { prisma } from '../db'
-import { authMiddleware } from './middleware'
+import { authMiddleware } from './middleware.server'
 
-// Dynamic import helper for encryption utilities (server-only)
+// NOTE: Server-only dependencies (prisma, encryption) are dynamically imported
+// inside handlers to prevent them from being bundled into the client during dev mode.
+
+// Dynamic import helpers for server-only modules
+async function getPrisma() {
+  const { prisma } = await import('../db.server')
+  return prisma
+}
+
 async function getEncryption() {
-  return await import('../lib/encryption')
+  return await import('../lib/encryption.server')
 }
 
 // =============================================================================
@@ -46,6 +53,7 @@ export interface FalUsage {
 export const getByokStatusFn = createServerFn({ method: 'GET' })
   .middleware([authMiddleware])
   .handler(async ({ context }): Promise<ByokStatus> => {
+    const prisma = await getPrisma()
     const user = await prisma.user.findUnique({
       where: { id: context.user.id },
       select: {
@@ -88,6 +96,7 @@ export const saveApiKeyFn = createServerFn({ method: 'POST' })
   .inputValidator(saveApiKeySchema)
   .handler(async ({ data, context }) => {
     // Check if user has platform access (or is admin)
+    const prisma = await getPrisma()
     const user = await prisma.user.findUnique({
       where: { id: context.user.id },
       select: { hasPlatformAccess: true, role: true },
@@ -187,6 +196,7 @@ async function validateFalApiKey(apiKey: string): Promise<boolean> {
 export const removeApiKeyFn = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
+    const prisma = await getPrisma()
     await prisma.user.update({
       where: { id: context.user.id },
       data: {
@@ -209,6 +219,7 @@ export const removeApiKeyFn = createServerFn({ method: 'POST' })
 export const testApiKeyConnectionFn = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
+    const prisma = await getPrisma()
     const user = await prisma.user.findUnique({
       where: { id: context.user.id },
       select: { falApiKey: true },
@@ -237,6 +248,7 @@ export const testApiKeyConnectionFn = createServerFn({ method: 'POST' })
 export const getFalUsageFn = createServerFn({ method: 'GET' })
   .middleware([authMiddleware])
   .handler(async ({ context }): Promise<FalUsage | null> => {
+    const prisma = await getPrisma()
     const user = await prisma.user.findUnique({
       where: { id: context.user.id },
       select: { falApiKey: true },
@@ -309,6 +321,7 @@ export const getFalUsageFn = createServerFn({ method: 'GET' })
  * @returns The decrypted API key, or throws an error if not available
  */
 export async function getUserFalApiKey(userId: string): Promise<string> {
+  const prisma = await getPrisma()
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {

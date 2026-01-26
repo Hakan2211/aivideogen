@@ -68,18 +68,22 @@ Routes use TanStack Router's file-based convention:
 
 Located in `src/server/`:
 
-- `*.fn.ts` - Server functions using TanStack's `createServerFn`
-- `*.actions.ts` - Server actions for mutations
-- `middleware.ts` - Auth middleware (`authMiddleware`, `adminMiddleware`, `optionalAuthMiddleware`)
-- `services/*.service.ts` - External service integrations with mock mode support
+- `*.server.ts` - Server-only files (functions, middleware, services)
+- `services/*.server.ts` - External service integrations with mock mode support
+- `services/types.ts` - Shared type definitions (not `.server.ts` since types are stripped at compile time)
+
+**IMPORTANT: `.server.ts` Convention**
+
+All server-only files use the `.server.ts` suffix. This is handled by a custom Vite plugin (`vite-plugin-server-only.ts`) that stubs these files for client builds, preventing server-only code (Prisma, Node.js crypto, etc.) from being bundled into the client.
 
 ### Key Patterns
 
-**Protected Routes**: Use `beforeLoad` to check auth via `getSessionFn()` and redirect to `/login` if unauthenticated.
+**Protected Routes**: Use `beforeLoad` to check auth and redirect to `/login` if unauthenticated. Server functions are dynamically imported to ensure they're only bundled for the server:
 
 ```typescript
 export const Route = createFileRoute('/_app')({
   beforeLoad: async () => {
+    const { getSessionFn } = await import('../server/auth.server')
     const session = await getSessionFn()
     if (!session?.user) throw redirect({ to: '/login' })
     return { user: session.user }

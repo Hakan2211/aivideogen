@@ -8,11 +8,11 @@
 
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { prisma } from '../db'
-import { authMiddleware } from './middleware'
-import { generateAging, getJobStatus } from './services/fal.service'
+import { prisma } from '../db.server'
+import { authMiddleware } from './middleware.server'
+import { generateAging, getJobStatus } from './services/fal.server'
 import { AGE_GROUPS, AGING_MODELS, getAgingModelByType } from './services/types'
-import { uploadFromUrl } from './services/bunny.service'
+import { uploadFromUrl } from './services/bunny.server'
 
 // =============================================================================
 // Schemas

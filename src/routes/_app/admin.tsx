@@ -1,7 +1,10 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { listUsersFn, updateUserRoleFn } from '../../server/auth.fn'
 import { Button } from '../../components/ui/button'
+
+// NOTE: Server functions are dynamically imported in queryFn/mutationFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 
 // Type for users returned from listUsersFn
 interface AdminUser {
@@ -30,12 +33,17 @@ function AdminPage() {
 
   const { data: users, isLoading } = useQuery<Array<AdminUser>>({
     queryKey: ['admin', 'users'],
-    queryFn: () => listUsersFn() as Promise<Array<AdminUser>>,
+    queryFn: async () => {
+      const { listUsersFn } = await import('../../server/auth.server')
+      return listUsersFn() as Promise<Array<AdminUser>>
+    },
   })
 
   const updateRoleMutation = useMutation({
-    mutationFn: (input: { userId: string; role: 'user' | 'admin' }) =>
-      updateUserRoleFn({ data: input }),
+    mutationFn: async (input: { userId: string; role: 'user' | 'admin' }) => {
+      const { updateUserRoleFn } = await import('../../server/auth.server')
+      return updateUserRoleFn({ data: input })
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
     },

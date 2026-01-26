@@ -7,16 +7,12 @@
 
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { prisma } from '../db'
-import { authMiddleware } from './middleware'
-import {
-  cancelJob,
-  generate3DModel,
-  getJobStatus,
-} from './services/fal.service'
-import { uploadFromUrl } from './services/bunny.service'
+import { prisma } from '../db.server'
+import { authMiddleware } from './middleware.server'
+import { cancelJob, generate3DModel, getJobStatus } from './services/fal.server'
+import { uploadFromUrl } from './services/bunny.server'
 import { get3DModelById } from './services/types'
-import type { Fal3DModelResult } from './services/fal.service'
+import type { Fal3DModelResult } from './services/fal.server'
 
 // =============================================================================
 // Schemas

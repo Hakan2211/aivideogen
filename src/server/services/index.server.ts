@@ -57,7 +57,7 @@ export {
   isBunnyConfigured,
   type UploadResult,
   type UploadOptions,
-} from './bunny.service'
+} from './bunny.server'
 
 // =============================================================================
 // Fal.ai Generation Service (Image & Video)
@@ -76,7 +76,7 @@ export {
   type FalImageResult,
   type FalVideoResult,
   type GenerationJob as FalGenerationJob,
-} from './fal.service'
+} from './fal.server'
 
 // =============================================================================
 // Image Edit Service (Edit, Upscale, Variations)
@@ -92,7 +92,7 @@ export {
   type UpscaleInput,
   type EditJob,
   type FalEditResult,
-} from './edit.service'
+} from './edit.server'
 
 // =============================================================================
 // TTS (Text-to-Speech) Service via Fal.ai ElevenLabs
@@ -109,7 +109,7 @@ export {
   type SpeechGenerationInput,
   type SpeechResult,
   type WordTimestamp as TtsWordTimestamp,
-} from './tts.service'
+} from './tts.server'
 
 // =============================================================================
 // OpenRouter LLM Service
@@ -128,7 +128,7 @@ export {
   type ChatCompletionInput,
   type ChatCompletionResponse,
   type StreamChunk,
-} from './openrouter.service'
+} from './openrouter.server'
 
 // =============================================================================
 // Service Health Check
@@ -145,10 +145,10 @@ export function checkServicesHealth(): {
   allConfigured: boolean
 } {
   // Import lazily to avoid circular dependencies
-  const { isBunnyConfigured } = require('./bunny.service')
-  const { isFalConfigured } = require('./fal.service')
-  const { isTtsConfigured } = require('./tts.service')
-  const { isOpenRouterConfigured } = require('./openrouter.service')
+  const { isBunnyConfigured } = require('./bunny.server')
+  const { isFalConfigured } = require('./fal.server')
+  const { isTtsConfigured } = require('./tts.server')
+  const { isOpenRouterConfigured } = require('./openrouter.server')
 
   const bunny = isBunnyConfigured()
   const fal = isFalConfigured()

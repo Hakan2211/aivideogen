@@ -14,8 +14,11 @@ import { useCallback, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { ImagePlus, Loader2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
-import { uploadUserImageFn } from '@/server/image.fn'
 import { cn } from '@/lib/utils'
+
+// NOTE: Server functions are dynamically imported in mutationFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 
 interface UploadDropZoneProps {
   onUploadComplete?: () => void
@@ -33,7 +36,16 @@ export function UploadDropZone({
   const [isDragging, setIsDragging] = useState(false)
 
   const uploadMutation = useMutation({
-    mutationFn: uploadUserImageFn,
+    mutationFn: async (input: {
+      data: {
+        imageData: string
+        filename: string
+        contentType: 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif'
+      }
+    }) => {
+      const { uploadUserImageFn } = await import('@/server/image.server')
+      return uploadUserImageFn(input as never)
+    },
     onSuccess: () => {
       toast.success('Image uploaded successfully!')
       onUploadComplete?.()

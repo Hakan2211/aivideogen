@@ -3,11 +3,27 @@ import { motion } from 'framer-motion'
 import { Building2, Check, Key, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useUserAccess } from '@/hooks/use-user-access'
 
-const plans = [
+interface Plan {
+  name: string
+  price: string
+  period?: string
+  description: string
+  features: Array<string>
+  cta: string
+  href: string
+  popular: boolean
+  icon: typeof Key | typeof Building2
+}
+
+const getPlans = (
+  isLoggedIn: boolean,
+  hasPlatformAccess: boolean,
+): Array<Plan> => [
   {
     name: 'Lifetime Access',
-    price: '$149',
+    price: '€149',
     period: 'one-time',
     description: 'Full lifetime access with your own API key',
     features: [
@@ -20,8 +36,12 @@ const plans = [
       'Export in any format',
       'Lifetime updates included',
     ],
-    cta: 'Get Lifetime Access',
-    href: '/pricing',
+    cta: hasPlatformAccess ? 'Go to Dashboard' : 'Buy Now for €149',
+    href: hasPlatformAccess
+      ? '/dashboard'
+      : isLoggedIn
+        ? '/pricing?auto_checkout=true'
+        : '/signup?redirect=checkout',
     popular: true,
     icon: Key,
   },
@@ -47,6 +67,9 @@ const plans = [
 ]
 
 export function PricingSection() {
+  const { isLoggedIn, hasPlatformAccess } = useUserAccess()
+  const plans = getPlans(isLoggedIn, hasPlatformAccess)
+
   return (
     <section id="pricing" className="py-24 lg:py-32 bg-muted/30">
       <div className="container mx-auto px-4 lg:px-8">
@@ -124,7 +147,7 @@ export function PricingSection() {
   )
 }
 
-function PricingCard({ plan }: { plan: (typeof plans)[0] }) {
+function PricingCard({ plan }: { plan: Plan }) {
   const Icon = plan.icon
 
   return (

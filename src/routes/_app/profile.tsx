@@ -15,8 +15,11 @@ import {
   Wallet,
   Zap,
 } from 'lucide-react'
-import { updateProfileFn } from '../../server/auth.fn'
 import { useSession } from '../../lib/auth-client'
+
+// NOTE: Server functions are dynamically imported in mutationFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
@@ -67,13 +70,17 @@ function ProfilePage() {
   const { data: platformStatus } = useQuery({
     queryKey: ['platform-status'],
     queryFn: async () => {
-      const { getPlatformStatusFn } = await import('../../server/billing.fn')
+      const { getPlatformStatusFn } =
+        await import('../../server/billing.server')
       return getPlatformStatusFn()
     },
   })
 
   const updateMutation = useMutation({
-    mutationFn: (input: { name: string }) => updateProfileFn({ data: input }),
+    mutationFn: async (input: { name: string }) => {
+      const { updateProfileFn } = await import('../../server/auth.server')
+      return updateProfileFn({ data: input })
+    },
     onSuccess: () => {
       setSuccess(true)
       void queryClient.invalidateQueries({ queryKey: ['session'] })
@@ -227,7 +234,7 @@ function FalApiKeySection() {
   const { data: byokStatus, isLoading: statusLoading } = useQuery({
     queryKey: ['byok-status'],
     queryFn: async () => {
-      const { getByokStatusFn } = await import('../../server/byok.fn')
+      const { getByokStatusFn } = await import('../../server/byok.server')
       return getByokStatusFn()
     },
   })
@@ -237,7 +244,7 @@ function FalApiKeySection() {
   const { data: falUsage } = useQuery({
     queryKey: ['fal-usage'],
     queryFn: async () => {
-      const { getFalUsageFn } = await import('../../server/byok.fn')
+      const { getFalUsageFn } = await import('../../server/byok.server')
       return getFalUsageFn()
     },
     enabled: !!byokStatus?.hasApiKey,
@@ -247,7 +254,8 @@ function FalApiKeySection() {
   // Test connection mutation
   const testMutation = useMutation({
     mutationFn: async () => {
-      const { testApiKeyConnectionFn } = await import('../../server/byok.fn')
+      const { testApiKeyConnectionFn } =
+        await import('../../server/byok.server')
       return testApiKeyConnectionFn()
     },
     onSuccess: (data) => {
@@ -266,7 +274,7 @@ function FalApiKeySection() {
   // Save API key mutation
   const saveMutation = useMutation({
     mutationFn: async (apiKey: string) => {
-      const { saveApiKeyFn } = await import('../../server/byok.fn')
+      const { saveApiKeyFn } = await import('../../server/byok.server')
       return saveApiKeyFn({ data: { apiKey } })
     },
     onSuccess: () => {
@@ -285,7 +293,7 @@ function FalApiKeySection() {
   // Remove API key mutation
   const removeMutation = useMutation({
     mutationFn: async () => {
-      const { removeApiKeyFn } = await import('../../server/byok.fn')
+      const { removeApiKeyFn } = await import('../../server/byok.server')
       return removeApiKeyFn()
     },
     onSuccess: () => {

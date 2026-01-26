@@ -7,20 +7,20 @@
 
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { prisma } from '../db'
-import { authMiddleware } from './middleware'
+import { prisma } from '../db.server'
+import { authMiddleware } from './middleware.server'
 import {
   generateImage,
   getImageModels,
   getJobStatus,
-} from './services/fal.service'
-import { uploadBuffer, uploadFromUrl } from './services/bunny.service'
+} from './services/fal.server'
+import { uploadBuffer, uploadFromUrl } from './services/bunny.server'
 import {
   GPT_IMAGE_QUALITY_TIERS,
   IMAGE_MODELS,
   getModelById,
 } from './services/types'
-import type { FalImageResult } from './services/fal.service'
+import type { FalImageResult } from './services/fal.server'
 
 // =============================================================================
 // Schemas

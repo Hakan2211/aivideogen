@@ -24,8 +24,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import { generate3DModelFn } from '@/server/model3d.fn'
 import { TEXT_TO_3D_MODELS, get3DModelById } from '@/server/services/types'
+
+// NOTE: Server functions are dynamically imported in mutationFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 
 interface TextTo3DPanelProps {
   className?: string
@@ -67,6 +70,7 @@ export function TextTo3DPanel({ className }: TextTo3DPanelProps) {
         throw new Error('Please enter a prompt')
       }
 
+      const { generate3DModelFn } = await import('@/server/model3d.server')
       return generate3DModelFn({
         data: {
           modelId,

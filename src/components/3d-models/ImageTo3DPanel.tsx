@@ -17,9 +17,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import { generate3DModelFn } from '@/server/model3d.fn'
 import { IMAGE_TO_3D_MODELS, get3DModelById } from '@/server/services/types'
-import { listUserImagesFn, uploadUserImageFn } from '@/server/image.fn'
+
+// NOTE: Server functions are dynamically imported in queryFn/mutationFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 
 interface ImageTo3DPanelProps {
   className?: string
@@ -72,7 +74,10 @@ export function ImageTo3DPanel({ className }: ImageTo3DPanelProps) {
   // Fetch user's images for gallery
   const { data: galleryData } = useQuery({
     queryKey: ['images', 'gallery'],
-    queryFn: () => listUserImagesFn({ data: { limit: 50 } }),
+    queryFn: async () => {
+      const { listUserImagesFn } = await import('@/server/image.server')
+      return listUserImagesFn({ data: { limit: 50 } })
+    },
   })
 
   const galleryImages =
@@ -89,6 +94,7 @@ export function ImageTo3DPanel({ className }: ImageTo3DPanelProps) {
       reader.onload = async () => {
         try {
           const base64 = (reader.result as string).split(',')[1]
+          const { uploadUserImageFn } = await import('@/server/image.server')
           const result = await uploadUserImageFn({
             data: {
               imageData: base64,
@@ -135,6 +141,7 @@ export function ImageTo3DPanel({ className }: ImageTo3DPanelProps) {
         rightImageUrl = images[3]?.url
       }
 
+      const { generate3DModelFn } = await import('@/server/model3d.server')
       return generate3DModelFn({
         data: {
           modelId,

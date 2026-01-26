@@ -10,11 +10,10 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import {
-  delete3DModelFn,
-  get3DModelStatusFn,
-  listUser3DModelsFn,
-} from '@/server/model3d.fn'
+
+// NOTE: Server functions are dynamically imported in queryFn/mutationFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 
 interface Model3DGalleryProps {
   mode?: Model3DMode
@@ -36,7 +35,10 @@ export function Model3DGallery({
   // Fetch models
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['3d-models', mode],
-    queryFn: () => listUser3DModelsFn({ data: { limit: 50, mode } }),
+    queryFn: async () => {
+      const { listUser3DModelsFn } = await import('@/server/model3d.server')
+      return listUser3DModelsFn({ data: { limit: 50, mode } })
+    },
     refetchInterval: (query) => {
       // Poll more frequently if there are pending jobs
       const assets = query.state.data?.assets || []
@@ -60,6 +62,7 @@ export function Model3DGallery({
     if (pendingAssets.length === 0) return
 
     const pollStatuses = async () => {
+      const { get3DModelStatusFn } = await import('@/server/model3d.server')
       for (const asset of pendingAssets) {
         try {
           const status = await get3DModelStatusFn({
@@ -83,7 +86,10 @@ export function Model3DGallery({
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (assetId: string) => delete3DModelFn({ data: { assetId } }),
+    mutationFn: async (assetId: string) => {
+      const { delete3DModelFn } = await import('@/server/model3d.server')
+      return delete3DModelFn({ data: { assetId } })
+    },
     onSuccess: () => {
       toast.success('Model deleted')
       queryClient.invalidateQueries({ queryKey: ['3d-models'] })

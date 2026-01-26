@@ -1,7 +1,10 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { getSessionFn } from '../server/auth.fn'
 import { useSession } from '../lib/auth-client'
+
+// NOTE: Server functions are dynamically imported in beforeLoad and queryFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 import {
   SidebarInset,
   SidebarProvider,
@@ -37,6 +40,7 @@ interface ByokStatus {
  */
 export const Route = createFileRoute('/_app')({
   beforeLoad: async () => {
+    const { getSessionFn } = await import('../server/auth.server')
     const session = await getSessionFn()
     if (!session?.user) {
       throw redirect({ to: '/login' })
@@ -53,7 +57,7 @@ export const Route = createFileRoute('/_app')({
     }
 
     // Check platform access for non-admin users
-    const { getPlatformStatusFn } = await import('../server/billing.fn')
+    const { getPlatformStatusFn } = await import('../server/billing.server')
     const platformStatus = await getPlatformStatusFn()
 
     if (!platformStatus.hasPlatformAccess) {
@@ -81,7 +85,7 @@ function AppLayout() {
     queryKey: ['byok-status'],
     queryFn: async (): Promise<ByokStatus> => {
       // Dynamic import to avoid bundling server code in client
-      const { getByokStatusFn } = await import('../server/byok.fn')
+      const { getByokStatusFn } = await import('../server/byok.server')
       return getByokStatusFn()
     },
     staleTime: 30000, // Consider fresh for 30 seconds

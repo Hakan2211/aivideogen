@@ -5,22 +5,26 @@
  * Each tool function handles validation, execution, and error handling.
  */
 
-import { prisma } from '../../db'
-import { generateImage, generateSpeech, generateVideo } from '../services'
-import { TOOL_NAMES } from './tools'
+import { prisma } from '../../db.server'
+import {
+  generateImage,
+  generateSpeech,
+  generateVideo,
+} from '../services/index.server'
+import { TOOL_NAMES } from './tools.server'
 import type {
   AudioClip,
   ComponentOverlay,
   ProjectManifest,
   VideoClip,
-} from '../services'
+} from '../services/index.server'
 import type {
   GenerateImageArgs,
   GenerateVideoArgs,
   GenerateVoiceoverArgs,
   ListAssetsArgs,
   UpdateTimelineArgs,
-} from './tools'
+} from './tools.server'
 
 // Voice name mappings (Fal.ai uses voice names directly)
 const VOICE_NAMES = {

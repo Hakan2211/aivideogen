@@ -9,15 +9,15 @@
 
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { prisma } from '../db'
-import { authMiddleware } from './middleware'
+import { prisma } from '../db.server'
+import { authMiddleware } from './middleware.server'
 import {
   getVideoUpscaleJobStatus,
   getVideoUpscaleModels,
   upscaleVideo,
-} from './services/video-upscale.service'
+} from './services/video-upscale.server'
 import { getVideoUpscaleModelById } from './services/types'
-import { uploadFromUrl } from './services/bunny.service'
+import { uploadFromUrl } from './services/bunny.server'
 
 // =============================================================================
 // Schemas

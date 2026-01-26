@@ -7,8 +7,8 @@
 
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { prisma } from '../db'
-import { authMiddleware } from './middleware'
+import { prisma } from '../db.server'
+import { authMiddleware } from './middleware.server'
 import {
   AUDIO_MODELS,
   IMAGE_MODELS,
@@ -19,7 +19,7 @@ import {
   getFalJobStatus,
   getModelById,
   uploadFromUrl,
-} from './services'
+} from './services/index.server'
 
 // =============================================================================
 // Schemas

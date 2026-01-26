@@ -8,21 +8,21 @@
 
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { prisma } from '../db'
-import { authMiddleware } from './middleware'
+import { prisma } from '../db.server'
+import { authMiddleware } from './middleware.server'
 import {
   editImage,
   getEditJobStatus,
   getEditModels,
   getUpscaleModels,
   upscaleImage,
-} from './services/edit.service'
+} from './services/edit.server'
 import {
   UPSCALE_MODELS,
   getEditModelById,
   getModelById,
 } from './services/types'
-import { uploadFromUrl } from './services/bunny.service'
+import { uploadFromUrl } from './services/bunny.server'
 
 // =============================================================================
 // Schemas

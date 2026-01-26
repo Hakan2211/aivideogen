@@ -45,20 +45,9 @@ import type {
   SeedvrTargetResolution,
   TopazModelType,
 } from '@/server/services/types'
-import {
-  deleteImageFn,
-  generateImageFn,
-  getImageFn,
-  getImageJobStatusFn,
-  getImageModelsFn,
-  listUserImagesFn,
-} from '@/server/image.fn'
-import {
-  editImageFn,
-  getEditJobStatusFn,
-  upscaleImageFn,
-} from '@/server/edit.fn'
-import { generateAgingFn, getAgingJobStatusFn } from '@/server/aging.fn'
+// NOTE: Server functions are dynamically imported in queryFn/mutationFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
@@ -283,7 +272,10 @@ function ImagesPage() {
   // Fetch models
   const { data: modelsData } = useQuery({
     queryKey: ['imageModels'],
-    queryFn: () => getImageModelsFn(),
+    queryFn: async () => {
+      const { getImageModelsFn } = await import('@/server/image.server')
+      return getImageModelsFn()
+    },
   })
 
   // Fetch images with infinite scroll
@@ -295,8 +287,10 @@ function ImagesPage() {
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: ['images'],
-    queryFn: ({ pageParam = 0 }) =>
-      listUserImagesFn({ data: { limit, offset: pageParam * limit } }),
+    queryFn: async ({ pageParam = 0 }) => {
+      const { listUserImagesFn } = await import('@/server/image.server')
+      return listUserImagesFn({ data: { limit, offset: pageParam * limit } })
+    },
     getNextPageParam: (lastPage, allPages) => {
       const loadedCount = allPages.length * limit
       return loadedCount < lastPage.total ? allPages.length : undefined
@@ -332,7 +326,10 @@ function ImagesPage() {
 
   // Generate mutation
   const generateMutation = useMutation({
-    mutationFn: generateImageFn,
+    mutationFn: async (input: { data: Record<string, unknown> }) => {
+      const { generateImageFn } = await import('@/server/image.server')
+      return generateImageFn(input as never)
+    },
     onSuccess: (result) => {
       setCurrentJobId(result.jobId)
       setCurrentJobType('generate')
@@ -341,8 +338,11 @@ function ImagesPage() {
 
   // Edit mutation (prompt-based, no masks!)
   const editMutation = useMutation({
-    mutationFn: editImageFn,
-    onSuccess: (result: { jobId: string }) => {
+    mutationFn: async (input: { data: Record<string, unknown> }) => {
+      const { editImageFn } = await import('@/server/edit.server')
+      return editImageFn(input as never)
+    },
+    onSuccess: (result) => {
       setCurrentJobId(result.jobId)
       setCurrentJobType('edit')
     },
@@ -350,7 +350,10 @@ function ImagesPage() {
 
   // Upscale mutation
   const upscaleMutation = useMutation({
-    mutationFn: upscaleImageFn,
+    mutationFn: async (input: { data: Record<string, unknown> }) => {
+      const { upscaleImageFn } = await import('@/server/edit.server')
+      return upscaleImageFn(input as never)
+    },
     onSuccess: (result) => {
       setCurrentJobId(result.jobId)
       setCurrentJobType('upscale')
@@ -359,7 +362,10 @@ function ImagesPage() {
 
   // Aging mutation
   const agingMutation = useMutation({
-    mutationFn: generateAgingFn,
+    mutationFn: async (input: { data: Record<string, unknown> }) => {
+      const { generateAgingFn } = await import('@/server/aging.server')
+      return generateAgingFn(input as never)
+    },
     onSuccess: (result) => {
       setCurrentJobId(result.jobId)
       setCurrentJobType('aging')
@@ -368,7 +374,10 @@ function ImagesPage() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: deleteImageFn,
+    mutationFn: async (input: { data: { imageId: string } }) => {
+      const { deleteImageFn } = await import('@/server/image.server')
+      return deleteImageFn(input as never)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['images'] })
       setSelectedImage(null)
@@ -378,7 +387,10 @@ function ImagesPage() {
   // Poll job status (for generate)
   const { data: jobStatus, error: jobStatusError } = useQuery({
     queryKey: ['imageJob', currentJobId],
-    queryFn: () => getImageJobStatusFn({ data: { jobId: currentJobId! } }),
+    queryFn: async () => {
+      const { getImageJobStatusFn } = await import('@/server/image.server')
+      return getImageJobStatusFn({ data: { jobId: currentJobId! } })
+    },
     enabled: !!currentJobId && currentJobType === 'generate',
     refetchInterval: (query) => {
       const status = query.state.data?.status
@@ -392,7 +404,10 @@ function ImagesPage() {
   // Poll edit job status (edit, upscale)
   const { data: editJobStatus, error: editJobStatusError } = useQuery({
     queryKey: ['editJob', currentJobId],
-    queryFn: () => getEditJobStatusFn({ data: { jobId: currentJobId! } }),
+    queryFn: async () => {
+      const { getEditJobStatusFn } = await import('@/server/edit.server')
+      return getEditJobStatusFn({ data: { jobId: currentJobId! } })
+    },
     enabled:
       !!currentJobId &&
       (currentJobType === 'edit' || currentJobType === 'upscale'),
@@ -408,7 +423,10 @@ function ImagesPage() {
   // Poll aging job status
   const { data: agingJobStatus, error: agingJobStatusError } = useQuery({
     queryKey: ['agingJob', currentJobId],
-    queryFn: () => getAgingJobStatusFn({ data: { jobId: currentJobId! } }),
+    queryFn: async () => {
+      const { getAgingJobStatusFn } = await import('@/server/aging.server')
+      return getAgingJobStatusFn({ data: { jobId: currentJobId! } })
+    },
     enabled: !!currentJobId && currentJobType === 'aging',
     refetchInterval: (query) => {
       const status = query.state.data?.status
@@ -1888,7 +1906,10 @@ function ImageDetailPanel({
   // Fetch source image if this image was derived from another (edit/upscale/aging)
   const { data: sourceImage } = useQuery({
     queryKey: ['sourceImage', sourceAssetId],
-    queryFn: () => getImageFn({ data: { imageId: sourceAssetId! } }),
+    queryFn: async () => {
+      const { getImageFn } = await import('@/server/image.server')
+      return getImageFn({ data: { imageId: sourceAssetId! } })
+    },
     enabled: !!sourceAssetId,
     staleTime: Infinity, // Source images don't change
   })

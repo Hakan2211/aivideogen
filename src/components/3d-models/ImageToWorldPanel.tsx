@@ -9,9 +9,11 @@ import type { SelectedImage } from './MultiImagePicker'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { generate3DModelFn } from '@/server/model3d.fn'
 import { IMAGE_TO_WORLD_MODELS } from '@/server/services/types'
-import { listUserImagesFn, uploadUserImageFn } from '@/server/image.fn'
+
+// NOTE: Server functions are dynamically imported in queryFn/mutationFn
+// to prevent Prisma and other server-only code from being bundled into the client.
+// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
 
 interface ImageToWorldPanelProps {
   className?: string
@@ -30,7 +32,10 @@ export function ImageToWorldPanel({ className }: ImageToWorldPanelProps) {
   // Fetch user's images for gallery
   const { data: galleryData } = useQuery({
     queryKey: ['images', 'gallery'],
-    queryFn: () => listUserImagesFn({ data: { limit: 50 } }),
+    queryFn: async () => {
+      const { listUserImagesFn } = await import('@/server/image.server')
+      return listUserImagesFn({ data: { limit: 50 } })
+    },
   })
 
   const galleryImages =
@@ -47,6 +52,7 @@ export function ImageToWorldPanel({ className }: ImageToWorldPanelProps) {
       reader.onload = async () => {
         try {
           const base64 = (reader.result as string).split(',')[1]
+          const { uploadUserImageFn } = await import('@/server/image.server')
           const result = await uploadUserImageFn({
             data: {
               imageData: base64,
@@ -79,6 +85,7 @@ export function ImageToWorldPanel({ className }: ImageToWorldPanelProps) {
         throw new Error('Please fill in all label fields')
       }
 
+      const { generate3DModelFn } = await import('@/server/model3d.server')
       return generate3DModelFn({
         data: {
           modelId: modelConfig.id,

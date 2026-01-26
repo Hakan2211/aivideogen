@@ -5,13 +5,13 @@
  * and streams responses back to the client.
  */
 
-import { prisma } from '../../db'
-import { chatCompletion, chatCompletionStream } from '../services'
-import { AGENT_TOOLS } from './tools'
-import { getSystemPrompt } from './system-prompt'
-import { executeTool } from './executor'
-import type { ChatMessage, ToolCall } from '../services'
-import type { ToolContext, ToolResult } from './executor'
+import { prisma } from '../../db.server'
+import { chatCompletion, chatCompletionStream } from '../services/index.server'
+import { AGENT_TOOLS } from './tools.server'
+import { getSystemPrompt } from './system-prompt.server'
+import { executeTool } from './executor.server'
+import type { ChatMessage, ToolCall } from '../services/index.server'
+import type { ToolContext, ToolResult } from './executor.server'
 
 // =============================================================================
 // Types
@@ -373,6 +373,10 @@ export async function getChatHistory(projectId: string): Promise<
 }
 
 // Re-export types and tools for convenience
-export { AGENT_TOOLS } from './tools'
-export { getSystemPrompt } from './system-prompt'
-export { executeTool, type ToolContext, type ToolResult } from './executor'
+export { AGENT_TOOLS } from './tools.server'
+export { getSystemPrompt } from './system-prompt.server'
+export {
+  executeTool,
+  type ToolContext,
+  type ToolResult,
+} from './executor.server'

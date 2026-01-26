@@ -2,8 +2,11 @@ import { Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { ArrowRight, Key, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useUserAccess } from '@/hooks/use-user-access'
 
 export function HeroSection() {
+  const { isLoggedIn, hasPlatformAccess } = useUserAccess()
+
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id)
     if (element) {
@@ -92,12 +95,28 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-4"
           >
-            <Link to="/pricing">
-              <Button size="lg" className="min-w-[200px] group">
-                Get Lifetime Access - $149
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
-            </Link>
+            {hasPlatformAccess ? (
+              <Link to="/dashboard">
+                <Button size="lg" className="min-w-[200px] group">
+                  Go to Dashboard
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            ) : isLoggedIn ? (
+              <Link to="/pricing" search={{ auto_checkout: 'true' }}>
+                <Button size="lg" className="min-w-[200px] group">
+                  Buy Now for €149
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/signup" search={{ redirect: 'checkout' }}>
+                <Button size="lg" className="min-w-[200px] group">
+                  Buy Now for €149
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            )}
             <Button
               variant="outline"
               size="lg"
