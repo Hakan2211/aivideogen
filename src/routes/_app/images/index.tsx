@@ -336,6 +336,9 @@ function ImagesPage() {
     onSuccess: (result) => {
       setCurrentJobId(result.jobId)
       setCurrentJobType('generate')
+      // Clear prompts after successful submission
+      setPrompt('')
+      setNegativePrompt('')
     },
   })
 
@@ -348,6 +351,8 @@ function ImagesPage() {
     onSuccess: (result) => {
       setCurrentJobId(result.jobId)
       setCurrentJobType('edit')
+      // Clear edit prompt after successful submission
+      setEditPrompt('')
     },
   })
 
@@ -485,6 +490,8 @@ function ImagesPage() {
       setCurrentJobId(null)
       setCurrentJobType(null)
       queryClient.invalidateQueries({ queryKey: ['images'] })
+      // Auto-focus textarea for next prompt
+      textareaRef.current?.focus()
     }
 
     // Handle failure - show toast and clear job state
@@ -1788,7 +1795,8 @@ function GeneratePanel({
           placeholder="Describe the image you want to create..."
           value={prompt}
           onChange={(e) => onPromptChange(e.target.value)}
-          className="min-h-[80px] resize-none pr-28 text-base rounded-xl border-border/50 bg-background/50 focus:border-primary/50 focus:ring-primary/20 placeholder:text-muted-foreground/60"
+          disabled={isGenerating}
+          className="min-h-[80px] resize-none pr-28 text-base rounded-xl border-border/50 bg-background/50 focus:border-primary/50 focus:ring-primary/20 placeholder:text-muted-foreground/60 disabled:opacity-50 disabled:cursor-not-allowed"
           rows={2}
         />
         <Button

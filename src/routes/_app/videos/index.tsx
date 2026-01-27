@@ -334,6 +334,12 @@ function VideosPage() {
     },
     onSuccess: (result) => {
       setCurrentJobId(result.jobId)
+      // Clear prompt and selections after successful submission
+      setPrompt('')
+      setSelectedImage(null)
+      setFirstFrame(null)
+      setLastFrame(null)
+      setKeyframes([])
     },
   })
 
@@ -384,6 +390,8 @@ function VideosPage() {
     if (jobStatus?.status === 'completed') {
       setCurrentJobId(null)
       queryClient.invalidateQueries({ queryKey: ['videos'] })
+      // Auto-focus textarea for next prompt
+      textareaRef.current?.focus()
     }
   }, [jobStatus, queryClient])
 
@@ -1053,7 +1061,8 @@ function VideosPage() {
                   }
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  className="min-h-[80px] resize-none pr-28 text-base rounded-xl border-border/50 bg-background/50 focus:border-primary/50 focus:ring-primary/20 placeholder:text-muted-foreground/60"
+                  disabled={isGenerating}
+                  className="min-h-[80px] resize-none pr-28 text-base rounded-xl border-border/50 bg-background/50 focus:border-primary/50 focus:ring-primary/20 placeholder:text-muted-foreground/60 disabled:opacity-50 disabled:cursor-not-allowed"
                   rows={2}
                 />
                 <Button
