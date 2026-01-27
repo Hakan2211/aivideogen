@@ -1,5 +1,4 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
 import {
   Box,
   FolderKanban,
@@ -56,17 +55,6 @@ export function AppSidebar({ user }: AppSidebarProps) {
   const userName = user.name || 'User'
   const userEmail = user.email
   const userRole = user.role
-  const isAdmin = userRole === 'admin'
-
-  // Fetch user credits
-  const { data: creditsData } = useQuery({
-    queryKey: ['user-credits'],
-    queryFn: async () => {
-      const { getUserCreditsFn } = await import('../server/generation.server')
-      return getUserCreditsFn()
-    },
-    refetchInterval: 30000,
-  })
 
   const handleSignOut = async () => {
     await signOut()
@@ -269,30 +257,6 @@ export function AppSidebar({ user }: AppSidebarProps) {
       </SidebarContent>
 
       <SidebarFooter className="p-4 group-data-[collapsible=icon]:p-2">
-        {/* Credits Display */}
-        <div className="mb-3 rounded-lg bg-muted/50 px-3 py-2 group-data-[collapsible=icon]:hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Credits</span>
-            {isAdmin ? (
-              <span className="text-sm font-medium text-green-600">
-                Unlimited
-              </span>
-            ) : (
-              <span
-                className={`text-sm font-medium ${
-                  (creditsData?.credits ?? 0) < 10
-                    ? 'text-red-500'
-                    : (creditsData?.credits ?? 0) < 25
-                      ? 'text-yellow-500'
-                      : 'text-foreground'
-                }`}
-              >
-                {creditsData?.credits ?? '...'}
-              </span>
-            )}
-          </div>
-        </div>
-
         {/* User Section */}
         <div className="rounded-2xl bg-gradient-to-br from-muted/50 to-muted/80 p-4 border border-border/50 shadow-sm group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:border-none group-data-[collapsible=icon]:shadow-none transition-all group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
           <div className="flex items-center gap-3 mb-3 group-data-[collapsible=icon]:mb-0 group-data-[collapsible=icon]:justify-center">

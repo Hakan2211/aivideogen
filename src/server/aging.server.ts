@@ -10,6 +10,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { prisma } from '../db.server'
 import { authMiddleware } from './middleware.server'
+import { getUserFalApiKey } from './byok.server'
 import { generateAging, getJobStatus } from './services/fal.server'
 import { AGE_GROUPS, AGING_MODELS, getAgingModelByType } from './services/types'
 import { uploadFromUrl } from './services/bunny.server'
@@ -92,39 +93,28 @@ export const generateAgingFn = createServerFn({ method: 'POST' })
       }
     }
 
-    // Calculate credits (multiply by numImages if generating multiple)
-    const numImages = data.numImages || 1
-    const totalCredits = modelConfig.credits * numImages
-
-    // Check user credits (admins have unlimited)
-    const isAdmin = context.user.role === 'admin'
-    const user = await prisma.user.findUnique({
-      where: { id: context.user.id },
-      select: { credits: true },
-    })
-
-    if (!isAdmin && (!user || user.credits < totalCredits)) {
-      throw new Error(
-        `Insufficient credits. Required: ${totalCredits}, Available: ${user?.credits || 0}`,
-      )
-    }
+    // Get user's fal.ai API key (BYOK)
+    const userApiKey = await getUserFalApiKey(context.user.id)
 
     // Start aging job
     console.log('[AGING_FN] Starting aging job...')
-    const job = await generateAging({
-      subMode: data.subMode,
-      ageGroup: data.ageGroup as any,
-      gender: data.gender,
-      prompt: data.prompt,
-      imageSize: data.imageSize,
-      numImages: data.numImages,
-      seed: data.seed,
-      outputFormat: data.outputFormat,
-      idImageUrls: data.idImageUrls,
-      motherImageUrls: data.motherImageUrls,
-      fatherImageUrls: data.fatherImageUrls,
-      fatherWeight: data.fatherWeight,
-    })
+    const job = await generateAging(
+      {
+        subMode: data.subMode,
+        ageGroup: data.ageGroup as any,
+        gender: data.gender,
+        prompt: data.prompt,
+        imageSize: data.imageSize,
+        numImages: data.numImages,
+        seed: data.seed,
+        outputFormat: data.outputFormat,
+        idImageUrls: data.idImageUrls,
+        motherImageUrls: data.motherImageUrls,
+        fatherImageUrls: data.fatherImageUrls,
+        fatherWeight: data.fatherWeight,
+      },
+      userApiKey,
+    )
 
     console.log('[AGING_FN] Aging job started:', {
       requestId: job.requestId,
@@ -158,7 +148,6 @@ export const generateAgingFn = createServerFn({ method: 'POST' })
           responseUrl: job.responseUrl,
         }),
         externalId: job.requestId,
-        creditsUsed: totalCredits,
       },
     })
 
@@ -167,20 +156,11 @@ export const generateAgingFn = createServerFn({ method: 'POST' })
       externalId: job.requestId,
     })
 
-    // Deduct credits (skip for admins)
-    if (!isAdmin) {
-      await prisma.user.update({
-        where: { id: context.user.id },
-        data: { credits: { decrement: totalCredits } },
-      })
-    }
-
     return {
       jobId: dbJob.id,
       externalId: job.requestId,
       model: modelConfig.id,
       subMode: data.subMode,
-      credits: totalCredits,
       status: 'pending',
     }
   })
@@ -251,7 +231,9 @@ export const getAgingJobStatusFn = createServerFn({ method: 'GET' })
     console.log('[AGING_FN] Polling fal.ai for status using saved URLs...')
     let falStatus: Awaited<ReturnType<typeof getJobStatus>>
     try {
-      falStatus = await getJobStatus(statusUrl, responseUrl)
+      // Get user's API key for polling (supports admin fallback to FAL_KEY)
+      const userApiKey = await getUserFalApiKey(job.userId)
+      falStatus = await getJobStatus(statusUrl, responseUrl, userApiKey)
       console.log('[AGING_FN] fal.ai status result:', {
         status: falStatus.status,
         hasResult: !!falStatus.result,

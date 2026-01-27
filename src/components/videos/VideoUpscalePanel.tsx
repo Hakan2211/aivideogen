@@ -7,7 +7,7 @@
  * - Bytedance: Simple resolution targeting (1080p/2k/4k), FPS selection (30/60)
  */
 
-import { ArrowUpCircle, Film, Loader2, Upload, Wand2 } from 'lucide-react'
+import { ArrowUpCircle, Film, Loader2, Upload } from 'lucide-react'
 import type {
   BytedanceVideoTargetFps,
   BytedanceVideoTargetResolution,
@@ -126,7 +126,6 @@ export function VideoUpscalePanel({
   error,
   className,
 }: VideoUpscalePanelProps) {
-  const selectedModel = VIDEO_UPSCALE_MODELS.find((m) => m.id === model)
   const canUpscale = hasVideo && !isUpscaling
 
   const isSeedVR = model.includes('seedvr')
@@ -452,13 +451,6 @@ export function VideoUpscalePanel({
           {isBytedance &&
             `Simple ${bytedanceTargetResolution} upscaling at ${bytedanceTargetFps === '30fps' ? '30' : '60'} FPS`}
         </span>
-        {/* Credits Display */}
-        <div className="flex items-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-3 py-1.5">
-          <Wand2 className="h-3.5 w-3.5 text-primary" />
-          <span className="text-sm font-medium text-primary">
-            {selectedModel?.credits || 10} credits
-          </span>
-        </div>
       </div>
 
       {/* Error Display */}

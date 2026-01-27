@@ -36,9 +36,6 @@ model User {
   // Onboarding (optional - for multi-step onboarding flows)
   onboardingComplete Boolean @default(false)
 
-  // DirectorAI: Credits system (1 credit = $0.01)
-  credits Int @default(50) // New users get 50 credits ($0.50)
-
   // Platform Access (one-time $149 payment for lifetime access)
   hasPlatformAccess       Boolean   @default(false) // Set true after $149 one-time payment
   platformPurchaseDate    DateTime?                  // When they purchased platform access
@@ -225,9 +222,6 @@ model GenerationJob {
   // Error message if failed
   error String?
 
-  // Credits charged for this job
-  creditsUsed Int @default(0)
-
   // External provider job ID (for polling status)
   externalId String?
 
@@ -343,8 +337,7 @@ model Model3DAsset {
   progress    Int?    // 0-100 percentage if available
 
   // Metadata
-  seed        Int?
-  creditsUsed Int @default(0)
+  seed Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

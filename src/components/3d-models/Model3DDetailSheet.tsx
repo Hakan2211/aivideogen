@@ -248,12 +248,6 @@ export function Model3DDetailSheet({
                   <div className="rounded-lg bg-primary/10 p-2">
                     <Sparkles className="h-4 w-4 text-primary" />
                   </div>
-                  <div>
-                    <span className="text-xs text-muted-foreground">
-                      Credits Used
-                    </span>
-                    <p className="text-sm font-medium">{asset.creditsUsed}</p>
-                  </div>
                 </div>
               </div>
             </div>

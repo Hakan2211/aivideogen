@@ -215,12 +215,24 @@ export async function createPlatformCheckoutSession(
   let customerId = user.stripeCustomerId
 
   if (!customerId) {
-    const customer = await stripe.customers.create({
+    // Check if customer already exists in Stripe with this email to prevent duplicates
+    const existingCustomers = await stripe.customers.list({
       email: user.email,
-      name: user.name ?? undefined,
-      metadata: { userId },
+      limit: 1,
     })
-    customerId = customer.id
+
+    if (existingCustomers.data.length > 0) {
+      // Reuse existing Stripe customer
+      customerId = existingCustomers.data[0].id
+    } else {
+      // Create new customer only if none exists
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: user.name ?? undefined,
+        metadata: { userId },
+      })
+      customerId = customer.id
+    }
 
     await prisma.user.update({
       where: { id: userId },

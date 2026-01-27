@@ -1202,7 +1202,6 @@ export const UserScalarFieldEnum = {
   subscriptionPeriodEnd: 'subscriptionPeriodEnd',
   cancelAtPeriodEnd: 'cancelAtPeriodEnd',
   onboardingComplete: 'onboardingComplete',
-  credits: 'credits',
   hasPlatformAccess: 'hasPlatformAccess',
   platformPurchaseDate: 'platformPurchaseDate',
   platformStripePaymentId: 'platformStripePaymentId',
@@ -1312,7 +1311,6 @@ export const GenerationJobScalarFieldEnum = {
   input: 'input',
   output: 'output',
   error: 'error',
-  creditsUsed: 'creditsUsed',
   externalId: 'externalId',
   statusUrl: 'statusUrl',
   responseUrl: 'responseUrl',
@@ -1377,7 +1375,6 @@ export const Model3DAssetScalarFieldEnum = {
   error: 'error',
   progress: 'progress',
   seed: 'seed',
-  creditsUsed: 'creditsUsed',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

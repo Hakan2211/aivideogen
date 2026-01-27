@@ -7,7 +7,7 @@
  * - Status showing selected images vs model max
  */
 
-import { Loader2, Paintbrush, Wand2 } from 'lucide-react'
+import { Loader2, Paintbrush } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ModelSelect } from '@/components/ui/model-select'
@@ -39,7 +39,6 @@ export function EditPanel({
   error,
   className,
 }: EditPanelProps) {
-  const selectedModel = EDIT_MODELS.find((m) => m.id === model)
   const canGenerate = selectedCount > 0 && prompt.trim() && !isGenerating
 
   // Status message based on selection state
@@ -102,14 +101,6 @@ export function EditPanel({
             )}
           >
             {getStatusMessage()}
-          </span>
-        </div>
-
-        {/* Credits Display - Premium Badge */}
-        <div className="ml-auto flex items-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-3 py-1.5">
-          <Wand2 className="h-3.5 w-3.5 text-primary" />
-          <span className="text-sm font-medium text-primary">
-            {selectedModel?.credits || 4} credits
           </span>
         </div>
       </div>

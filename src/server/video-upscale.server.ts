@@ -11,6 +11,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { prisma } from '../db.server'
 import { authMiddleware } from './middleware.server'
+import { getUserFalApiKey } from './byok.server'
 import {
   getVideoUpscaleJobStatus,
   getVideoUpscaleModels,
@@ -82,39 +83,32 @@ export const upscaleVideoFn = createServerFn({ method: 'POST' })
       throw new Error(`Unknown video upscale model: ${modelId}`)
     }
 
-    // Check user credits (admins have unlimited)
-    const isAdmin = context.user.role === 'admin'
-    const user = await prisma.user.findUnique({
-      where: { id: context.user.id },
-      select: { credits: true },
-    })
-
-    if (!isAdmin && (!user || user.credits < modelConfig.credits)) {
-      throw new Error(
-        `Insufficient credits. Required: ${modelConfig.credits}, Available: ${user?.credits || 0}`,
-      )
-    }
+    // Get user's fal.ai API key (BYOK)
+    const userApiKey = await getUserFalApiKey(context.user.id)
 
     // Start upscale job
     console.log('[VIDEO_UPSCALE_FN] Starting video upscale job...')
-    const job = await upscaleVideo({
-      videoUrl: data.videoUrl,
-      model: modelId,
-      upscaleFactor: data.upscaleFactor,
-      // Topaz
-      targetFps: data.targetFps,
-      h264Output: data.h264Output,
-      // SeedVR
-      upscaleMode: data.upscaleMode,
-      seedvrTargetResolution: data.seedvrTargetResolution,
-      noiseScale: data.noiseScale,
-      outputFormat: data.outputFormat,
-      outputQuality: data.outputQuality,
-      seed: data.seed,
-      // Bytedance
-      bytedanceTargetResolution: data.bytedanceTargetResolution,
-      bytedanceTargetFps: data.bytedanceTargetFps,
-    })
+    const job = await upscaleVideo(
+      {
+        videoUrl: data.videoUrl,
+        model: modelId,
+        upscaleFactor: data.upscaleFactor,
+        // Topaz
+        targetFps: data.targetFps,
+        h264Output: data.h264Output,
+        // SeedVR
+        upscaleMode: data.upscaleMode,
+        seedvrTargetResolution: data.seedvrTargetResolution,
+        noiseScale: data.noiseScale,
+        outputFormat: data.outputFormat,
+        outputQuality: data.outputQuality,
+        seed: data.seed,
+        // Bytedance
+        bytedanceTargetResolution: data.bytedanceTargetResolution,
+        bytedanceTargetFps: data.bytedanceTargetFps,
+      },
+      userApiKey,
+    )
 
     console.log('[VIDEO_UPSCALE_FN] Video upscale job started:', {
       requestId: job.requestId,
@@ -151,7 +145,6 @@ export const upscaleVideoFn = createServerFn({ method: 'POST' })
           responseUrl: job.responseUrl,
         }),
         externalId: job.requestId,
-        creditsUsed: modelConfig.credits,
       },
     })
 
@@ -160,19 +153,10 @@ export const upscaleVideoFn = createServerFn({ method: 'POST' })
       externalId: job.requestId,
     })
 
-    // Deduct credits (skip for admins)
-    if (!isAdmin) {
-      await prisma.user.update({
-        where: { id: context.user.id },
-        data: { credits: { decrement: modelConfig.credits } },
-      })
-    }
-
     return {
       jobId: dbJob.id,
       externalId: job.requestId,
       model: modelId,
-      credits: modelConfig.credits,
       status: 'pending',
     }
   })

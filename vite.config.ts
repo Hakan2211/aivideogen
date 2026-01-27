@@ -30,6 +30,9 @@ const config = defineConfig({
     nitroV2Plugin(),
     viteReact(),
   ],
+  server: {
+    allowedHosts: true, // Allow all hosts (for ngrok webhooks, etc.)
+  },
   ssr: {
     external: [
       '@prisma/client',

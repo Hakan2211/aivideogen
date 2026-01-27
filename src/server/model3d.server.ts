@@ -9,6 +9,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { prisma } from '../db.server'
 import { authMiddleware } from './middleware.server'
+import { getUserFalApiKey } from './byok.server'
 import { cancelJob, generate3DModel, getJobStatus } from './services/fal.server'
 import { uploadFromUrl } from './services/bunny.server'
 import { get3DModelById } from './services/types'
@@ -131,76 +132,56 @@ export const generate3DModelFn = createServerFn({ method: 'POST' })
       throw new Error(`Unknown 3D model: ${data.modelId}`)
     }
 
-    // Calculate credits to charge
-    const creditsToCharge = modelConfig.credits
-
-    // Check user credits (admins have unlimited)
-    const isAdmin = context.user.role === 'admin'
-    const user = await prisma.user.findUnique({
-      where: { id: context.user.id },
-      select: { credits: true },
-    })
-
-    console.log(
-      '[3D] User credits:',
-      user?.credits,
-      'Required:',
-      creditsToCharge,
-      'isAdmin:',
-      isAdmin,
-    )
-
-    if (!isAdmin && (!user || user.credits < creditsToCharge)) {
-      console.error('[3D] Insufficient credits')
-      throw new Error(
-        `Insufficient credits. Required: ${creditsToCharge}, Available: ${user?.credits || 0}`,
-      )
-    }
+    // Get user's fal.ai API key (BYOK)
+    const userApiKey = await getUserFalApiKey(context.user.id)
 
     // Start generation job via Fal.ai
     console.log('[3D] Starting FAL 3D generation job...')
-    const job = await generate3DModel({
-      modelId: data.modelId,
-      prompt: data.prompt,
-      seed: data.seed,
-      imageUrl: data.imageUrl,
-      imageUrls: data.imageUrls,
-      backImageUrl: data.backImageUrl,
-      leftImageUrl: data.leftImageUrl,
-      rightImageUrl: data.rightImageUrl,
-      enablePbr: data.enablePbr,
-      faceCount: data.faceCount,
-      generateType: data.generateType,
-      polygonType: data.polygonType,
-      topology: data.topology,
-      targetPolycount: data.targetPolycount,
-      shouldRemesh: data.shouldRemesh,
-      symmetryMode: data.symmetryMode,
-      mode: data.meshyMode,
-      artStyle: data.artStyle,
-      shouldTexture: data.shouldTexture,
-      enablePromptExpansion: data.enablePromptExpansion,
-      texturePrompt: data.texturePrompt,
-      textureImageUrl: data.textureImageUrl,
-      isATpose: data.isATpose,
-      geometryFileFormat: data.geometryFileFormat,
-      material: data.material,
-      qualityMeshOption: data.qualityMeshOption,
-      useOriginalAlpha: data.useOriginalAlpha,
-      addons: data.addons,
-      previewRender: data.previewRender,
-      maskUrls: data.maskUrls,
-      samPrompt: data.samPrompt,
-      pointPrompts: data.pointPrompts,
-      boxPrompts: data.boxPrompts,
-      exportMeshes: data.exportMeshes,
-      include3dKeypoints: data.include3dKeypoints,
-      exportTexturedGlb: data.exportTexturedGlb,
-      labelsFg1: data.labelsFg1,
-      labelsFg2: data.labelsFg2,
-      classes: data.classes,
-      exportDrc: data.exportDrc,
-    })
+    const job = await generate3DModel(
+      {
+        modelId: data.modelId,
+        prompt: data.prompt,
+        seed: data.seed,
+        imageUrl: data.imageUrl,
+        imageUrls: data.imageUrls,
+        backImageUrl: data.backImageUrl,
+        leftImageUrl: data.leftImageUrl,
+        rightImageUrl: data.rightImageUrl,
+        enablePbr: data.enablePbr,
+        faceCount: data.faceCount,
+        generateType: data.generateType,
+        polygonType: data.polygonType,
+        topology: data.topology,
+        targetPolycount: data.targetPolycount,
+        shouldRemesh: data.shouldRemesh,
+        symmetryMode: data.symmetryMode,
+        mode: data.meshyMode,
+        artStyle: data.artStyle,
+        shouldTexture: data.shouldTexture,
+        enablePromptExpansion: data.enablePromptExpansion,
+        texturePrompt: data.texturePrompt,
+        textureImageUrl: data.textureImageUrl,
+        isATpose: data.isATpose,
+        geometryFileFormat: data.geometryFileFormat,
+        material: data.material,
+        qualityMeshOption: data.qualityMeshOption,
+        useOriginalAlpha: data.useOriginalAlpha,
+        addons: data.addons,
+        previewRender: data.previewRender,
+        maskUrls: data.maskUrls,
+        samPrompt: data.samPrompt,
+        pointPrompts: data.pointPrompts,
+        boxPrompts: data.boxPrompts,
+        exportMeshes: data.exportMeshes,
+        include3dKeypoints: data.include3dKeypoints,
+        exportTexturedGlb: data.exportTexturedGlb,
+        labelsFg1: data.labelsFg1,
+        labelsFg2: data.labelsFg2,
+        classes: data.classes,
+        exportDrc: data.exportDrc,
+      },
+      userApiKey,
+    )
     console.log('[3D] FAL job created:', job)
 
     // Create asset record in database with Fal.ai URLs for status polling
@@ -228,24 +209,13 @@ export const generate3DModelFn = createServerFn({ method: 'POST' })
         statusUrl: job.statusUrl,
         responseUrl: job.responseUrl,
         cancelUrl: job.cancelUrl,
-        creditsUsed: creditsToCharge,
       },
     })
     console.log('[3D] Asset record created:', asset.id)
 
-    // Deduct credits (unless admin)
-    if (!isAdmin) {
-      await prisma.user.update({
-        where: { id: context.user.id },
-        data: { credits: { decrement: creditsToCharge } },
-      })
-      console.log('[3D] Deducted', creditsToCharge, 'credits')
-    }
-
     return {
       assetId: asset.id,
       status: 'pending',
-      creditsUsed: creditsToCharge,
     }
   })
 
@@ -286,7 +256,13 @@ export const get3DModelStatusFn = createServerFn({ method: 'POST' })
       throw new Error('Missing status URLs')
     }
 
-    const statusResult = await getJobStatus(asset.statusUrl, asset.responseUrl)
+    // Get user's API key for polling (supports admin fallback to FAL_KEY)
+    const userApiKey = await getUserFalApiKey(asset.userId)
+    const statusResult = await getJobStatus(
+      asset.statusUrl,
+      asset.responseUrl,
+      userApiKey,
+    )
     console.log('[3D] Status result:', statusResult.status)
 
     // Update progress if available
@@ -435,16 +411,6 @@ export const get3DModelStatusFn = createServerFn({ method: 'POST' })
     if (statusResult.status === 'failed') {
       console.log('[3D] Job failed:', statusResult.error)
 
-      // Refund credits on failure
-      const isAdmin = context.user.role === 'admin'
-      if (!isAdmin && asset.creditsUsed > 0) {
-        await prisma.user.update({
-          where: { id: context.user.id },
-          data: { credits: { increment: asset.creditsUsed } },
-        })
-        console.log('[3D] Refunded', asset.creditsUsed, 'credits')
-      }
-
       await prisma.model3DAsset.update({
         where: { id: asset.id },
         data: {
@@ -494,16 +460,6 @@ export const cancel3DModelJobFn = createServerFn({ method: 'POST' })
     // Cancel via Fal.ai
     if (asset.cancelUrl) {
       await cancelJob(asset.cancelUrl)
-    }
-
-    // Refund credits
-    const isAdmin = context.user.role === 'admin'
-    if (!isAdmin && asset.creditsUsed > 0) {
-      await prisma.user.update({
-        where: { id: context.user.id },
-        data: { credits: { increment: asset.creditsUsed } },
-      })
-      console.log('[3D] Refunded', asset.creditsUsed, 'credits on cancel')
     }
 
     // Update asset status
@@ -604,7 +560,6 @@ export const get3DModelFn = createServerFn({ method: 'GET' })
       error: asset.error,
       progress: asset.progress,
       seed: asset.seed,
-      creditsUsed: asset.creditsUsed,
       createdAt: asset.createdAt,
     }
   })

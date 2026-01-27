@@ -628,6 +628,14 @@ export type ProjectUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[]
 }
 
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type ProjectCreateNestedOneWithoutAssetsInput = {
   create?: Prisma.XOR<Prisma.ProjectCreateWithoutAssetsInput, Prisma.ProjectUncheckedCreateWithoutAssetsInput>
   connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutAssetsInput

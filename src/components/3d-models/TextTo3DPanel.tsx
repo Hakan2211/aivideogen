@@ -203,17 +203,6 @@ export function TextTo3DPanel({ className }: TextTo3DPanelProps) {
             </button>
           </CollapsibleTrigger>
         </Collapsible>
-
-        {/* Credits Display - Premium Badge */}
-        {modelConfig && (
-          <div className="ml-auto flex items-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-3 py-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            <span className="text-sm font-medium text-primary">
-              {isMeshy && meshyMode === 'preview' ? 20 : modelConfig.credits}{' '}
-              credits
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Advanced settings content */}

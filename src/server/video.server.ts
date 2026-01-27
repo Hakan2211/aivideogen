@@ -9,6 +9,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { prisma } from '../db.server'
 import { authMiddleware } from './middleware.server'
+import { getUserFalApiKey } from './byok.server'
 import {
   generateVideo,
   getJobStatus,
@@ -132,48 +133,31 @@ export const generateVideoFn = createServerFn({ method: 'POST' })
       )
     }
 
-    // Check user credits (admins have unlimited)
-    const isAdmin = context.user.role === 'admin'
-    const user = await prisma.user.findUnique({
-      where: { id: context.user.id },
-      select: { credits: true },
-    })
-
-    // Calculate credits (for Pika, add extra per additional frame)
-    let creditCost = modelConfig.credits
-    if (
-      modelId.includes('pika') &&
-      data.keyframeUrls &&
-      data.keyframeUrls.length > 2
-    ) {
-      creditCost += (data.keyframeUrls.length - 2) * 5 // +5 per extra frame
-    }
-
-    if (!isAdmin && (!user || user.credits < creditCost)) {
-      throw new Error(
-        `Insufficient credits. Required: ${creditCost}, Available: ${user?.credits || 0}`,
-      )
-    }
+    // Get user's fal.ai API key (BYOK)
+    const userApiKey = await getUserFalApiKey(context.user.id)
 
     // Start generation job via Fal.ai
-    const job = await generateVideo({
-      generationType: data.generationType,
-      prompt: data.prompt,
-      model: modelId,
-      duration: data.duration,
-      // Image-to-video
-      imageUrl: data.imageUrl,
-      // Keyframes
-      firstFrameUrl: data.firstFrameUrl,
-      lastFrameUrl: data.lastFrameUrl,
-      keyframeUrls: data.keyframeUrls,
-      keyframeTransitions: data.keyframeTransitions,
-      // Settings
-      aspectRatio: data.aspectRatio,
-      resolution: data.resolution,
-      generateAudio: data.generateAudio,
-      negativePrompt: data.negativePrompt,
-    })
+    const job = await generateVideo(
+      {
+        generationType: data.generationType,
+        prompt: data.prompt,
+        model: modelId,
+        duration: data.duration,
+        // Image-to-video
+        imageUrl: data.imageUrl,
+        // Keyframes
+        firstFrameUrl: data.firstFrameUrl,
+        lastFrameUrl: data.lastFrameUrl,
+        keyframeUrls: data.keyframeUrls,
+        keyframeTransitions: data.keyframeTransitions,
+        // Settings
+        aspectRatio: data.aspectRatio,
+        resolution: data.resolution,
+        generateAudio: data.generateAudio,
+        negativePrompt: data.negativePrompt,
+      },
+      userApiKey,
+    )
 
     // Create job record in database with Fal.ai URLs for status polling
     const dbJob = await prisma.generationJob.create({
@@ -206,23 +190,13 @@ export const generateVideoFn = createServerFn({ method: 'POST' })
         statusUrl: job.statusUrl,
         responseUrl: job.responseUrl,
         cancelUrl: job.cancelUrl,
-        creditsUsed: creditCost,
       },
     })
-
-    // Deduct credits (skip for admins)
-    if (!isAdmin) {
-      await prisma.user.update({
-        where: { id: context.user.id },
-        data: { credits: { decrement: creditCost } },
-      })
-    }
 
     return {
       jobId: dbJob.id,
       externalId: job.requestId,
       model: modelId,
-      credits: creditCost,
       status: 'pending',
       generationType: data.generationType,
     }
@@ -263,7 +237,13 @@ export const getVideoJobStatusFn = createServerFn({ method: 'GET' })
       throw new Error('Job is missing Fal.ai URLs for status polling')
     }
 
-    const falStatus = await getJobStatus(job.statusUrl, job.responseUrl)
+    // Get user's API key for polling (supports admin fallback to FAL_KEY)
+    const userApiKey = await getUserFalApiKey(job.userId)
+    const falStatus = await getJobStatus(
+      job.statusUrl,
+      job.responseUrl,
+      userApiKey,
+    )
 
     // Update job status in database
     if (falStatus.status === 'completed' && falStatus.result) {
@@ -357,6 +337,7 @@ export const getVideoJobStatusFn = createServerFn({ method: 'GET' })
       jobId: job.id,
       status: falStatus.status === 'processing' ? 'processing' : 'pending',
       progress,
+      queuePosition: falStatus.queuePosition,
     }
   })
 

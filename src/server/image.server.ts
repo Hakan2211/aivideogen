@@ -9,17 +9,14 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { prisma } from '../db.server'
 import { authMiddleware } from './middleware.server'
+import { getUserFalApiKey } from './byok.server'
 import {
   generateImage,
   getImageModels,
   getJobStatus,
 } from './services/fal.server'
 import { uploadBuffer, uploadFromUrl } from './services/bunny.server'
-import {
-  GPT_IMAGE_QUALITY_TIERS,
-  IMAGE_MODELS,
-  getModelById,
-} from './services/types'
+import { IMAGE_MODELS, getModelById } from './services/types'
 import type { FalImageResult } from './services/fal.server'
 
 // =============================================================================
@@ -85,63 +82,30 @@ export const generateImageFn = createServerFn({ method: 'POST' })
       throw new Error(`Unknown model: ${modelId}`)
     }
 
-    // Calculate credits to charge (some models have variable pricing)
-    let creditsToCharge = modelConfig.credits
-
-    // GPT Image has variable pricing based on quality
-    if (modelId === 'fal-ai/gpt-image-1.5' && data.quality) {
-      const qualityTier = GPT_IMAGE_QUALITY_TIERS.find(
-        (t) => t.id === data.quality,
-      )
-      if (qualityTier) {
-        creditsToCharge = qualityTier.credits
-      }
-    }
-
-    // Recraft V3 vector style costs double
-    if (modelId.includes('recraft') && data.style === 'vector_illustration') {
-      creditsToCharge = creditsToCharge * 2
-    }
-
-    // Multiply credits by number of images
     const numImages = data.numImages || 1
-    creditsToCharge = creditsToCharge * numImages
 
-    // Check user credits (admins have unlimited)
-    const isAdmin = context.user.role === 'admin'
-    const user = await prisma.user.findUnique({
-      where: { id: context.user.id },
-      select: { credits: true },
-    })
-
+    // Get user's fal.ai API key (BYOK)
+    const userApiKey = await getUserFalApiKey(context.user.id)
     console.log(
-      '[IMAGE] User credits:',
-      user?.credits,
-      'Required:',
-      creditsToCharge,
-      'isAdmin:',
-      isAdmin,
+      '[IMAGE] Got BYOK key for generation:',
+      userApiKey ? `...${userApiKey.slice(-4)}` : 'NONE',
     )
-
-    if (!isAdmin && (!user || user.credits < creditsToCharge)) {
-      console.error('[IMAGE] Insufficient credits')
-      throw new Error(
-        `Insufficient credits. Required: ${creditsToCharge}, Available: ${user?.credits || 0}`,
-      )
-    }
 
     // Start generation job via Fal.ai
     console.log('[IMAGE] Starting FAL generation job...')
-    const job = await generateImage({
-      prompt: data.prompt,
-      model: modelId,
-      width: data.width || 1024,
-      height: data.height || 1024,
-      negativePrompt: data.negativePrompt,
-      quality: data.quality,
-      style: data.style,
-      numImages,
-    })
+    const job = await generateImage(
+      {
+        prompt: data.prompt,
+        model: modelId,
+        width: data.width || 1024,
+        height: data.height || 1024,
+        negativePrompt: data.negativePrompt,
+        quality: data.quality,
+        style: data.style,
+        numImages,
+      },
+      userApiKey,
+    )
     console.log('[IMAGE] FAL job created:', job)
 
     // Create job record in database with Fal.ai URLs for status polling
@@ -167,7 +131,6 @@ export const generateImageFn = createServerFn({ method: 'POST' })
         statusUrl: job.statusUrl,
         responseUrl: job.responseUrl,
         cancelUrl: job.cancelUrl,
-        creditsUsed: creditsToCharge,
       },
     })
     console.log('[IMAGE] DB job created:', dbJob.id, {
@@ -175,20 +138,11 @@ export const generateImageFn = createServerFn({ method: 'POST' })
       responseUrl: job.responseUrl,
     })
 
-    // Deduct credits (skip for admins)
-    if (!isAdmin) {
-      await prisma.user.update({
-        where: { id: context.user.id },
-        data: { credits: { decrement: creditsToCharge } },
-      })
-    }
-
     console.log('[IMAGE] generateImageFn complete, returning jobId:', dbJob.id)
     return {
       jobId: dbJob.id,
       externalId: job.requestId,
       model: modelId,
-      credits: creditsToCharge,
       status: 'pending',
     }
   })
@@ -249,7 +203,9 @@ export const getImageJobStatusFn = createServerFn({ method: 'GET' })
     console.log('[IMAGE] Polling FAL for status using stored URLs...')
     let falStatus: Awaited<ReturnType<typeof getJobStatus>>
     try {
-      falStatus = await getJobStatus(job.statusUrl, job.responseUrl)
+      // Get user's API key for polling (supports admin fallback to FAL_KEY)
+      const userApiKey = await getUserFalApiKey(job.userId)
+      falStatus = await getJobStatus(job.statusUrl, job.responseUrl, userApiKey)
       console.log('[IMAGE] FAL status response:', {
         status: falStatus.status,
         hasResult: !!falStatus.result,
@@ -448,6 +404,7 @@ export const getImageJobStatusFn = createServerFn({ method: 'GET' })
       jobId: job.id,
       status: falStatus.status === 'processing' ? 'processing' : 'pending',
       progress,
+      queuePosition: falStatus.queuePosition,
     }
   })
 

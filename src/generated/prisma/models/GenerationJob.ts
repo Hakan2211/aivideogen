@@ -27,12 +27,10 @@ export type AggregateGenerationJob = {
 }
 
 export type GenerationJobAvgAggregateOutputType = {
-  creditsUsed: number | null
   progress: number | null
 }
 
 export type GenerationJobSumAggregateOutputType = {
-  creditsUsed: number | null
   progress: number | null
 }
 
@@ -47,7 +45,6 @@ export type GenerationJobMinAggregateOutputType = {
   input: string | null
   output: string | null
   error: string | null
-  creditsUsed: number | null
   externalId: string | null
   statusUrl: string | null
   responseUrl: string | null
@@ -68,7 +65,6 @@ export type GenerationJobMaxAggregateOutputType = {
   input: string | null
   output: string | null
   error: string | null
-  creditsUsed: number | null
   externalId: string | null
   statusUrl: string | null
   responseUrl: string | null
@@ -89,7 +85,6 @@ export type GenerationJobCountAggregateOutputType = {
   input: number
   output: number
   error: number
-  creditsUsed: number
   externalId: number
   statusUrl: number
   responseUrl: number
@@ -102,12 +97,10 @@ export type GenerationJobCountAggregateOutputType = {
 
 
 export type GenerationJobAvgAggregateInputType = {
-  creditsUsed?: true
   progress?: true
 }
 
 export type GenerationJobSumAggregateInputType = {
-  creditsUsed?: true
   progress?: true
 }
 
@@ -122,7 +115,6 @@ export type GenerationJobMinAggregateInputType = {
   input?: true
   output?: true
   error?: true
-  creditsUsed?: true
   externalId?: true
   statusUrl?: true
   responseUrl?: true
@@ -143,7 +135,6 @@ export type GenerationJobMaxAggregateInputType = {
   input?: true
   output?: true
   error?: true
-  creditsUsed?: true
   externalId?: true
   statusUrl?: true
   responseUrl?: true
@@ -164,7 +155,6 @@ export type GenerationJobCountAggregateInputType = {
   input?: true
   output?: true
   error?: true
-  creditsUsed?: true
   externalId?: true
   statusUrl?: true
   responseUrl?: true
@@ -272,7 +262,6 @@ export type GenerationJobGroupByOutputType = {
   input: string
   output: string | null
   error: string | null
-  creditsUsed: number
   externalId: string | null
   statusUrl: string | null
   responseUrl: string | null
@@ -316,7 +305,6 @@ export type GenerationJobWhereInput = {
   input?: Prisma.StringFilter<"GenerationJob"> | string
   output?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
   error?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
-  creditsUsed?: Prisma.IntFilter<"GenerationJob"> | number
   externalId?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
   statusUrl?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
   responseUrl?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
@@ -339,7 +327,6 @@ export type GenerationJobOrderByWithRelationInput = {
   input?: Prisma.SortOrder
   output?: Prisma.SortOrderInput | Prisma.SortOrder
   error?: Prisma.SortOrderInput | Prisma.SortOrder
-  creditsUsed?: Prisma.SortOrder
   externalId?: Prisma.SortOrderInput | Prisma.SortOrder
   statusUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   responseUrl?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -365,7 +352,6 @@ export type GenerationJobWhereUniqueInput = Prisma.AtLeast<{
   input?: Prisma.StringFilter<"GenerationJob"> | string
   output?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
   error?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
-  creditsUsed?: Prisma.IntFilter<"GenerationJob"> | number
   externalId?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
   statusUrl?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
   responseUrl?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
@@ -388,7 +374,6 @@ export type GenerationJobOrderByWithAggregationInput = {
   input?: Prisma.SortOrder
   output?: Prisma.SortOrderInput | Prisma.SortOrder
   error?: Prisma.SortOrderInput | Prisma.SortOrder
-  creditsUsed?: Prisma.SortOrder
   externalId?: Prisma.SortOrderInput | Prisma.SortOrder
   statusUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   responseUrl?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -417,7 +402,6 @@ export type GenerationJobScalarWhereWithAggregatesInput = {
   input?: Prisma.StringWithAggregatesFilter<"GenerationJob"> | string
   output?: Prisma.StringNullableWithAggregatesFilter<"GenerationJob"> | string | null
   error?: Prisma.StringNullableWithAggregatesFilter<"GenerationJob"> | string | null
-  creditsUsed?: Prisma.IntWithAggregatesFilter<"GenerationJob"> | number
   externalId?: Prisma.StringNullableWithAggregatesFilter<"GenerationJob"> | string | null
   statusUrl?: Prisma.StringNullableWithAggregatesFilter<"GenerationJob"> | string | null
   responseUrl?: Prisma.StringNullableWithAggregatesFilter<"GenerationJob"> | string | null
@@ -436,7 +420,6 @@ export type GenerationJobCreateInput = {
   input: string
   output?: string | null
   error?: string | null
-  creditsUsed?: number
   externalId?: string | null
   statusUrl?: string | null
   responseUrl?: string | null
@@ -459,7 +442,6 @@ export type GenerationJobUncheckedCreateInput = {
   input: string
   output?: string | null
   error?: string | null
-  creditsUsed?: number
   externalId?: string | null
   statusUrl?: string | null
   responseUrl?: string | null
@@ -478,7 +460,6 @@ export type GenerationJobUpdateInput = {
   input?: Prisma.StringFieldUpdateOperationsInput | string
   output?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -501,7 +482,6 @@ export type GenerationJobUncheckedUpdateInput = {
   input?: Prisma.StringFieldUpdateOperationsInput | string
   output?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -522,7 +502,6 @@ export type GenerationJobCreateManyInput = {
   input: string
   output?: string | null
   error?: string | null
-  creditsUsed?: number
   externalId?: string | null
   statusUrl?: string | null
   responseUrl?: string | null
@@ -541,7 +520,6 @@ export type GenerationJobUpdateManyMutationInput = {
   input?: Prisma.StringFieldUpdateOperationsInput | string
   output?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -562,7 +540,6 @@ export type GenerationJobUncheckedUpdateManyInput = {
   input?: Prisma.StringFieldUpdateOperationsInput | string
   output?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -593,7 +570,6 @@ export type GenerationJobCountOrderByAggregateInput = {
   input?: Prisma.SortOrder
   output?: Prisma.SortOrder
   error?: Prisma.SortOrder
-  creditsUsed?: Prisma.SortOrder
   externalId?: Prisma.SortOrder
   statusUrl?: Prisma.SortOrder
   responseUrl?: Prisma.SortOrder
@@ -604,7 +580,6 @@ export type GenerationJobCountOrderByAggregateInput = {
 }
 
 export type GenerationJobAvgOrderByAggregateInput = {
-  creditsUsed?: Prisma.SortOrder
   progress?: Prisma.SortOrder
 }
 
@@ -619,7 +594,6 @@ export type GenerationJobMaxOrderByAggregateInput = {
   input?: Prisma.SortOrder
   output?: Prisma.SortOrder
   error?: Prisma.SortOrder
-  creditsUsed?: Prisma.SortOrder
   externalId?: Prisma.SortOrder
   statusUrl?: Prisma.SortOrder
   responseUrl?: Prisma.SortOrder
@@ -640,7 +614,6 @@ export type GenerationJobMinOrderByAggregateInput = {
   input?: Prisma.SortOrder
   output?: Prisma.SortOrder
   error?: Prisma.SortOrder
-  creditsUsed?: Prisma.SortOrder
   externalId?: Prisma.SortOrder
   statusUrl?: Prisma.SortOrder
   responseUrl?: Prisma.SortOrder
@@ -651,7 +624,6 @@ export type GenerationJobMinOrderByAggregateInput = {
 }
 
 export type GenerationJobSumOrderByAggregateInput = {
-  creditsUsed?: Prisma.SortOrder
   progress?: Prisma.SortOrder
 }
 
@@ -748,7 +720,6 @@ export type GenerationJobCreateWithoutUserInput = {
   input: string
   output?: string | null
   error?: string | null
-  creditsUsed?: number
   externalId?: string | null
   statusUrl?: string | null
   responseUrl?: string | null
@@ -769,7 +740,6 @@ export type GenerationJobUncheckedCreateWithoutUserInput = {
   input: string
   output?: string | null
   error?: string | null
-  creditsUsed?: number
   externalId?: string | null
   statusUrl?: string | null
   responseUrl?: string | null
@@ -818,7 +788,6 @@ export type GenerationJobScalarWhereInput = {
   input?: Prisma.StringFilter<"GenerationJob"> | string
   output?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
   error?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
-  creditsUsed?: Prisma.IntFilter<"GenerationJob"> | number
   externalId?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
   statusUrl?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
   responseUrl?: Prisma.StringNullableFilter<"GenerationJob"> | string | null
@@ -837,7 +806,6 @@ export type GenerationJobCreateWithoutProjectInput = {
   input: string
   output?: string | null
   error?: string | null
-  creditsUsed?: number
   externalId?: string | null
   statusUrl?: string | null
   responseUrl?: string | null
@@ -858,7 +826,6 @@ export type GenerationJobUncheckedCreateWithoutProjectInput = {
   input: string
   output?: string | null
   error?: string | null
-  creditsUsed?: number
   externalId?: string | null
   statusUrl?: string | null
   responseUrl?: string | null
@@ -903,7 +870,6 @@ export type GenerationJobCreateManyUserInput = {
   input: string
   output?: string | null
   error?: string | null
-  creditsUsed?: number
   externalId?: string | null
   statusUrl?: string | null
   responseUrl?: string | null
@@ -922,7 +888,6 @@ export type GenerationJobUpdateWithoutUserInput = {
   input?: Prisma.StringFieldUpdateOperationsInput | string
   output?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -943,7 +908,6 @@ export type GenerationJobUncheckedUpdateWithoutUserInput = {
   input?: Prisma.StringFieldUpdateOperationsInput | string
   output?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -963,7 +927,6 @@ export type GenerationJobUncheckedUpdateManyWithoutUserInput = {
   input?: Prisma.StringFieldUpdateOperationsInput | string
   output?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -983,7 +946,6 @@ export type GenerationJobCreateManyProjectInput = {
   input: string
   output?: string | null
   error?: string | null
-  creditsUsed?: number
   externalId?: string | null
   statusUrl?: string | null
   responseUrl?: string | null
@@ -1002,7 +964,6 @@ export type GenerationJobUpdateWithoutProjectInput = {
   input?: Prisma.StringFieldUpdateOperationsInput | string
   output?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1023,7 +984,6 @@ export type GenerationJobUncheckedUpdateWithoutProjectInput = {
   input?: Prisma.StringFieldUpdateOperationsInput | string
   output?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1043,7 +1003,6 @@ export type GenerationJobUncheckedUpdateManyWithoutProjectInput = {
   input?: Prisma.StringFieldUpdateOperationsInput | string
   output?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   statusUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1066,7 +1025,6 @@ export type GenerationJobSelect<ExtArgs extends runtime.Types.Extensions.Interna
   input?: boolean
   output?: boolean
   error?: boolean
-  creditsUsed?: boolean
   externalId?: boolean
   statusUrl?: boolean
   responseUrl?: boolean
@@ -1089,7 +1047,6 @@ export type GenerationJobSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   input?: boolean
   output?: boolean
   error?: boolean
-  creditsUsed?: boolean
   externalId?: boolean
   statusUrl?: boolean
   responseUrl?: boolean
@@ -1112,7 +1069,6 @@ export type GenerationJobSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   input?: boolean
   output?: boolean
   error?: boolean
-  creditsUsed?: boolean
   externalId?: boolean
   statusUrl?: boolean
   responseUrl?: boolean
@@ -1135,7 +1091,6 @@ export type GenerationJobSelectScalar = {
   input?: boolean
   output?: boolean
   error?: boolean
-  creditsUsed?: boolean
   externalId?: boolean
   statusUrl?: boolean
   responseUrl?: boolean
@@ -1145,7 +1100,7 @@ export type GenerationJobSelectScalar = {
   updatedAt?: boolean
 }
 
-export type GenerationJobOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "projectId" | "type" | "status" | "provider" | "model" | "input" | "output" | "error" | "creditsUsed" | "externalId" | "statusUrl" | "responseUrl" | "cancelUrl" | "progress" | "createdAt" | "updatedAt", ExtArgs["result"]["generationJob"]>
+export type GenerationJobOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "projectId" | "type" | "status" | "provider" | "model" | "input" | "output" | "error" | "externalId" | "statusUrl" | "responseUrl" | "cancelUrl" | "progress" | "createdAt" | "updatedAt", ExtArgs["result"]["generationJob"]>
 export type GenerationJobInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   project?: boolean | Prisma.GenerationJob$projectArgs<ExtArgs>
@@ -1176,7 +1131,6 @@ export type $GenerationJobPayload<ExtArgs extends runtime.Types.Extensions.Inter
     input: string
     output: string | null
     error: string | null
-    creditsUsed: number
     externalId: string | null
     statusUrl: string | null
     responseUrl: string | null
@@ -1619,7 +1573,6 @@ export interface GenerationJobFieldRefs {
   readonly input: Prisma.FieldRef<"GenerationJob", 'String'>
   readonly output: Prisma.FieldRef<"GenerationJob", 'String'>
   readonly error: Prisma.FieldRef<"GenerationJob", 'String'>
-  readonly creditsUsed: Prisma.FieldRef<"GenerationJob", 'Int'>
   readonly externalId: Prisma.FieldRef<"GenerationJob", 'String'>
   readonly statusUrl: Prisma.FieldRef<"GenerationJob", 'String'>
   readonly responseUrl: Prisma.FieldRef<"GenerationJob", 'String'>

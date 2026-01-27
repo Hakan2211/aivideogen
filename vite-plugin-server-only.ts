@@ -16,7 +16,7 @@ import type { Plugin } from 'vite'
 const VIRTUAL_PREFIX = '\0virtual:server-only:'
 
 export function serverOnlyPlugin(): Plugin {
-  let mode: string = 'development'
+  let mode = 'development'
   let isBuild = false
 
   return {

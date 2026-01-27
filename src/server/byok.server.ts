@@ -337,7 +337,19 @@ export async function getUserFalApiKey(userId: string): Promise<string> {
 
   // Admin users can use the platform key for testing
   const isAdmin = user.role === 'admin'
+  console.log('[BYOK] getUserFalApiKey called:', {
+    userId,
+    isAdmin,
+    hasPlatformAccess: user.hasPlatformAccess,
+    hasEncryptedKey: !!user.falApiKey,
+    envFalKeyExists: !!process.env.FAL_KEY,
+  })
+
   if (isAdmin && process.env.FAL_KEY) {
+    console.log(
+      '[BYOK] Using ENV FAL_KEY for admin:',
+      `...${process.env.FAL_KEY.slice(-4)}`,
+    )
     return process.env.FAL_KEY
   }
 
@@ -358,5 +370,10 @@ export async function getUserFalApiKey(userId: string): Promise<string> {
   // Dynamic import encryption utilities (server-only)
   const { decryptApiKey } = await getEncryption()
 
-  return decryptApiKey(user.falApiKey)
+  const decryptedKey = decryptApiKey(user.falApiKey)
+  console.log(
+    '[BYOK] Using decrypted BYOK key:',
+    `...${decryptedKey.slice(-4)}`,
+  )
+  return decryptedKey
 }

@@ -10,6 +10,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { prisma } from '../db.server'
 import { authMiddleware } from './middleware.server'
+import { getUserFalApiKey } from './byok.server'
 import {
   editImage,
   getEditJobStatus,
@@ -100,26 +101,19 @@ export const editImageFn = createServerFn({ method: 'POST' })
       )
     }
 
-    // Check user credits (admins have unlimited)
-    const isAdmin = context.user.role === 'admin'
-    const user = await prisma.user.findUnique({
-      where: { id: context.user.id },
-      select: { credits: true },
-    })
-
-    if (!isAdmin && (!user || user.credits < modelConfig.credits)) {
-      throw new Error(
-        `Insufficient credits. Required: ${modelConfig.credits}, Available: ${user?.credits || 0}`,
-      )
-    }
+    // Get user's fal.ai API key (BYOK)
+    const userApiKey = await getUserFalApiKey(context.user.id)
 
     // Start edit job
     console.log('[EDIT_FN] Starting edit job with editImage()...')
-    const job = await editImage({
-      imageUrls: data.imageUrls,
-      prompt: data.prompt,
-      model: modelId,
-    })
+    const job = await editImage(
+      {
+        imageUrls: data.imageUrls,
+        prompt: data.prompt,
+        model: modelId,
+      },
+      userApiKey,
+    )
     console.log('[EDIT_FN] Edit job started:', {
       requestId: job.requestId,
       status: job.status,
@@ -146,7 +140,6 @@ export const editImageFn = createServerFn({ method: 'POST' })
           responseUrl: job.responseUrl,
         }),
         externalId: job.requestId,
-        creditsUsed: modelConfig.credits,
       },
     })
     console.log('[EDIT_FN] DB job created:', {
@@ -154,20 +147,11 @@ export const editImageFn = createServerFn({ method: 'POST' })
       externalId: job.requestId,
     })
 
-    // Deduct credits (skip for admins)
-    if (!isAdmin) {
-      await prisma.user.update({
-        where: { id: context.user.id },
-        data: { credits: { decrement: modelConfig.credits } },
-      })
-    }
-
     return {
       jobId: dbJob.id,
       externalId: job.requestId,
       model: modelId,
       editType: 'edit',
-      credits: modelConfig.credits,
       status: 'pending',
     }
   })
@@ -190,39 +174,32 @@ export const upscaleImageFn = createServerFn({ method: 'POST' })
       throw new Error(`Unknown upscale model: ${modelId}`)
     }
 
-    // Check user credits (admins have unlimited)
-    const isAdmin = context.user.role === 'admin'
-    const user = await prisma.user.findUnique({
-      where: { id: context.user.id },
-      select: { credits: true },
-    })
-
-    if (!isAdmin && (!user || user.credits < modelConfig.credits)) {
-      throw new Error(
-        `Insufficient credits. Required: ${modelConfig.credits}, Available: ${user?.credits || 0}`,
-      )
-    }
+    // Get user's fal.ai API key (BYOK)
+    const userApiKey = await getUserFalApiKey(context.user.id)
 
     // Start upscale job with all new parameters
-    const job = await upscaleImage({
-      imageUrl: data.imageUrl,
-      model: modelId,
-      scale: data.scale,
-      outputFormat: data.outputFormat,
-      // Legacy
-      creativity: data.creativity,
-      prompt: data.prompt,
-      // SeedVR specific
-      upscaleMode: data.upscaleMode,
-      targetResolution: data.targetResolution,
-      noiseScale: data.noiseScale,
-      // Topaz specific
-      topazModel: data.topazModel,
-      subjectDetection: data.subjectDetection,
-      faceEnhancement: data.faceEnhancement,
-      faceEnhancementStrength: data.faceEnhancementStrength,
-      faceEnhancementCreativity: data.faceEnhancementCreativity,
-    })
+    const job = await upscaleImage(
+      {
+        imageUrl: data.imageUrl,
+        model: modelId,
+        scale: data.scale,
+        outputFormat: data.outputFormat,
+        // Legacy
+        creativity: data.creativity,
+        prompt: data.prompt,
+        // SeedVR specific
+        upscaleMode: data.upscaleMode,
+        targetResolution: data.targetResolution,
+        noiseScale: data.noiseScale,
+        // Topaz specific
+        topazModel: data.topazModel,
+        subjectDetection: data.subjectDetection,
+        faceEnhancement: data.faceEnhancement,
+        faceEnhancementStrength: data.faceEnhancementStrength,
+        faceEnhancementCreativity: data.faceEnhancementCreativity,
+      },
+      userApiKey,
+    )
     console.log('[EDIT_FN] Upscale job started:', {
       requestId: job.requestId,
       statusUrl: job.statusUrl,
@@ -256,24 +233,14 @@ export const upscaleImageFn = createServerFn({ method: 'POST' })
           responseUrl: job.responseUrl,
         }),
         externalId: job.requestId,
-        creditsUsed: modelConfig.credits,
       },
     })
-
-    // Deduct credits (skip for admins)
-    if (!isAdmin) {
-      await prisma.user.update({
-        where: { id: context.user.id },
-        data: { credits: { decrement: modelConfig.credits } },
-      })
-    }
 
     return {
       jobId: dbJob.id,
       externalId: job.requestId,
       model: modelId,
       editType: 'upscale',
-      credits: modelConfig.credits,
       status: 'pending',
     }
   })

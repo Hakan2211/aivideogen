@@ -110,6 +110,7 @@ export interface FalStatusResponse {
   status: 'IN_QUEUE' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED'
   logs?: Array<{ message: string; timestamp: string }>
   response_url?: string
+  queue_position?: number
 }
 
 export interface FalImageResult {
@@ -186,6 +187,11 @@ export async function generateImage(
   }
 
   const apiKey = getApiKey(userApiKey)
+  console.log('[FAL] generateImage API Key Debug:', {
+    receivedUserApiKey: userApiKey ? `...${userApiKey.slice(-4)}` : 'NONE',
+    usingKey: `...${apiKey.slice(-4)}`,
+    source: userApiKey ? 'BYOK' : 'ENV FAL_KEY',
+  })
 
   // Build the request payload based on the model
   const payload = buildImagePayload(input, modelId)
@@ -338,6 +344,7 @@ export async function getJobStatus(
   progress?: number
   result?: FalImageResult | FalVideoResult
   error?: string
+  queuePosition?: number
 }> {
   console.log('[FAL] getJobStatus called:', { statusUrl, responseUrl })
 
@@ -458,7 +465,7 @@ export async function getJobStatus(
   }
 
   console.log('[FAL] Job not completed yet, status:', status)
-  return { status }
+  return { status, queuePosition: statusData.queue_position }
 }
 
 /**

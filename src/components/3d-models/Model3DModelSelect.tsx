@@ -91,9 +91,6 @@ export function Model3DModelSelect({
                   {model.provider}
                 </Badge>
                 <span className="font-medium">{model.name}</span>
-                <Badge variant="secondary" className="ml-auto text-[10px]">
-                  {model.credits} credits
-                </Badge>
               </div>
               <p className="text-xs text-muted-foreground pl-0.5">
                 {model.dropdownDescription}

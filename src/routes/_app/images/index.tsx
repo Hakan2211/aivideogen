@@ -18,6 +18,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import {
+  AlertTriangle,
   Calendar,
   Check,
   Copy,
@@ -32,6 +33,7 @@ import {
   Sparkles,
   Trash2,
   Wand2,
+  X,
   Zap,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -48,6 +50,7 @@ import type {
 // NOTE: Server functions are dynamically imported in queryFn/mutationFn
 // to prevent Prisma and other server-only code from being bundled into the client.
 // See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
@@ -506,6 +509,43 @@ function ImagesPage() {
     selectedEditImages,
   ])
 
+  // Toast for high queue position
+  const lastQueueToastRef = useRef<number | null>(null)
+  useEffect(() => {
+    const queuePosition = jobStatus?.queuePosition
+    // Only show toast if queue is high and we haven't shown it for this position range
+    if (queuePosition && queuePosition >= 50) {
+      // Group by ranges to avoid spamming: 50-99, 100-199, 200+
+      const range = queuePosition >= 200 ? 200 : queuePosition >= 100 ? 100 : 50
+      if (lastQueueToastRef.current !== range) {
+        lastQueueToastRef.current = range
+        if (queuePosition >= 200) {
+          toast.error('fal.ai Overloaded', {
+            description: `Queue position: ${queuePosition}. Consider switching to a different model.`,
+            duration: 8000,
+          })
+        } else {
+          toast.warning('fal.ai High Demand', {
+            description: `Queue position: ${queuePosition}. Generation may take longer than usual.`,
+            duration: 6000,
+          })
+        }
+      }
+    } else if (!queuePosition) {
+      // Reset when no queue position (job completed or new job)
+      lastQueueToastRef.current = null
+    }
+  }, [jobStatus?.queuePosition])
+
+  // Cancel job handler
+  const handleCancelJob = useCallback(() => {
+    setCurrentJobId(null)
+    setCurrentJobType(null)
+    toast.info('Generation cancelled', {
+      description: 'Select a different model and try again.',
+    })
+  }, [])
+
   // Auto-resize textarea
   const adjustTextareaHeight = useCallback(() => {
     const textarea = textareaRef.current
@@ -912,6 +952,7 @@ function ImagesPage() {
             onDelete={handleDelete}
             onEdit={handleEditImage}
             downloadingId={downloadingId}
+            onCancelJob={handleCancelJob}
           />
         ) : mode === 'aging' && agingSubMode === 'multi' ? (
           // Aging Multi Mode: Mother + Father preview slots
@@ -1516,7 +1557,9 @@ interface GenerateGalleryProps {
   images: Array<GeneratedImage>
   isLoading: boolean
   isGenerating: boolean
-  jobStatus: { status?: string; progress?: number } | undefined
+  jobStatus:
+    | { status?: string; progress?: number; queuePosition?: number }
+    | undefined
   progress: number
   hasNextPage: boolean | undefined
   isFetchingNextPage: boolean
@@ -1529,6 +1572,7 @@ interface GenerateGalleryProps {
   onDelete: (id: string) => void
   onEdit: (image: GeneratedImage) => void
   downloadingId: string | null
+  onCancelJob?: () => void
 }
 
 function GenerateGallery({
@@ -1548,6 +1592,7 @@ function GenerateGallery({
   onDelete,
   onEdit,
   downloadingId,
+  onCancelJob,
 }: GenerateGalleryProps) {
   if (isLoading && images.length === 0) {
     return (
@@ -1584,7 +1629,7 @@ function GenerateGallery({
               className="aspect-square overflow-hidden rounded-2xl border-border/50 bg-card/50 p-0"
             >
               <div className="relative h-full w-full bg-gradient-to-br from-muted to-muted/50">
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
                   <div className="rounded-full bg-primary/10 p-4">
                     <Loader2 className="h-10 w-10 animate-spin text-primary" />
                   </div>
@@ -1606,6 +1651,39 @@ function GenerateGallery({
                       </p>
                     </div>
                   )}
+                  {/* Queue position warning */}
+                  {jobStatus?.queuePosition &&
+                    jobStatus.queuePosition >= 50 && (
+                      <Alert
+                        variant={
+                          jobStatus.queuePosition >= 200
+                            ? 'destructive'
+                            : 'default'
+                        }
+                        className="mt-4 w-full max-w-xs"
+                      >
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle className="text-sm">
+                          {jobStatus.queuePosition >= 200
+                            ? 'fal.ai Overloaded'
+                            : 'High Demand'}
+                        </AlertTitle>
+                        <AlertDescription className="text-xs">
+                          Queue position: {jobStatus.queuePosition}
+                          {jobStatus.queuePosition >= 200 && onCancelJob && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="mt-2 w-full"
+                              onClick={onCancelJob}
+                            >
+                              <X className="h-3 w-3 mr-1" />
+                              Cancel & Switch Model
+                            </Button>
+                          )}
+                        </AlertDescription>
+                      </Alert>
+                    )}
                 </div>
                 <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
               </div>
@@ -1649,7 +1727,6 @@ interface GeneratePanelProps {
   models: Array<{
     id: string
     name: string
-    credits: number
     supportsNumImages?: boolean
     maxNumImages?: number
   }>
@@ -1662,7 +1739,7 @@ interface GeneratePanelProps {
   onGenerate: () => void
   isGenerating: boolean
   selectedModel:
-    | { credits: number; supportsNumImages?: boolean; maxNumImages?: number }
+    | { supportsNumImages?: boolean; maxNumImages?: number }
     | undefined
   error: Error | null
   jobStatus: { status?: string; error?: string | null } | undefined
@@ -1700,20 +1777,6 @@ function GeneratePanel({
   numImages,
   onNumImagesChange,
 }: GeneratePanelProps) {
-  // Calculate displayed credits based on model-specific options
-  const getDisplayedCredits = () => {
-    let baseCredits = selectedModel?.credits || 3
-    if (model === 'fal-ai/gpt-image-1.5') {
-      const tier = GPT_IMAGE_QUALITY_TIERS.find((t) => t.id === gptQuality)
-      baseCredits = tier?.credits || 4
-    }
-    if (model.includes('recraft') && recraftStyle === 'vector_illustration') {
-      baseCredits = (selectedModel?.credits || 4) * 2
-    }
-    // Multiply by number of images
-    return baseCredits * numImages
-  }
-
   const supportsNumImages = selectedModel?.supportsNumImages ?? false
   const maxNumImages = selectedModel?.maxNumImages ?? 4
   return (
@@ -1768,7 +1831,7 @@ function GeneratePanel({
                   <span className="flex items-center gap-2">
                     {tier.name}
                     <span className="text-xs text-muted-foreground">
-                      {tier.credits}cr
+                      {tier.description}
                     </span>
                   </span>
                 </SelectItem>
@@ -1841,14 +1904,6 @@ function GeneratePanel({
         >
           {showNegativePrompt ? '- Negative' : '+ Negative'}
         </button>
-
-        {/* Credits Display - Premium Badge */}
-        <div className="ml-auto flex items-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-3 py-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-primary" />
-          <span className="text-sm font-medium text-primary">
-            {getDisplayedCredits()} credits
-          </span>
-        </div>
       </div>
 
       {/* Negative Prompt Input */}

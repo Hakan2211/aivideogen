@@ -20,6 +20,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import {
+  AlertTriangle,
   Calendar,
   Check,
   Clock,
@@ -42,6 +43,11 @@ import { toast } from 'sonner'
 // NOTE: Server functions are dynamically imported in queryFn/mutationFn
 // to prevent Prisma and other server-only code from being bundled into the client.
 // See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '../../../components/ui/alert'
 import { Button } from '../../../components/ui/button'
 import { Card } from '../../../components/ui/card'
 import { Textarea } from '../../../components/ui/textarea'
@@ -197,6 +203,9 @@ function VideosPage() {
   // Pagination
   const limit = 12
   const loadMoreRef = useRef<HTMLDivElement>(null)
+
+  // Queue position toast deduplication
+  const lastQueueToastRef = useRef<number | null>(null)
 
   // Check for pre-selected image from Images page
   useEffect(() => {
@@ -378,6 +387,31 @@ function VideosPage() {
     }
   }, [jobStatus, queryClient])
 
+  // Queue position toast notifications
+  useEffect(() => {
+    const queuePosition = jobStatus?.queuePosition
+    if (queuePosition && queuePosition >= 50) {
+      // Group by range to avoid spam: 50-99, 100-199, 200+
+      const range = queuePosition >= 200 ? 200 : queuePosition >= 100 ? 100 : 50
+      if (lastQueueToastRef.current !== range) {
+        lastQueueToastRef.current = range
+        if (queuePosition >= 200) {
+          toast.error('fal.ai Overloaded', {
+            description: `Queue position: ${queuePosition}. Consider switching to a different model.`,
+            duration: 8000,
+          })
+        } else {
+          toast.warning('fal.ai High Demand', {
+            description: `Queue position: ${queuePosition}. Generation may take longer than usual.`,
+            duration: 6000,
+          })
+        }
+      }
+    } else if (!queuePosition) {
+      lastQueueToastRef.current = null
+    }
+  }, [jobStatus?.queuePosition])
+
   // Poll video upscale job status
   const { data: upscaleJobStatus } = useQuery({
     queryKey: ['videoUpscaleJob', currentUpscaleJobId],
@@ -473,6 +507,15 @@ function VideosPage() {
     if (isUpscaling) return false
     return !!(upscaleVideoUrl || selectedUpscaleVideo?.url)
   }
+
+  // Cancel job when queue is too long
+  const handleCancelJob = useCallback(() => {
+    setCurrentJobId(null)
+    lastQueueToastRef.current = null
+    toast.info('Generation cancelled', {
+      description: 'Select a different model and try again.',
+    })
+  }, [])
 
   const handleGenerate = () => {
     if (!canGenerate()) return
@@ -652,16 +695,6 @@ function VideosPage() {
   const _upscaleProgress = upscaleJobStatus?.progress || 0
   void _upscaleProgress // Unused for now, but available for future progress UI
 
-  // Calculate credits (including Pika extra frames)
-  const creditCost = () => {
-    if (!selectedModel) return 0
-    let cost = selectedModel.credits
-    if (isPikaKeyframes && keyframes.length > 2) {
-      cost += (keyframes.length - 2) * 5
-    }
-    return cost
-  }
-
   return (
     <div className="flex h-[calc(100vh-theme(spacing.16))] flex-col">
       {/* Header with Mode Toggle */}
@@ -704,7 +737,7 @@ function VideosPage() {
               {isGenerating && (
                 <Card className="aspect-video overflow-hidden rounded-2xl border-border/50 bg-card/50 p-0">
                   <div className="relative h-full w-full bg-gradient-to-br from-muted to-muted/50">
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
                       <div className="rounded-full bg-primary/10 p-4">
                         <Loader2 className="h-10 w-10 animate-spin text-primary" />
                       </div>
@@ -729,6 +762,44 @@ function VideosPage() {
                           </p>
                         </div>
                       )}
+
+                      {/* Queue position warning */}
+                      {jobStatus?.queuePosition &&
+                        jobStatus.queuePosition >= 50 && (
+                          <Alert
+                            variant={
+                              jobStatus.queuePosition >= 200
+                                ? 'destructive'
+                                : 'default'
+                            }
+                            className={`mt-4 w-full max-w-xs ${
+                              jobStatus.queuePosition >= 200
+                                ? ''
+                                : 'border-yellow-500/50 bg-yellow-500/10'
+                            }`}
+                          >
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertTitle className="text-sm">
+                              {jobStatus.queuePosition >= 200
+                                ? 'fal.ai Overloaded'
+                                : 'High Demand'}
+                            </AlertTitle>
+                            <AlertDescription className="text-xs">
+                              Queue position: {jobStatus.queuePosition}
+                              {jobStatus.queuePosition >= 200 && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="mt-2 w-full"
+                                  onClick={handleCancelJob}
+                                >
+                                  <X className="mr-1 h-3 w-3" />
+                                  Cancel & Switch Model
+                                </Button>
+                              )}
+                            </AlertDescription>
+                          </Alert>
+                        )}
                     </div>
                     <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
                   </div>
@@ -1061,14 +1132,6 @@ function VideosPage() {
                     </Label>
                   </div>
                 )}
-
-                {/* Credits Display - Premium Badge */}
-                <div className="ml-auto flex items-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-3 py-1.5">
-                  <Wand2 className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-sm font-medium text-primary">
-                    {creditCost()} credits
-                  </span>
-                </div>
               </div>
 
               {/* Error Display - Premium */}

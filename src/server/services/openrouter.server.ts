@@ -9,7 +9,7 @@
  * - DEFAULT_LLM_MODEL: Default model to use (optional)
  */
 
-import { LLM_MODELS, getModelById } from './types'
+import { LLM_MODELS } from './types'
 
 const MOCK_OPENROUTER = process.env.MOCK_GENERATION === 'true'
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1'
@@ -221,18 +221,13 @@ export async function* chatCompletionStream(
  * Calculate the approximate cost in credits for a completion
  */
 export function calculateCredits(
-  modelId: string,
-  promptTokens: number,
-  completionTokens: number,
+  _modelId: string,
+  _promptTokens: number,
+  _completionTokens: number,
 ): number {
-  const model = getModelById(modelId, LLM_MODELS)
-  if (!model) return 1 // Default to 1 credit if model not found
-
-  // Rough estimate: 1 credit per 1000 tokens for base models
-  // More expensive models multiply the base cost
-  const baseCreditsPerThousand = model.credits || 1
-  const totalTokens = promptTokens + completionTokens
-  return Math.max(1, Math.ceil((totalTokens / 1000) * baseCreditsPerThousand))
+  // Credits no longer used - users pay fal.ai directly via BYOK
+  // This function is kept for API compatibility but always returns 0
+  return 0
 }
 
 /**

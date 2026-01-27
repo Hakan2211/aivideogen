@@ -6,7 +6,7 @@
  * - Topaz: Multiple model types, face enhancement, subject detection
  */
 
-import { ArrowUpCircle, Loader2, Sparkles, User, Wand2 } from 'lucide-react'
+import { ArrowUpCircle, Loader2, Sparkles, User } from 'lucide-react'
 import type {
   SeedvrTargetResolution,
   TopazModelType,
@@ -106,7 +106,6 @@ export function UpscalePanel({
   error,
   className,
 }: UpscalePanelProps) {
-  const selectedModel = UPSCALE_MODELS.find((m) => m.id === model)
   const canUpscale = hasImage && !isUpscaling
 
   const isSeedVR = model.includes('seedvr')
@@ -393,13 +392,6 @@ export function UpscalePanel({
             </>
           )}
         </span>
-        {/* Credits Display - Premium Badge */}
-        <div className="flex items-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-3 py-1.5">
-          <Wand2 className="h-3.5 w-3.5 text-primary" />
-          <span className="text-sm font-medium text-primary">
-            {selectedModel?.credits || 2} credits
-          </span>
-        </div>
       </div>
 
       {/* Error Display - Premium */}

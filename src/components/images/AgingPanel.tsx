@@ -20,7 +20,6 @@ import {
   Heart,
   Loader2,
   Smile,
-  Sparkles,
   User,
   UserCircle,
   Users,
@@ -33,7 +32,7 @@ import type {
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
-import { AGE_GROUPS, AGING_MODELS } from '@/server/services/types'
+import { AGE_GROUPS } from '@/server/services/types'
 import { cn } from '@/lib/utils'
 
 // Icon mapping for age groups
@@ -106,10 +105,6 @@ export function AgingPanel({
   error,
   className,
 }: AgingPanelProps) {
-  // Get the model config for credits
-  const modelConfig = AGING_MODELS.find((m) => m.type === subMode)
-  const credits = (modelConfig?.credits || 8) * numImages
-
   // Get selected age group info
   const selectedAgeGroup = AGE_GROUPS.find((g) => g.id === ageGroup)
   const AgeGroupIcon = AGE_GROUP_ICONS[ageGroup]
@@ -432,14 +427,6 @@ export function AgingPanel({
             )}
           >
             {getStatusMessage()}
-          </span>
-        </div>
-
-        {/* Credits Display */}
-        <div className="ml-auto flex items-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-3 py-2">
-          <Sparkles className="h-3.5 w-3.5 text-primary" />
-          <span className="text-sm font-medium text-primary">
-            {credits} credits
           </span>
         </div>
       </div>

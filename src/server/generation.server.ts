@@ -17,7 +17,6 @@ import {
   generateSpeech,
   generateVideo,
   getFalJobStatus,
-  getModelById,
   uploadFromUrl,
 } from './services/index.server'
 
@@ -71,21 +70,6 @@ export const createImageJobFn = createServerFn({ method: 'POST' })
   .inputValidator(createImageJobSchema)
   .handler(async ({ data, context }) => {
     const modelId = data.model || 'fal-ai/flux-pro/v1.1'
-    const model = getModelById(modelId, IMAGE_MODELS)
-    const creditsRequired = model?.credits || 5
-
-    // Check user credits (admins have unlimited)
-    const isAdmin = context.user.role === 'admin'
-    const user = await prisma.user.findUnique({
-      where: { id: context.user.id },
-      select: { credits: true },
-    })
-
-    if (!isAdmin && (!user || user.credits < creditsRequired)) {
-      throw new Error(
-        `Insufficient credits. Required: ${creditsRequired}, Available: ${user?.credits || 0}`,
-      )
-    }
 
     // Create job in database
     const job = await prisma.generationJob.create({
@@ -101,7 +85,6 @@ export const createImageJobFn = createServerFn({ method: 'POST' })
           width: data.width || 1024,
           height: data.height || 1024,
         }),
-        creditsUsed: creditsRequired,
       },
     })
 
@@ -122,14 +105,6 @@ export const createImageJobFn = createServerFn({ method: 'POST' })
           status: 'processing',
         },
       })
-
-      // Deduct credits (skip for admins)
-      if (!isAdmin) {
-        await prisma.user.update({
-          where: { id: context.user.id },
-          data: { credits: { decrement: creditsRequired } },
-        })
-      }
 
       return { jobId: job.id, status: 'processing' }
     } catch (error) {
@@ -157,21 +132,6 @@ export const createVideoJobFn = createServerFn({ method: 'POST' })
   .inputValidator(createVideoJobSchema)
   .handler(async ({ data, context }) => {
     const modelId = data.model || 'fal-ai/kling-video/v1.5/pro/image-to-video'
-    const model = getModelById(modelId, VIDEO_MODELS)
-    const creditsRequired = model?.credits || 20
-
-    // Check user credits (admins have unlimited)
-    const isAdmin = context.user.role === 'admin'
-    const user = await prisma.user.findUnique({
-      where: { id: context.user.id },
-      select: { credits: true },
-    })
-
-    if (!isAdmin && (!user || user.credits < creditsRequired)) {
-      throw new Error(
-        `Insufficient credits. Required: ${creditsRequired}, Available: ${user?.credits || 0}`,
-      )
-    }
 
     // Create job in database
     const job = await prisma.generationJob.create({
@@ -187,7 +147,6 @@ export const createVideoJobFn = createServerFn({ method: 'POST' })
           prompt: data.prompt,
           duration: data.duration || 5,
         }),
-        creditsUsed: creditsRequired,
       },
     })
 
@@ -209,14 +168,6 @@ export const createVideoJobFn = createServerFn({ method: 'POST' })
           status: 'processing',
         },
       })
-
-      // Deduct credits (skip for admins)
-      if (!isAdmin) {
-        await prisma.user.update({
-          where: { id: context.user.id },
-          data: { credits: { decrement: creditsRequired } },
-        })
-      }
 
       return { jobId: job.id, status: 'processing' }
     } catch (error) {
@@ -244,21 +195,6 @@ export const createAudioJobFn = createServerFn({ method: 'POST' })
   .inputValidator(createAudioJobSchema)
   .handler(async ({ data, context }) => {
     const modelId = data.model || 'fal-ai/elevenlabs/tts/multilingual-v2'
-    const model = getModelById(modelId, AUDIO_MODELS)
-    const creditsRequired = model?.credits || 3
-
-    // Check user credits (admins have unlimited)
-    const isAdmin = context.user.role === 'admin'
-    const user = await prisma.user.findUnique({
-      where: { id: context.user.id },
-      select: { credits: true },
-    })
-
-    if (!isAdmin && (!user || user.credits < creditsRequired)) {
-      throw new Error(
-        `Insufficient credits. Required: ${creditsRequired}, Available: ${user?.credits || 0}`,
-      )
-    }
 
     const voice = data.voice || 'Rachel'
 
@@ -275,7 +211,6 @@ export const createAudioJobFn = createServerFn({ method: 'POST' })
           text: data.text,
           voice,
         }),
-        creditsUsed: creditsRequired,
       },
     })
 
@@ -320,14 +255,6 @@ export const createAudioJobFn = createServerFn({ method: 'POST' })
           }),
         },
       })
-
-      // Deduct credits (skip for admins)
-      if (!isAdmin) {
-        await prisma.user.update({
-          where: { id: context.user.id },
-          data: { credits: { decrement: creditsRequired } },
-        })
-      }
 
       return {
         jobId: job.id,
@@ -602,17 +529,3 @@ export const getAvailableModelsFn = createServerFn({ method: 'GET' }).handler(
     }
   },
 )
-
-/**
- * Get user's remaining credits
- */
-export const getUserCreditsFn = createServerFn({ method: 'GET' })
-  .middleware([authMiddleware])
-  .handler(async ({ context }) => {
-    const user = await prisma.user.findUnique({
-      where: { id: context.user.id },
-      select: { credits: true },
-    })
-
-    return { credits: user?.credits || 0 }
-  })

@@ -12,7 +12,6 @@ import * as SelectPrimitive from '@radix-ui/react-select'
 import { CheckIcon, ChevronDownIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  CreditBadge,
   ModelIcon,
   PROVIDER_NAMES,
   getProviderFromModelId,
@@ -21,7 +20,6 @@ import {
 interface ModelOption {
   id: string
   name: string
-  credits: number
   description?: string
   maxImages?: number
   supportsNumImages?: boolean
@@ -82,7 +80,6 @@ export function ModelSelect({
                 </span>
               )}
             </div>
-            <CreditBadge credits={selectedModel.credits} />
           </>
         ) : (
           <span className="text-muted-foreground">{placeholder}</span>
@@ -145,19 +142,21 @@ export function ModelSelect({
                       </p>
                     )}
 
-                    <div className="flex items-center gap-2 pt-0.5">
-                      <CreditBadge credits={model.credits} />
-                      {model.maxImages && model.maxImages > 1 && (
-                        <span className="text-xs text-muted-foreground">
-                          Up to {model.maxImages} images
-                        </span>
-                      )}
-                      {model.supportsNumImages && (
-                        <span className="text-xs text-muted-foreground">
-                          Batch: 1-{model.maxNumImages || 4}
-                        </span>
-                      )}
-                    </div>
+                    {(model.maxImages && model.maxImages > 1) ||
+                    model.supportsNumImages ? (
+                      <div className="flex items-center gap-2 pt-0.5">
+                        {model.maxImages && model.maxImages > 1 && (
+                          <span className="text-xs text-muted-foreground">
+                            Up to {model.maxImages} images
+                          </span>
+                        )}
+                        {model.supportsNumImages && (
+                          <span className="text-xs text-muted-foreground">
+                            Batch: 1-{model.maxNumImages || 4}
+                          </span>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
 
                   <span className="absolute right-3 top-3 flex size-5 items-center justify-center">
@@ -213,9 +212,6 @@ export function ModelSelectCompact({
         <SelectPrimitive.Value placeholder="Model">
           {selectedModel?.name}
         </SelectPrimitive.Value>
-        <span className="text-xs text-muted-foreground">
-          {selectedModel?.credits}cr
-        </span>
         <SelectPrimitive.Icon asChild>
           <ChevronDownIcon className="size-3.5 opacity-50 group-data-[state=open]:rotate-180 transition-transform" />
         </SelectPrimitive.Icon>
@@ -250,9 +246,6 @@ export function ModelSelectCompact({
                 <div className="flex-1 min-w-0">
                   <span className="font-medium text-sm">{model.name}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {model.credits}cr
-                </span>
                 <span className="flex size-4 items-center justify-center">
                   <SelectPrimitive.ItemIndicator>
                     <CheckIcon className="size-3.5 text-primary" />

@@ -136,20 +136,11 @@ export async function executeGenerateImage(
       return { success: false, error: 'Project not found' }
     }
 
-    // Check user credits (admins have unlimited)
+    // Get user preferences
     const user = await prisma.user.findUnique({
       where: { id: context.userId },
-      select: { credits: true, preferredImageModel: true, role: true },
+      select: { preferredImageModel: true, role: true },
     })
-
-    const isAdmin = user?.role === 'admin'
-    const creditsRequired = 5 // Default for Flux Pro
-    if (!isAdmin && (!user || user.credits < creditsRequired)) {
-      return {
-        success: false,
-        error: `Insufficient credits. Need ${creditsRequired}, have ${user?.credits || 0}`,
-      }
-    }
 
     // Determine dimensions from aspect ratio
     let width = project.width
@@ -173,6 +164,8 @@ export async function executeGenerateImage(
       fullPrompt += `, ${args.style} style`
     }
 
+    const modelId = user?.preferredImageModel || 'fal-ai/flux-pro/v1.1'
+
     // Create job in database
     const job = await prisma.generationJob.create({
       data: {
@@ -181,16 +174,15 @@ export async function executeGenerateImage(
         type: 'image',
         status: 'pending',
         provider: 'fal',
-        model: user.preferredImageModel || 'fal-ai/flux-pro/v1.1',
+        model: modelId,
         input: JSON.stringify({ prompt: fullPrompt, width, height }),
-        creditsUsed: creditsRequired,
       },
     })
 
     // Start async generation
     const falJob = await generateImage({
       prompt: fullPrompt,
-      model: user.preferredImageModel || 'fal-ai/flux-pro/v1.1',
+      model: modelId,
       width,
       height,
     })
@@ -200,14 +192,6 @@ export async function executeGenerateImage(
       where: { id: job.id },
       data: { externalId: falJob.requestId, status: 'processing' },
     })
-
-    // Deduct credits (skip for admins)
-    if (!isAdmin) {
-      await prisma.user.update({
-        where: { id: context.userId },
-        data: { credits: { decrement: creditsRequired } },
-      })
-    }
 
     return {
       success: true,
@@ -253,20 +237,14 @@ export async function executeGenerateVideo(
       return { success: false, error: 'Asset is not an image' }
     }
 
-    // Check user credits (admins have unlimited)
+    // Get user preferences
     const user = await prisma.user.findUnique({
       where: { id: context.userId },
-      select: { credits: true, preferredVideoModel: true, role: true },
+      select: { preferredVideoModel: true, role: true },
     })
 
-    const isAdmin = user?.role === 'admin'
-    const creditsRequired = 20 // Default for Kling Pro
-    if (!isAdmin && (!user || user.credits < creditsRequired)) {
-      return {
-        success: false,
-        error: `Insufficient credits. Need ${creditsRequired}, have ${user?.credits || 0}`,
-      }
-    }
+    const modelId =
+      user?.preferredVideoModel || 'fal-ai/kling-video/v1.5/pro/image-to-video'
 
     // Create job in database
     const job = await prisma.generationJob.create({
@@ -276,15 +254,12 @@ export async function executeGenerateVideo(
         type: 'video',
         status: 'pending',
         provider: 'fal',
-        model:
-          user.preferredVideoModel ||
-          'fal-ai/kling-video/v1.5/pro/image-to-video',
+        model: modelId,
         input: JSON.stringify({
           imageUrl: imageAsset.storageUrl,
           prompt: args.motionPrompt,
           duration: args.duration || 5,
         }),
-        creditsUsed: creditsRequired,
       },
     })
 
@@ -293,9 +268,7 @@ export async function executeGenerateVideo(
       generationType: 'image-to-video',
       imageUrl: imageAsset.storageUrl,
       prompt: args.motionPrompt,
-      model:
-        user.preferredVideoModel ||
-        'fal-ai/kling-video/v1.5/pro/image-to-video',
+      model: modelId,
       duration: args.duration || 5,
     })
 
@@ -304,14 +277,6 @@ export async function executeGenerateVideo(
       where: { id: job.id },
       data: { externalId: falJob.requestId, status: 'processing' },
     })
-
-    // Deduct credits (skip for admins)
-    if (!isAdmin) {
-      await prisma.user.update({
-        where: { id: context.userId },
-        data: { credits: { decrement: creditsRequired } },
-      })
-    }
 
     return {
       success: true,
@@ -341,20 +306,11 @@ export async function executeGenerateVoiceover(
   context: ToolContext,
 ): Promise<ToolResult> {
   try {
-    // Check user credits (admins have unlimited)
+    // Get user preferences for voice
     const user = await prisma.user.findUnique({
       where: { id: context.userId },
-      select: { credits: true, preferredVoiceId: true, role: true },
+      select: { preferredVoiceId: true },
     })
-
-    const isAdmin = user?.role === 'admin'
-    const creditsRequired = 3
-    if (!isAdmin && (!user || user.credits < creditsRequired)) {
-      return {
-        success: false,
-        error: `Insufficient credits. Need ${creditsRequired}, have ${user?.credits || 0}`,
-      }
-    }
 
     // Map voice style to voice name (Fal.ai uses voice names directly)
     const voiceMap: Record<string, string> = {
@@ -367,7 +323,7 @@ export async function executeGenerateVoiceover(
     // Use user's preferred voice (stored in preferredVoiceId), or map from style, or default to Adam
     // Note: preferredVoiceId now stores voice names (e.g., "Rachel") instead of IDs
     const voice =
-      user.preferredVoiceId ||
+      user?.preferredVoiceId ||
       voiceMap[args.voiceStyle || 'male-narrator'] ||
       VOICE_NAMES.MALE_NARRATOR
 
@@ -381,7 +337,6 @@ export async function executeGenerateVoiceover(
         provider: 'fal',
         model: 'fal-ai/elevenlabs/tts/multilingual-v2',
         input: JSON.stringify({ text: args.text, voice }),
-        creditsUsed: creditsRequired,
       },
     })
 
@@ -424,14 +379,6 @@ export async function executeGenerateVoiceover(
         }),
       },
     })
-
-    // Deduct credits (skip for admins)
-    if (!isAdmin) {
-      await prisma.user.update({
-        where: { id: context.userId },
-        data: { credits: { decrement: creditsRequired } },
-      })
-    }
 
     return {
       success: true,
