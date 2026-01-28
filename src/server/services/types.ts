@@ -1205,3 +1205,54 @@ export function getAgingModelByType(
 export function getDefaultAgingModel(): AgingModelConfig {
   return AGING_MODELS[0]
 }
+
+// =============================================================================
+// Motion Control Configuration (Kling AI)
+// =============================================================================
+
+export type MotionControlQuality = 'standard' | 'pro'
+export type CharacterOrientation = 'video' | 'image'
+
+export interface MotionControlModelConfig extends ModelConfig {
+  quality: MotionControlQuality
+  endpoint: string
+  maxDurationVideo: number // Max duration in seconds based on orientation
+  maxDurationImage: number
+  durations: Array<number> // Available duration options in seconds
+}
+
+export const MOTION_CONTROL_MODELS: Array<MotionControlModelConfig> = [
+  {
+    id: 'fal-ai/kling-video/v2.6/pro/motion-control',
+    name: 'Kling Pro',
+    provider: 'fal',
+    description:
+      'Professional quality motion transfer - best for complex movements',
+    quality: 'pro',
+    endpoint: 'fal-ai/kling-video/v2.6/pro/motion-control',
+    maxDurationVideo: 30,
+    maxDurationImage: 10,
+    durations: [5, 10, 15, 20, 30],
+  },
+  {
+    id: 'fal-ai/kling-video/v2.6/standard/motion-control',
+    name: 'Kling Standard',
+    provider: 'fal',
+    description: 'Cost-effective motion transfer',
+    quality: 'standard',
+    endpoint: 'fal-ai/kling-video/v2.6/standard/motion-control',
+    maxDurationVideo: 30,
+    maxDurationImage: 10,
+    durations: [5, 10, 15, 20, 30],
+  },
+]
+
+export function getMotionControlModelById(
+  modelId: string,
+): MotionControlModelConfig | undefined {
+  return MOTION_CONTROL_MODELS.find((m) => m.id === modelId)
+}
+
+export function getDefaultMotionControlModel(): MotionControlModelConfig {
+  return MOTION_CONTROL_MODELS[0] // Default to Pro
+}

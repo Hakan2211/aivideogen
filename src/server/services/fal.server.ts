@@ -16,12 +16,14 @@ import {
   get3DModelById,
   getAgingModelByType,
   getModelById,
+  getMotionControlModelById,
   getVideoModelById,
 } from './types'
 import type {
   AgeGroup,
   AgingGender,
   AgingSubMode,
+  CharacterOrientation,
   Model3DConfig,
   VideoModelConfig,
 } from './types'
@@ -681,6 +683,147 @@ function buildAgingPayload(
   }
 
   return payload
+}
+
+// =============================================================================
+// Motion Control Generation (Kling AI)
+// =============================================================================
+
+export interface MotionControlInput {
+  imageUrl: string // Character image URL (required)
+  videoUrl: string // Reference motion video URL (required)
+  prompt?: string // Optional prompt for guidance
+  characterOrientation?: CharacterOrientation // 'video' (default) or 'image'
+  model?: string // Standard or Pro endpoint
+  duration?: number // Output duration in seconds (5, 10, 15, 20, 30)
+  // Audio parameters (optional)
+  audioUrl?: string
+  soundStartTime?: number // ms
+  soundEndTime?: number // ms
+  soundInsertTime?: number // ms
+}
+
+/**
+ * Start a motion control video generation job (queued)
+ * Transfers motion from a reference video to a character image
+ *
+ * @param input - Motion control parameters
+ * @param userApiKey - Optional user's fal.ai API key (for BYOK)
+ */
+export async function generateMotionControl(
+  input: MotionControlInput,
+  userApiKey?: string,
+): Promise<GenerationJob> {
+  const modelId = input.model || 'fal-ai/kling-video/v2.6/pro/motion-control'
+  const modelConfig = getMotionControlModelById(modelId)
+
+  if (!modelConfig) {
+    throw new Error(`Unknown motion control model: ${modelId}`)
+  }
+
+  // Validation
+  if (!input.imageUrl) {
+    throw new Error('Character image URL is required')
+  }
+  if (!input.videoUrl) {
+    throw new Error('Reference video URL is required')
+  }
+
+  console.log('[FAL] generateMotionControl called:', {
+    modelId,
+    imageUrl: input.imageUrl.slice(0, 50) + '...',
+    videoUrl: input.videoUrl.slice(0, 50) + '...',
+    characterOrientation: input.characterOrientation,
+  })
+
+  if (MOCK_FAL) {
+    console.log('[FAL] Using MOCK mode for motion control')
+    return mockGenerateJob(modelId)
+  }
+
+  const apiKey = getApiKey(userApiKey)
+
+  // Helper to encode URL path (handles spaces and special chars in filenames)
+  const encodeUrlPath = (url: string): string => {
+    try {
+      const parsed = new URL(url)
+      // Encode each path segment to handle spaces/special chars
+      parsed.pathname = parsed.pathname
+        .split('/')
+        .map((segment) => encodeURIComponent(decodeURIComponent(segment)))
+        .join('/')
+      return parsed.toString()
+    } catch {
+      return url // Return original if parsing fails
+    }
+  }
+
+  // Build the request payload with encoded URLs
+  const payload: Record<string, unknown> = {
+    image_url: encodeUrlPath(input.imageUrl),
+    video_url: encodeUrlPath(input.videoUrl),
+  }
+
+  // Optional parameters
+  if (input.prompt?.trim()) {
+    payload.prompt = input.prompt.trim()
+  }
+
+  if (input.characterOrientation) {
+    payload.character_orientation = input.characterOrientation
+  }
+
+  if (input.duration) {
+    payload.duration = input.duration
+  }
+
+  // Audio parameters
+  if (input.audioUrl) {
+    payload.audio_url = input.audioUrl
+  }
+  if (input.soundStartTime !== undefined) {
+    payload.sound_start_time = input.soundStartTime
+  }
+  if (input.soundEndTime !== undefined) {
+    payload.sound_end_time = input.soundEndTime
+  }
+  if (input.soundInsertTime !== undefined) {
+    payload.sound_insert_time = input.soundInsertTime
+  }
+
+  console.log('[FAL] Motion Control payload:', JSON.stringify(payload, null, 2))
+
+  const response = await fetch(`${FAL_API_URL}/${modelId}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Key ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    console.error('[FAL] Motion Control submit error:', error)
+    throw new Error(`Fal.ai error: ${response.status} - ${error}`)
+  }
+
+  const data: FalQueueResponse = await response.json()
+  console.log('[FAL] Motion Control submit success:', {
+    request_id: data.request_id,
+    status_url: data.status_url,
+    response_url: data.response_url,
+  })
+
+  return {
+    requestId: data.request_id,
+    status: 'pending',
+    model: modelId,
+    provider: 'fal',
+    statusUrl: data.status_url,
+    responseUrl: data.response_url,
+    cancelUrl: data.cancel_url,
+  }
 }
 
 // =============================================================================

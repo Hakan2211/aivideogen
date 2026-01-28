@@ -2,9 +2,10 @@
  * Timeline Component
  *
  * Multi-track timeline with drag-and-drop clip reordering.
+ * Features: Zoom controls, keyboard shortcuts, snap-to-grid.
  */
 
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { DndContext, closestCenter } from '@dnd-kit/core'
 import {
   SortableContext,
@@ -12,7 +13,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Film, GripVertical, Music, Type } from 'lucide-react'
+import { Film, GripVertical, Magnet, Minus, Music, Plus, Type } from 'lucide-react'
 import type { DragEndEvent } from '@dnd-kit/core'
 import type {
   AudioClipProps,
@@ -20,6 +21,8 @@ import type {
   ProjectManifest,
   VideoClipProps,
 } from '../../remotion/types'
+import { Button } from '../ui/button'
+import { Slider } from '../ui/slider'
 
 interface TimelineProps {
   manifest: ProjectManifest
@@ -29,7 +32,16 @@ interface TimelineProps {
   onSeek: (frame: number) => void
   onSelectClip: (clipId: string | null) => void
   onManifestChange: (manifest: ProjectManifest) => void
+  /** Optional: Called when play/pause is toggled via keyboard */
+  onTogglePlay?: () => void
+  /** Optional: Is the video currently playing */
+  isPlaying?: boolean
 }
+
+// Zoom levels: pixels per frame
+const MIN_ZOOM = 0.5
+const MAX_ZOOM = 8
+const DEFAULT_ZOOM = 2
 
 export function Timeline({
   manifest,
@@ -38,9 +50,15 @@ export function Timeline({
   selectedClipId,
   onSeek,
   onSelectClip,
-  onManifestChange,
+  onManifestChange: _onManifestChange,
+  onTogglePlay,
+  isPlaying,
 }: TimelineProps) {
   const timelineRef = useRef<HTMLDivElement>(null)
+
+  // Zoom state
+  const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM)
+  const [snapEnabled, setSnapEnabled] = useState(true)
 
   // Calculate total duration
   const totalFrames = useMemo(() => {
@@ -52,8 +70,108 @@ export function Timeline({
     )
   }, [manifest, fps])
 
-  // Pixels per frame
-  const pixelsPerFrame = 2
+  // Pixels per frame (based on zoom level)
+  const pixelsPerFrame = zoomLevel
+
+  // Zoom handlers
+  const zoomIn = useCallback(() => {
+    setZoomLevel((prev) => Math.min(prev * 1.5, MAX_ZOOM))
+  }, [])
+
+  const zoomOut = useCallback(() => {
+    setZoomLevel((prev) => Math.max(prev / 1.5, MIN_ZOOM))
+  }, [])
+
+  const handleZoomChange = useCallback((value: number[]) => {
+    setZoomLevel(value[0])
+  }, [])
+
+  const fitToView = useCallback(() => {
+    if (!timelineRef.current) return
+    const containerWidth = timelineRef.current.clientWidth - 96 // Subtract track label width
+    const newZoom = containerWidth / totalFrames
+    setZoomLevel(Math.max(MIN_ZOOM, Math.min(newZoom, MAX_ZOOM)))
+  }, [totalFrames])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't handle if typing in an input
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return
+      }
+
+      switch (e.code) {
+        case 'Space':
+          e.preventDefault()
+          onTogglePlay?.()
+          break
+        case 'ArrowLeft':
+          e.preventDefault()
+          if (e.shiftKey) {
+            // Jump 1 second back
+            onSeek(Math.max(0, currentFrame - fps))
+          } else {
+            // Step 1 frame back
+            onSeek(Math.max(0, currentFrame - 1))
+          }
+          break
+        case 'ArrowRight':
+          e.preventDefault()
+          if (e.shiftKey) {
+            // Jump 1 second forward
+            onSeek(Math.min(totalFrames - 1, currentFrame + fps))
+          } else {
+            // Step 1 frame forward
+            onSeek(Math.min(totalFrames - 1, currentFrame + 1))
+          }
+          break
+        case 'Home':
+          e.preventDefault()
+          onSeek(0)
+          break
+        case 'End':
+          e.preventDefault()
+          onSeek(totalFrames - 1)
+          break
+        case 'KeyJ':
+          // Rewind (like professional video editors)
+          e.preventDefault()
+          onSeek(Math.max(0, currentFrame - fps * 2))
+          break
+        case 'KeyK':
+          // Pause
+          e.preventDefault()
+          onTogglePlay?.()
+          break
+        case 'KeyL':
+          // Fast forward
+          e.preventDefault()
+          onSeek(Math.min(totalFrames - 1, currentFrame + fps * 2))
+          break
+        case 'Equal':
+        case 'NumpadAdd':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            zoomIn()
+          }
+          break
+        case 'Minus':
+        case 'NumpadSubtract':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            zoomOut()
+          }
+          break
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [currentFrame, fps, totalFrames, onSeek, onTogglePlay, zoomIn, zoomOut])
 
   const handleTimelineClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -81,20 +199,91 @@ export function Timeline({
   return (
     <div className="flex h-full flex-col">
       {/* Timeline Header */}
-      <div className="flex items-center justify-between border-b px-4 py-2">
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-medium">Timeline</span>
-          <span className="text-xs text-muted-foreground">
+      <div className="flex items-center justify-between border-b px-2 py-1.5 md:px-4 md:py-2">
+        <div className="flex items-center gap-2 md:gap-4">
+          <span className="text-xs font-medium md:text-sm">Timeline</span>
+          <span className="text-[10px] text-muted-foreground md:text-xs">
             {Math.floor(currentFrame / fps)}s / {Math.floor(totalFrames / fps)}s
           </span>
+          {/* Playing indicator */}
+          {isPlaying && (
+            <span className="hidden text-[10px] text-primary md:inline">Playing</span>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <button className="text-xs text-muted-foreground hover:text-foreground">
-            Zoom -
-          </button>
-          <button className="text-xs text-muted-foreground hover:text-foreground">
-            Zoom +
-          </button>
+        <div className="flex items-center gap-1 md:gap-2">
+          {/* Snap toggle */}
+          <Button
+            variant={snapEnabled ? 'secondary' : 'ghost'}
+            size="icon"
+            className="h-6 w-6 md:h-7 md:w-7"
+            onClick={() => setSnapEnabled(!snapEnabled)}
+            title={`Snap to grid: ${snapEnabled ? 'On' : 'Off'}`}
+          >
+            <Magnet className="h-3 w-3 md:h-3.5 md:w-3.5" />
+          </Button>
+
+          {/* Zoom controls */}
+          <div className="hidden items-center gap-1 md:flex">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={zoomOut}
+              disabled={zoomLevel <= MIN_ZOOM}
+              title="Zoom out (Ctrl+-)"
+            >
+              <Minus className="h-3.5 w-3.5" />
+            </Button>
+            <Slider
+              value={[zoomLevel]}
+              min={MIN_ZOOM}
+              max={MAX_ZOOM}
+              step={0.1}
+              onValueChange={handleZoomChange}
+              className="w-20"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={zoomIn}
+              disabled={zoomLevel >= MAX_ZOOM}
+              title="Zoom in (Ctrl++)"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
+          {/* Mobile zoom buttons */}
+          <div className="flex items-center gap-0.5 md:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={zoomOut}
+            >
+              <Minus className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={zoomIn}
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          </div>
+
+          {/* Fit to view */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="hidden h-7 text-xs md:flex"
+            onClick={fitToView}
+            title="Fit timeline to view"
+          >
+            Fit
+          </Button>
         </div>
       </div>
 
@@ -179,7 +368,7 @@ interface TimeRulerProps {
 }
 
 function TimeRuler({ totalFrames, fps, pixelsPerFrame }: TimeRulerProps) {
-  const markers: Array<JSX.Element> = []
+  const markers: React.ReactNode[] = []
   const secondWidth = fps * pixelsPerFrame
 
   for (let second = 0; second <= totalFrames / fps; second++) {

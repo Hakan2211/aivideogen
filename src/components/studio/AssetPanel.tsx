@@ -41,15 +41,18 @@ interface AssetPanelProps {
   onManifestChange: (manifest: ProjectManifest) => void
   collapsed: boolean
   onToggleCollapse: () => void
+  /** Display mode: 'panel' for sidebar, 'fullscreen' for mobile */
+  mode?: 'panel' | 'fullscreen'
 }
 
 export function AssetPanel({
   projectId,
   assets,
-  manifest,
-  onManifestChange,
+  manifest: _manifest,
+  onManifestChange: _onManifestChange,
   collapsed,
   onToggleCollapse,
+  mode = 'panel',
 }: AssetPanelProps) {
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState<'library' | 'generate'>('library')
@@ -144,7 +147,8 @@ export function AssetPanel({
   const videoAssets = assets.filter((a) => a.type === 'video')
   const audioAssets = assets.filter((a) => a.type === 'audio')
 
-  if (collapsed) {
+  // Collapsed state (only for panel mode)
+  if (collapsed && mode === 'panel') {
     return (
       <div className="flex h-full flex-col items-center py-4">
         <button
@@ -168,12 +172,14 @@ export function AssetPanel({
       {/* Header */}
       <div className="flex items-center justify-between border-b px-4 py-3">
         <span className="font-medium">Assets</span>
-        <button
-          onClick={onToggleCollapse}
-          className="rounded-full p-1 hover:bg-muted"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        {mode === 'panel' && (
+          <button
+            onClick={onToggleCollapse}
+            className="rounded-full p-1 hover:bg-muted"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Main Tabs */}

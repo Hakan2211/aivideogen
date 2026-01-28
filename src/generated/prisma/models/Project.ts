@@ -44,6 +44,7 @@ export type ProjectMinAggregateOutputType = {
   id: string | null
   name: string | null
   userId: string | null
+  folderId: string | null
   manifest: string | null
   width: number | null
   height: number | null
@@ -60,6 +61,7 @@ export type ProjectMaxAggregateOutputType = {
   id: string | null
   name: string | null
   userId: string | null
+  folderId: string | null
   manifest: string | null
   width: number | null
   height: number | null
@@ -76,6 +78,7 @@ export type ProjectCountAggregateOutputType = {
   id: number
   name: number
   userId: number
+  folderId: number
   manifest: number
   width: number
   height: number
@@ -108,6 +111,7 @@ export type ProjectMinAggregateInputType = {
   id?: true
   name?: true
   userId?: true
+  folderId?: true
   manifest?: true
   width?: true
   height?: true
@@ -124,6 +128,7 @@ export type ProjectMaxAggregateInputType = {
   id?: true
   name?: true
   userId?: true
+  folderId?: true
   manifest?: true
   width?: true
   height?: true
@@ -140,6 +145,7 @@ export type ProjectCountAggregateInputType = {
   id?: true
   name?: true
   userId?: true
+  folderId?: true
   manifest?: true
   width?: true
   height?: true
@@ -243,6 +249,7 @@ export type ProjectGroupByOutputType = {
   id: string
   name: string
   userId: string
+  folderId: string | null
   manifest: string
   width: number
   height: number
@@ -282,6 +289,7 @@ export type ProjectWhereInput = {
   id?: Prisma.StringFilter<"Project"> | string
   name?: Prisma.StringFilter<"Project"> | string
   userId?: Prisma.StringFilter<"Project"> | string
+  folderId?: Prisma.StringNullableFilter<"Project"> | string | null
   manifest?: Prisma.StringFilter<"Project"> | string
   width?: Prisma.IntFilter<"Project"> | number
   height?: Prisma.IntFilter<"Project"> | number
@@ -293,6 +301,7 @@ export type ProjectWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  folder?: Prisma.XOR<Prisma.ProjectFolderNullableScalarRelationFilter, Prisma.ProjectFolderWhereInput> | null
   assets?: Prisma.AssetListRelationFilter
   generationJobs?: Prisma.GenerationJobListRelationFilter
   chatMessages?: Prisma.ChatMessageListRelationFilter
@@ -302,6 +311,7 @@ export type ProjectOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  folderId?: Prisma.SortOrderInput | Prisma.SortOrder
   manifest?: Prisma.SortOrder
   width?: Prisma.SortOrder
   height?: Prisma.SortOrder
@@ -313,6 +323,7 @@ export type ProjectOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
+  folder?: Prisma.ProjectFolderOrderByWithRelationInput
   assets?: Prisma.AssetOrderByRelationAggregateInput
   generationJobs?: Prisma.GenerationJobOrderByRelationAggregateInput
   chatMessages?: Prisma.ChatMessageOrderByRelationAggregateInput
@@ -325,6 +336,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.ProjectWhereInput | Prisma.ProjectWhereInput[]
   name?: Prisma.StringFilter<"Project"> | string
   userId?: Prisma.StringFilter<"Project"> | string
+  folderId?: Prisma.StringNullableFilter<"Project"> | string | null
   manifest?: Prisma.StringFilter<"Project"> | string
   width?: Prisma.IntFilter<"Project"> | number
   height?: Prisma.IntFilter<"Project"> | number
@@ -336,6 +348,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  folder?: Prisma.XOR<Prisma.ProjectFolderNullableScalarRelationFilter, Prisma.ProjectFolderWhereInput> | null
   assets?: Prisma.AssetListRelationFilter
   generationJobs?: Prisma.GenerationJobListRelationFilter
   chatMessages?: Prisma.ChatMessageListRelationFilter
@@ -345,6 +358,7 @@ export type ProjectOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  folderId?: Prisma.SortOrderInput | Prisma.SortOrder
   manifest?: Prisma.SortOrder
   width?: Prisma.SortOrder
   height?: Prisma.SortOrder
@@ -369,6 +383,7 @@ export type ProjectScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Project"> | string
   name?: Prisma.StringWithAggregatesFilter<"Project"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Project"> | string
+  folderId?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   manifest?: Prisma.StringWithAggregatesFilter<"Project"> | string
   width?: Prisma.IntWithAggregatesFilter<"Project"> | number
   height?: Prisma.IntWithAggregatesFilter<"Project"> | number
@@ -395,6 +410,7 @@ export type ProjectCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutProjectsInput
+  folder?: Prisma.ProjectFolderCreateNestedOneWithoutProjectsInput
   assets?: Prisma.AssetCreateNestedManyWithoutProjectInput
   generationJobs?: Prisma.GenerationJobCreateNestedManyWithoutProjectInput
   chatMessages?: Prisma.ChatMessageCreateNestedManyWithoutProjectInput
@@ -404,6 +420,7 @@ export type ProjectUncheckedCreateInput = {
   id?: string
   name: string
   userId: string
+  folderId?: string | null
   manifest?: string
   width?: number
   height?: number
@@ -433,6 +450,7 @@ export type ProjectUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
+  folder?: Prisma.ProjectFolderUpdateOneWithoutProjectsNestedInput
   assets?: Prisma.AssetUpdateManyWithoutProjectNestedInput
   generationJobs?: Prisma.GenerationJobUpdateManyWithoutProjectNestedInput
   chatMessages?: Prisma.ChatMessageUpdateManyWithoutProjectNestedInput
@@ -442,6 +460,7 @@ export type ProjectUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   manifest?: Prisma.StringFieldUpdateOperationsInput | string
   width?: Prisma.IntFieldUpdateOperationsInput | number
   height?: Prisma.IntFieldUpdateOperationsInput | number
@@ -461,6 +480,7 @@ export type ProjectCreateManyInput = {
   id?: string
   name: string
   userId: string
+  folderId?: string | null
   manifest?: string
   width?: number
   height?: number
@@ -492,6 +512,7 @@ export type ProjectUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   manifest?: Prisma.StringFieldUpdateOperationsInput | string
   width?: Prisma.IntFieldUpdateOperationsInput | number
   height?: Prisma.IntFieldUpdateOperationsInput | number
@@ -518,6 +539,7 @@ export type ProjectCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  folderId?: Prisma.SortOrder
   manifest?: Prisma.SortOrder
   width?: Prisma.SortOrder
   height?: Prisma.SortOrder
@@ -541,6 +563,7 @@ export type ProjectMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  folderId?: Prisma.SortOrder
   manifest?: Prisma.SortOrder
   width?: Prisma.SortOrder
   height?: Prisma.SortOrder
@@ -557,6 +580,7 @@ export type ProjectMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  folderId?: Prisma.SortOrder
   manifest?: Prisma.SortOrder
   width?: Prisma.SortOrder
   height?: Prisma.SortOrder
@@ -628,6 +652,48 @@ export type ProjectUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[]
 }
 
+export type ProjectCreateNestedManyWithoutFolderInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutFolderInput, Prisma.ProjectUncheckedCreateWithoutFolderInput> | Prisma.ProjectCreateWithoutFolderInput[] | Prisma.ProjectUncheckedCreateWithoutFolderInput[]
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutFolderInput | Prisma.ProjectCreateOrConnectWithoutFolderInput[]
+  createMany?: Prisma.ProjectCreateManyFolderInputEnvelope
+  connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+}
+
+export type ProjectUncheckedCreateNestedManyWithoutFolderInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutFolderInput, Prisma.ProjectUncheckedCreateWithoutFolderInput> | Prisma.ProjectCreateWithoutFolderInput[] | Prisma.ProjectUncheckedCreateWithoutFolderInput[]
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutFolderInput | Prisma.ProjectCreateOrConnectWithoutFolderInput[]
+  createMany?: Prisma.ProjectCreateManyFolderInputEnvelope
+  connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+}
+
+export type ProjectUpdateManyWithoutFolderNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutFolderInput, Prisma.ProjectUncheckedCreateWithoutFolderInput> | Prisma.ProjectCreateWithoutFolderInput[] | Prisma.ProjectUncheckedCreateWithoutFolderInput[]
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutFolderInput | Prisma.ProjectCreateOrConnectWithoutFolderInput[]
+  upsert?: Prisma.ProjectUpsertWithWhereUniqueWithoutFolderInput | Prisma.ProjectUpsertWithWhereUniqueWithoutFolderInput[]
+  createMany?: Prisma.ProjectCreateManyFolderInputEnvelope
+  set?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  disconnect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  delete?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  update?: Prisma.ProjectUpdateWithWhereUniqueWithoutFolderInput | Prisma.ProjectUpdateWithWhereUniqueWithoutFolderInput[]
+  updateMany?: Prisma.ProjectUpdateManyWithWhereWithoutFolderInput | Prisma.ProjectUpdateManyWithWhereWithoutFolderInput[]
+  deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[]
+}
+
+export type ProjectUncheckedUpdateManyWithoutFolderNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutFolderInput, Prisma.ProjectUncheckedCreateWithoutFolderInput> | Prisma.ProjectCreateWithoutFolderInput[] | Prisma.ProjectUncheckedCreateWithoutFolderInput[]
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutFolderInput | Prisma.ProjectCreateOrConnectWithoutFolderInput[]
+  upsert?: Prisma.ProjectUpsertWithWhereUniqueWithoutFolderInput | Prisma.ProjectUpsertWithWhereUniqueWithoutFolderInput[]
+  createMany?: Prisma.ProjectCreateManyFolderInputEnvelope
+  set?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  disconnect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  delete?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  connect?: Prisma.ProjectWhereUniqueInput | Prisma.ProjectWhereUniqueInput[]
+  update?: Prisma.ProjectUpdateWithWhereUniqueWithoutFolderInput | Prisma.ProjectUpdateWithWhereUniqueWithoutFolderInput[]
+  updateMany?: Prisma.ProjectUpdateManyWithWhereWithoutFolderInput | Prisma.ProjectUpdateManyWithWhereWithoutFolderInput[]
+  deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[]
+}
+
 export type IntFieldUpdateOperationsInput = {
   set?: number
   increment?: number
@@ -695,6 +761,7 @@ export type ProjectCreateWithoutUserInput = {
   thumbnailUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  folder?: Prisma.ProjectFolderCreateNestedOneWithoutProjectsInput
   assets?: Prisma.AssetCreateNestedManyWithoutProjectInput
   generationJobs?: Prisma.GenerationJobCreateNestedManyWithoutProjectInput
   chatMessages?: Prisma.ChatMessageCreateNestedManyWithoutProjectInput
@@ -703,6 +770,7 @@ export type ProjectCreateWithoutUserInput = {
 export type ProjectUncheckedCreateWithoutUserInput = {
   id?: string
   name: string
+  folderId?: string | null
   manifest?: string
   width?: number
   height?: number
@@ -750,6 +818,7 @@ export type ProjectScalarWhereInput = {
   id?: Prisma.StringFilter<"Project"> | string
   name?: Prisma.StringFilter<"Project"> | string
   userId?: Prisma.StringFilter<"Project"> | string
+  folderId?: Prisma.StringNullableFilter<"Project"> | string | null
   manifest?: Prisma.StringFilter<"Project"> | string
   width?: Prisma.IntFilter<"Project"> | number
   height?: Prisma.IntFilter<"Project"> | number
@@ -760,6 +829,69 @@ export type ProjectScalarWhereInput = {
   thumbnailUrl?: Prisma.StringNullableFilter<"Project"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
+}
+
+export type ProjectCreateWithoutFolderInput = {
+  id?: string
+  name: string
+  manifest?: string
+  width?: number
+  height?: number
+  fps?: number
+  duration?: number
+  status?: string
+  outputUrl?: string | null
+  thumbnailUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutProjectsInput
+  assets?: Prisma.AssetCreateNestedManyWithoutProjectInput
+  generationJobs?: Prisma.GenerationJobCreateNestedManyWithoutProjectInput
+  chatMessages?: Prisma.ChatMessageCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectUncheckedCreateWithoutFolderInput = {
+  id?: string
+  name: string
+  userId: string
+  manifest?: string
+  width?: number
+  height?: number
+  fps?: number
+  duration?: number
+  status?: string
+  outputUrl?: string | null
+  thumbnailUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  assets?: Prisma.AssetUncheckedCreateNestedManyWithoutProjectInput
+  generationJobs?: Prisma.GenerationJobUncheckedCreateNestedManyWithoutProjectInput
+  chatMessages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectCreateOrConnectWithoutFolderInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutFolderInput, Prisma.ProjectUncheckedCreateWithoutFolderInput>
+}
+
+export type ProjectCreateManyFolderInputEnvelope = {
+  data: Prisma.ProjectCreateManyFolderInput | Prisma.ProjectCreateManyFolderInput[]
+}
+
+export type ProjectUpsertWithWhereUniqueWithoutFolderInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  update: Prisma.XOR<Prisma.ProjectUpdateWithoutFolderInput, Prisma.ProjectUncheckedUpdateWithoutFolderInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutFolderInput, Prisma.ProjectUncheckedCreateWithoutFolderInput>
+}
+
+export type ProjectUpdateWithWhereUniqueWithoutFolderInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  data: Prisma.XOR<Prisma.ProjectUpdateWithoutFolderInput, Prisma.ProjectUncheckedUpdateWithoutFolderInput>
+}
+
+export type ProjectUpdateManyWithWhereWithoutFolderInput = {
+  where: Prisma.ProjectScalarWhereInput
+  data: Prisma.XOR<Prisma.ProjectUpdateManyMutationInput, Prisma.ProjectUncheckedUpdateManyWithoutFolderInput>
 }
 
 export type ProjectCreateWithoutAssetsInput = {
@@ -776,6 +908,7 @@ export type ProjectCreateWithoutAssetsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutProjectsInput
+  folder?: Prisma.ProjectFolderCreateNestedOneWithoutProjectsInput
   generationJobs?: Prisma.GenerationJobCreateNestedManyWithoutProjectInput
   chatMessages?: Prisma.ChatMessageCreateNestedManyWithoutProjectInput
 }
@@ -784,6 +917,7 @@ export type ProjectUncheckedCreateWithoutAssetsInput = {
   id?: string
   name: string
   userId: string
+  folderId?: string | null
   manifest?: string
   width?: number
   height?: number
@@ -828,6 +962,7 @@ export type ProjectUpdateWithoutAssetsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
+  folder?: Prisma.ProjectFolderUpdateOneWithoutProjectsNestedInput
   generationJobs?: Prisma.GenerationJobUpdateManyWithoutProjectNestedInput
   chatMessages?: Prisma.ChatMessageUpdateManyWithoutProjectNestedInput
 }
@@ -836,6 +971,7 @@ export type ProjectUncheckedUpdateWithoutAssetsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   manifest?: Prisma.StringFieldUpdateOperationsInput | string
   width?: Prisma.IntFieldUpdateOperationsInput | number
   height?: Prisma.IntFieldUpdateOperationsInput | number
@@ -864,6 +1000,7 @@ export type ProjectCreateWithoutGenerationJobsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutProjectsInput
+  folder?: Prisma.ProjectFolderCreateNestedOneWithoutProjectsInput
   assets?: Prisma.AssetCreateNestedManyWithoutProjectInput
   chatMessages?: Prisma.ChatMessageCreateNestedManyWithoutProjectInput
 }
@@ -872,6 +1009,7 @@ export type ProjectUncheckedCreateWithoutGenerationJobsInput = {
   id?: string
   name: string
   userId: string
+  folderId?: string | null
   manifest?: string
   width?: number
   height?: number
@@ -916,6 +1054,7 @@ export type ProjectUpdateWithoutGenerationJobsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
+  folder?: Prisma.ProjectFolderUpdateOneWithoutProjectsNestedInput
   assets?: Prisma.AssetUpdateManyWithoutProjectNestedInput
   chatMessages?: Prisma.ChatMessageUpdateManyWithoutProjectNestedInput
 }
@@ -924,6 +1063,7 @@ export type ProjectUncheckedUpdateWithoutGenerationJobsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   manifest?: Prisma.StringFieldUpdateOperationsInput | string
   width?: Prisma.IntFieldUpdateOperationsInput | number
   height?: Prisma.IntFieldUpdateOperationsInput | number
@@ -952,6 +1092,7 @@ export type ProjectCreateWithoutChatMessagesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutProjectsInput
+  folder?: Prisma.ProjectFolderCreateNestedOneWithoutProjectsInput
   assets?: Prisma.AssetCreateNestedManyWithoutProjectInput
   generationJobs?: Prisma.GenerationJobCreateNestedManyWithoutProjectInput
 }
@@ -960,6 +1101,7 @@ export type ProjectUncheckedCreateWithoutChatMessagesInput = {
   id?: string
   name: string
   userId: string
+  folderId?: string | null
   manifest?: string
   width?: number
   height?: number
@@ -1004,6 +1146,7 @@ export type ProjectUpdateWithoutChatMessagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
+  folder?: Prisma.ProjectFolderUpdateOneWithoutProjectsNestedInput
   assets?: Prisma.AssetUpdateManyWithoutProjectNestedInput
   generationJobs?: Prisma.GenerationJobUpdateManyWithoutProjectNestedInput
 }
@@ -1012,6 +1155,7 @@ export type ProjectUncheckedUpdateWithoutChatMessagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   manifest?: Prisma.StringFieldUpdateOperationsInput | string
   width?: Prisma.IntFieldUpdateOperationsInput | number
   height?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1029,6 +1173,7 @@ export type ProjectUncheckedUpdateWithoutChatMessagesInput = {
 export type ProjectCreateManyUserInput = {
   id?: string
   name: string
+  folderId?: string | null
   manifest?: string
   width?: number
   height?: number
@@ -1054,6 +1199,7 @@ export type ProjectUpdateWithoutUserInput = {
   thumbnailUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  folder?: Prisma.ProjectFolderUpdateOneWithoutProjectsNestedInput
   assets?: Prisma.AssetUpdateManyWithoutProjectNestedInput
   generationJobs?: Prisma.GenerationJobUpdateManyWithoutProjectNestedInput
   chatMessages?: Prisma.ChatMessageUpdateManyWithoutProjectNestedInput
@@ -1062,6 +1208,7 @@ export type ProjectUpdateWithoutUserInput = {
 export type ProjectUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   manifest?: Prisma.StringFieldUpdateOperationsInput | string
   width?: Prisma.IntFieldUpdateOperationsInput | number
   height?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1080,6 +1227,77 @@ export type ProjectUncheckedUpdateWithoutUserInput = {
 export type ProjectUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manifest?: Prisma.StringFieldUpdateOperationsInput | string
+  width?: Prisma.IntFieldUpdateOperationsInput | number
+  height?: Prisma.IntFieldUpdateOperationsInput | number
+  fps?: Prisma.IntFieldUpdateOperationsInput | number
+  duration?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  outputUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  thumbnailUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ProjectCreateManyFolderInput = {
+  id?: string
+  name: string
+  userId: string
+  manifest?: string
+  width?: number
+  height?: number
+  fps?: number
+  duration?: number
+  status?: string
+  outputUrl?: string | null
+  thumbnailUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ProjectUpdateWithoutFolderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  manifest?: Prisma.StringFieldUpdateOperationsInput | string
+  width?: Prisma.IntFieldUpdateOperationsInput | number
+  height?: Prisma.IntFieldUpdateOperationsInput | number
+  fps?: Prisma.IntFieldUpdateOperationsInput | number
+  duration?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  outputUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  thumbnailUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
+  assets?: Prisma.AssetUpdateManyWithoutProjectNestedInput
+  generationJobs?: Prisma.GenerationJobUpdateManyWithoutProjectNestedInput
+  chatMessages?: Prisma.ChatMessageUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectUncheckedUpdateWithoutFolderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  manifest?: Prisma.StringFieldUpdateOperationsInput | string
+  width?: Prisma.IntFieldUpdateOperationsInput | number
+  height?: Prisma.IntFieldUpdateOperationsInput | number
+  fps?: Prisma.IntFieldUpdateOperationsInput | number
+  duration?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  outputUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  thumbnailUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  assets?: Prisma.AssetUncheckedUpdateManyWithoutProjectNestedInput
+  generationJobs?: Prisma.GenerationJobUncheckedUpdateManyWithoutProjectNestedInput
+  chatMessages?: Prisma.ChatMessageUncheckedUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectUncheckedUpdateManyWithoutFolderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
   manifest?: Prisma.StringFieldUpdateOperationsInput | string
   width?: Prisma.IntFieldUpdateOperationsInput | number
   height?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1145,6 +1363,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   id?: boolean
   name?: boolean
   userId?: boolean
+  folderId?: boolean
   manifest?: boolean
   width?: boolean
   height?: boolean
@@ -1156,6 +1375,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Project$folderArgs<ExtArgs>
   assets?: boolean | Prisma.Project$assetsArgs<ExtArgs>
   generationJobs?: boolean | Prisma.Project$generationJobsArgs<ExtArgs>
   chatMessages?: boolean | Prisma.Project$chatMessagesArgs<ExtArgs>
@@ -1166,6 +1386,7 @@ export type ProjectSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   id?: boolean
   name?: boolean
   userId?: boolean
+  folderId?: boolean
   manifest?: boolean
   width?: boolean
   height?: boolean
@@ -1177,12 +1398,14 @@ export type ProjectSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Project$folderArgs<ExtArgs>
 }, ExtArgs["result"]["project"]>
 
 export type ProjectSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
   userId?: boolean
+  folderId?: boolean
   manifest?: boolean
   width?: boolean
   height?: boolean
@@ -1194,12 +1417,14 @@ export type ProjectSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Project$folderArgs<ExtArgs>
 }, ExtArgs["result"]["project"]>
 
 export type ProjectSelectScalar = {
   id?: boolean
   name?: boolean
   userId?: boolean
+  folderId?: boolean
   manifest?: boolean
   width?: boolean
   height?: boolean
@@ -1212,9 +1437,10 @@ export type ProjectSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "userId" | "manifest" | "width" | "height" | "fps" | "duration" | "status" | "outputUrl" | "thumbnailUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["project"]>
+export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "userId" | "folderId" | "manifest" | "width" | "height" | "fps" | "duration" | "status" | "outputUrl" | "thumbnailUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["project"]>
 export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Project$folderArgs<ExtArgs>
   assets?: boolean | Prisma.Project$assetsArgs<ExtArgs>
   generationJobs?: boolean | Prisma.Project$generationJobsArgs<ExtArgs>
   chatMessages?: boolean | Prisma.Project$chatMessagesArgs<ExtArgs>
@@ -1222,15 +1448,18 @@ export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
 }
 export type ProjectIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Project$folderArgs<ExtArgs>
 }
 export type ProjectIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Project$folderArgs<ExtArgs>
 }
 
 export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Project"
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
+    folder: Prisma.$ProjectFolderPayload<ExtArgs> | null
     assets: Prisma.$AssetPayload<ExtArgs>[]
     generationJobs: Prisma.$GenerationJobPayload<ExtArgs>[]
     chatMessages: Prisma.$ChatMessagePayload<ExtArgs>[]
@@ -1239,6 +1468,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     id: string
     name: string
     userId: string
+    folderId: string | null
     manifest: string
     width: number
     height: number
@@ -1644,6 +1874,7 @@ readonly fields: ProjectFieldRefs;
 export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  folder<T extends Prisma.Project$folderArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$folderArgs<ExtArgs>>): Prisma.Prisma__ProjectFolderClient<runtime.Types.Result.GetResult<Prisma.$ProjectFolderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   assets<T extends Prisma.Project$assetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$assetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AssetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   generationJobs<T extends Prisma.Project$generationJobsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$generationJobsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GenerationJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   chatMessages<T extends Prisma.Project$chatMessagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$chatMessagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChatMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1679,6 +1910,7 @@ export interface ProjectFieldRefs {
   readonly id: Prisma.FieldRef<"Project", 'String'>
   readonly name: Prisma.FieldRef<"Project", 'String'>
   readonly userId: Prisma.FieldRef<"Project", 'String'>
+  readonly folderId: Prisma.FieldRef<"Project", 'String'>
   readonly manifest: Prisma.FieldRef<"Project", 'String'>
   readonly width: Prisma.FieldRef<"Project", 'Int'>
   readonly height: Prisma.FieldRef<"Project", 'Int'>
@@ -2080,6 +2312,25 @@ export type ProjectDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Limit how many Projects to delete.
    */
   limit?: number
+}
+
+/**
+ * Project.folder
+ */
+export type Project$folderArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectFolder
+   */
+  select?: Prisma.ProjectFolderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectFolder
+   */
+  omit?: Prisma.ProjectFolderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectFolderInclude<ExtArgs> | null
+  where?: Prisma.ProjectFolderWhereInput
 }
 
 /**

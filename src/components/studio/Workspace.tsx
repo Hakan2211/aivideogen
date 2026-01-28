@@ -21,6 +21,9 @@ import { ChatPanel } from './ChatPanel'
 import { VideoPreview } from './VideoPreview'
 import { Timeline } from './Timeline'
 import { AssetPanel } from './AssetPanel'
+import { QuickActionsToolbar } from './QuickActionsToolbar'
+import { MobileWorkspace } from './mobile'
+import { useIsMobile } from '../../hooks'
 import type { ProjectManifest } from '../../remotion/types'
 
 // Project type from getProjectFn
@@ -59,6 +62,7 @@ const MANIFEST_POLL_INTERVAL = 5000 // 5 seconds
 
 export function Workspace({ project }: WorkspaceProps) {
   const queryClient = useQueryClient()
+  const isMobile = useIsMobile()
 
   // Local state for the manifest (optimistic updates)
   const [manifest, setManifest] = useState<ProjectManifest>(project.manifest)
@@ -194,6 +198,11 @@ export function Workspace({ project }: WorkspaceProps) {
   // Render
   // =============================================================================
 
+  // Render mobile workspace on small screens
+  if (isMobile) {
+    return <MobileWorkspace project={project} />
+  }
+
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col overflow-hidden bg-background">
       {/* Header */}
@@ -241,7 +250,7 @@ export function Workspace({ project }: WorkspaceProps) {
         </aside>
 
         {/* Center - Preview + Timeline */}
-        <main className="flex flex-1 flex-col overflow-hidden">
+        <main className="relative flex flex-1 flex-col overflow-hidden">
           {/* Video Preview */}
           <div className="flex-1 overflow-hidden p-4">
             <VideoPreview
@@ -257,6 +266,22 @@ export function Workspace({ project }: WorkspaceProps) {
             />
           </div>
 
+          {/* Quick Actions Toolbar - Floating above timeline */}
+          <div className="absolute bottom-52 left-1/2 z-10 -translate-x-1/2">
+            <QuickActionsToolbar
+              isPlaying={isPlaying}
+              onTogglePlay={() => setIsPlaying(!isPlaying)}
+              onSkipBack={() =>
+                setCurrentFrame(Math.max(0, currentFrame - project.fps * 2))
+              }
+              onSkipForward={() =>
+                setCurrentFrame(
+                  Math.min(project.duration - 1, currentFrame + project.fps * 2)
+                )
+              }
+            />
+          </div>
+
           {/* Timeline */}
           <div className="h-48 border-t bg-muted/20">
             <Timeline
@@ -267,6 +292,8 @@ export function Workspace({ project }: WorkspaceProps) {
               onSeek={handleSeek}
               onSelectClip={setSelectedClipId}
               onManifestChange={handleManifestChange}
+              isPlaying={isPlaying}
+              onTogglePlay={() => setIsPlaying(!isPlaying)}
             />
           </div>
         </main>

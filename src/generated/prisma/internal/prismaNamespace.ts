@@ -388,6 +388,7 @@ export const ModelName = {
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',
+  ProjectFolder: 'ProjectFolder',
   Project: 'Project',
   Asset: 'Asset',
   GenerationJob: 'GenerationJob',
@@ -409,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "project" | "asset" | "generationJob" | "subscriptionEvent" | "chatMessage" | "model3DAsset"
+    modelProps: "user" | "session" | "account" | "verification" | "projectFolder" | "project" | "asset" | "generationJob" | "subscriptionEvent" | "chatMessage" | "model3DAsset"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -706,6 +707,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.VerificationCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.VerificationCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProjectFolder: {
+      payload: Prisma.$ProjectFolderPayload<ExtArgs>
+      fields: Prisma.ProjectFolderFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProjectFolderFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFolderPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProjectFolderFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFolderPayload>
+        }
+        findFirst: {
+          args: Prisma.ProjectFolderFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFolderPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProjectFolderFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFolderPayload>
+        }
+        findMany: {
+          args: Prisma.ProjectFolderFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFolderPayload>[]
+        }
+        create: {
+          args: Prisma.ProjectFolderCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFolderPayload>
+        }
+        createMany: {
+          args: Prisma.ProjectFolderCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProjectFolderCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFolderPayload>[]
+        }
+        delete: {
+          args: Prisma.ProjectFolderDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFolderPayload>
+        }
+        update: {
+          args: Prisma.ProjectFolderUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFolderPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProjectFolderDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProjectFolderUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProjectFolderUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFolderPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProjectFolderUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectFolderPayload>
+        }
+        aggregate: {
+          args: Prisma.ProjectFolderAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProjectFolder>
+        }
+        groupBy: {
+          args: Prisma.ProjectFolderGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectFolderGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProjectFolderCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectFolderCountAggregateOutputType> | number
         }
       }
     }
@@ -1263,10 +1338,23 @@ export const VerificationScalarFieldEnum = {
 export type VerificationScalarFieldEnum = (typeof VerificationScalarFieldEnum)[keyof typeof VerificationScalarFieldEnum]
 
 
+export const ProjectFolderScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  color: 'color',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectFolderScalarFieldEnum = (typeof ProjectFolderScalarFieldEnum)[keyof typeof ProjectFolderScalarFieldEnum]
+
+
 export const ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
   userId: 'userId',
+  folderId: 'folderId',
   manifest: 'manifest',
   width: 'width',
   height: 'height',
@@ -1537,6 +1625,7 @@ export type GlobalOmitConfig = {
   session?: Prisma.SessionOmit
   account?: Prisma.AccountOmit
   verification?: Prisma.VerificationOmit
+  projectFolder?: Prisma.ProjectFolderOmit
   project?: Prisma.ProjectOmit
   asset?: Prisma.AssetOmit
   generationJob?: Prisma.GenerationJobOmit

@@ -55,6 +55,7 @@ export const ModelName = {
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',
+  ProjectFolder: 'ProjectFolder',
   Project: 'Project',
   Asset: 'Asset',
   GenerationJob: 'GenerationJob',
@@ -150,10 +151,23 @@ export const VerificationScalarFieldEnum = {
 export type VerificationScalarFieldEnum = (typeof VerificationScalarFieldEnum)[keyof typeof VerificationScalarFieldEnum]
 
 
+export const ProjectFolderScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  color: 'color',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectFolderScalarFieldEnum = (typeof ProjectFolderScalarFieldEnum)[keyof typeof ProjectFolderScalarFieldEnum]
+
+
 export const ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
   userId: 'userId',
+  folderId: 'folderId',
   manifest: 'manifest',
   width: 'width',
   height: 'height',

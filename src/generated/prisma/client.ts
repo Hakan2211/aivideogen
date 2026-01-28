@@ -60,6 +60,11 @@ export type Account = Prisma.AccountModel
  */
 export type Verification = Prisma.VerificationModel
 /**
+ * Model ProjectFolder
+ * 
+ */
+export type ProjectFolder = Prisma.ProjectFolderModel
+/**
  * Model Project
  * 
  */

@@ -338,6 +338,7 @@ export type UserWhereInput = {
   sessions?: Prisma.SessionListRelationFilter
   subscriptionEvents?: Prisma.SubscriptionEventListRelationFilter
   projects?: Prisma.ProjectListRelationFilter
+  projectFolders?: Prisma.ProjectFolderListRelationFilter
   assets?: Prisma.AssetListRelationFilter
   generationJobs?: Prisma.GenerationJobListRelationFilter
   model3DAssets?: Prisma.Model3DAssetListRelationFilter
@@ -372,6 +373,7 @@ export type UserOrderByWithRelationInput = {
   sessions?: Prisma.SessionOrderByRelationAggregateInput
   subscriptionEvents?: Prisma.SubscriptionEventOrderByRelationAggregateInput
   projects?: Prisma.ProjectOrderByRelationAggregateInput
+  projectFolders?: Prisma.ProjectFolderOrderByRelationAggregateInput
   assets?: Prisma.AssetOrderByRelationAggregateInput
   generationJobs?: Prisma.GenerationJobOrderByRelationAggregateInput
   model3DAssets?: Prisma.Model3DAssetOrderByRelationAggregateInput
@@ -409,6 +411,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   sessions?: Prisma.SessionListRelationFilter
   subscriptionEvents?: Prisma.SubscriptionEventListRelationFilter
   projects?: Prisma.ProjectListRelationFilter
+  projectFolders?: Prisma.ProjectFolderListRelationFilter
   assets?: Prisma.AssetListRelationFilter
   generationJobs?: Prisma.GenerationJobListRelationFilter
   model3DAssets?: Prisma.Model3DAssetListRelationFilter
@@ -503,6 +506,7 @@ export type UserCreateInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetCreateNestedManyWithoutUserInput
@@ -537,6 +541,7 @@ export type UserUncheckedCreateInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderUncheckedCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobUncheckedCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetUncheckedCreateNestedManyWithoutUserInput
@@ -571,6 +576,7 @@ export type UserUpdateInput = {
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUpdateManyWithoutUserNestedInput
   assets?: Prisma.AssetUpdateManyWithoutUserNestedInput
   generationJobs?: Prisma.GenerationJobUpdateManyWithoutUserNestedInput
   model3DAssets?: Prisma.Model3DAssetUpdateManyWithoutUserNestedInput
@@ -605,6 +611,7 @@ export type UserUncheckedUpdateInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUncheckedUpdateManyWithoutUserNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutUserNestedInput
   generationJobs?: Prisma.GenerationJobUncheckedUpdateManyWithoutUserNestedInput
   model3DAssets?: Prisma.Model3DAssetUncheckedUpdateManyWithoutUserNestedInput
@@ -825,6 +832,20 @@ export type UserUpdateOneRequiredWithoutAccountsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAccountsInput, Prisma.UserUpdateWithoutAccountsInput>, Prisma.UserUncheckedUpdateWithoutAccountsInput>
 }
 
+export type UserCreateNestedOneWithoutProjectFoldersInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProjectFoldersInput, Prisma.UserUncheckedCreateWithoutProjectFoldersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectFoldersInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutProjectFoldersNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProjectFoldersInput, Prisma.UserUncheckedCreateWithoutProjectFoldersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectFoldersInput
+  upsert?: Prisma.UserUpsertWithoutProjectFoldersInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProjectFoldersInput, Prisma.UserUpdateWithoutProjectFoldersInput>, Prisma.UserUncheckedUpdateWithoutProjectFoldersInput>
+}
+
 export type UserCreateNestedOneWithoutProjectsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutProjectsInput, Prisma.UserUncheckedCreateWithoutProjectsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectsInput
@@ -923,6 +944,7 @@ export type UserCreateWithoutSessionsInput = {
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetCreateNestedManyWithoutUserInput
@@ -956,6 +978,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderUncheckedCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobUncheckedCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetUncheckedCreateNestedManyWithoutUserInput
@@ -1005,6 +1028,7 @@ export type UserUpdateWithoutSessionsInput = {
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUpdateManyWithoutUserNestedInput
   assets?: Prisma.AssetUpdateManyWithoutUserNestedInput
   generationJobs?: Prisma.GenerationJobUpdateManyWithoutUserNestedInput
   model3DAssets?: Prisma.Model3DAssetUpdateManyWithoutUserNestedInput
@@ -1038,6 +1062,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUncheckedUpdateManyWithoutUserNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutUserNestedInput
   generationJobs?: Prisma.GenerationJobUncheckedUpdateManyWithoutUserNestedInput
   model3DAssets?: Prisma.Model3DAssetUncheckedUpdateManyWithoutUserNestedInput
@@ -1071,6 +1096,7 @@ export type UserCreateWithoutAccountsInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetCreateNestedManyWithoutUserInput
@@ -1104,6 +1130,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderUncheckedCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobUncheckedCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetUncheckedCreateNestedManyWithoutUserInput
@@ -1153,6 +1180,7 @@ export type UserUpdateWithoutAccountsInput = {
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUpdateManyWithoutUserNestedInput
   assets?: Prisma.AssetUpdateManyWithoutUserNestedInput
   generationJobs?: Prisma.GenerationJobUpdateManyWithoutUserNestedInput
   model3DAssets?: Prisma.Model3DAssetUpdateManyWithoutUserNestedInput
@@ -1183,6 +1211,159 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   preferredVoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  subscriptionEvents?: Prisma.SubscriptionEventUncheckedUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUncheckedUpdateManyWithoutUserNestedInput
+  assets?: Prisma.AssetUncheckedUpdateManyWithoutUserNestedInput
+  generationJobs?: Prisma.GenerationJobUncheckedUpdateManyWithoutUserNestedInput
+  model3DAssets?: Prisma.Model3DAssetUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutProjectFoldersInput = {
+  id?: string
+  email: string
+  name?: string | null
+  image?: string | null
+  emailVerified?: boolean
+  role?: string
+  stripeCustomerId?: string | null
+  subscriptionStatus?: string | null
+  subscriptionTier?: string | null
+  subscriptionPeriodEnd?: Date | string | null
+  cancelAtPeriodEnd?: boolean
+  onboardingComplete?: boolean
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
+  falApiKey?: string | null
+  falApiKeyLastFour?: string | null
+  falApiKeyAddedAt?: Date | string | null
+  preferredLlmModel?: string | null
+  preferredImageModel?: string | null
+  preferredVideoModel?: string | null
+  preferredVoiceId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  subscriptionEvents?: Prisma.SubscriptionEventCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  assets?: Prisma.AssetCreateNestedManyWithoutUserInput
+  generationJobs?: Prisma.GenerationJobCreateNestedManyWithoutUserInput
+  model3DAssets?: Prisma.Model3DAssetCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutProjectFoldersInput = {
+  id?: string
+  email: string
+  name?: string | null
+  image?: string | null
+  emailVerified?: boolean
+  role?: string
+  stripeCustomerId?: string | null
+  subscriptionStatus?: string | null
+  subscriptionTier?: string | null
+  subscriptionPeriodEnd?: Date | string | null
+  cancelAtPeriodEnd?: boolean
+  onboardingComplete?: boolean
+  hasPlatformAccess?: boolean
+  platformPurchaseDate?: Date | string | null
+  platformStripePaymentId?: string | null
+  falApiKey?: string | null
+  falApiKeyLastFour?: string | null
+  falApiKeyAddedAt?: Date | string | null
+  preferredLlmModel?: string | null
+  preferredImageModel?: string | null
+  preferredVideoModel?: string | null
+  preferredVoiceId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  subscriptionEvents?: Prisma.SubscriptionEventUncheckedCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  assets?: Prisma.AssetUncheckedCreateNestedManyWithoutUserInput
+  generationJobs?: Prisma.GenerationJobUncheckedCreateNestedManyWithoutUserInput
+  model3DAssets?: Prisma.Model3DAssetUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutProjectFoldersInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutProjectFoldersInput, Prisma.UserUncheckedCreateWithoutProjectFoldersInput>
+}
+
+export type UserUpsertWithoutProjectFoldersInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutProjectFoldersInput, Prisma.UserUncheckedUpdateWithoutProjectFoldersInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutProjectFoldersInput, Prisma.UserUncheckedCreateWithoutProjectFoldersInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutProjectFoldersInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutProjectFoldersInput, Prisma.UserUncheckedUpdateWithoutProjectFoldersInput>
+}
+
+export type UserUpdateWithoutProjectFoldersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionTier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionPeriodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preferredLlmModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredImageModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredVideoModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredVoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  subscriptionEvents?: Prisma.SubscriptionEventUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  assets?: Prisma.AssetUpdateManyWithoutUserNestedInput
+  generationJobs?: Prisma.GenerationJobUpdateManyWithoutUserNestedInput
+  model3DAssets?: Prisma.Model3DAssetUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutProjectFoldersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.StringFieldUpdateOperationsInput | string
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionTier?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionPeriodEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelAtPeriodEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingComplete?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasPlatformAccess?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  platformPurchaseDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  platformStripePaymentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  falApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  falApiKeyLastFour?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  falApiKeyAddedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preferredLlmModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredImageModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredVideoModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredVoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
@@ -1219,6 +1400,7 @@ export type UserCreateWithoutProjectsInput = {
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetCreateNestedManyWithoutUserInput
@@ -1252,6 +1434,7 @@ export type UserUncheckedCreateWithoutProjectsInput = {
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderUncheckedCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobUncheckedCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetUncheckedCreateNestedManyWithoutUserInput
@@ -1301,6 +1484,7 @@ export type UserUpdateWithoutProjectsInput = {
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUpdateManyWithoutUserNestedInput
   assets?: Prisma.AssetUpdateManyWithoutUserNestedInput
   generationJobs?: Prisma.GenerationJobUpdateManyWithoutUserNestedInput
   model3DAssets?: Prisma.Model3DAssetUpdateManyWithoutUserNestedInput
@@ -1334,6 +1518,7 @@ export type UserUncheckedUpdateWithoutProjectsInput = {
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUncheckedUpdateManyWithoutUserNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutUserNestedInput
   generationJobs?: Prisma.GenerationJobUncheckedUpdateManyWithoutUserNestedInput
   model3DAssets?: Prisma.Model3DAssetUncheckedUpdateManyWithoutUserNestedInput
@@ -1368,6 +1553,7 @@ export type UserCreateWithoutAssetsInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetCreateNestedManyWithoutUserInput
 }
@@ -1401,6 +1587,7 @@ export type UserUncheckedCreateWithoutAssetsInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderUncheckedCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobUncheckedCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1450,6 +1637,7 @@ export type UserUpdateWithoutAssetsInput = {
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUpdateManyWithoutUserNestedInput
   generationJobs?: Prisma.GenerationJobUpdateManyWithoutUserNestedInput
   model3DAssets?: Prisma.Model3DAssetUpdateManyWithoutUserNestedInput
 }
@@ -1483,6 +1671,7 @@ export type UserUncheckedUpdateWithoutAssetsInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUncheckedUpdateManyWithoutUserNestedInput
   generationJobs?: Prisma.GenerationJobUncheckedUpdateManyWithoutUserNestedInput
   model3DAssets?: Prisma.Model3DAssetUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1516,6 +1705,7 @@ export type UserCreateWithoutGenerationJobsInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetCreateNestedManyWithoutUserInput
 }
@@ -1549,6 +1739,7 @@ export type UserUncheckedCreateWithoutGenerationJobsInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderUncheckedCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1598,6 +1789,7 @@ export type UserUpdateWithoutGenerationJobsInput = {
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUpdateManyWithoutUserNestedInput
   assets?: Prisma.AssetUpdateManyWithoutUserNestedInput
   model3DAssets?: Prisma.Model3DAssetUpdateManyWithoutUserNestedInput
 }
@@ -1631,6 +1823,7 @@ export type UserUncheckedUpdateWithoutGenerationJobsInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUncheckedUpdateManyWithoutUserNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutUserNestedInput
   model3DAssets?: Prisma.Model3DAssetUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1663,6 +1856,7 @@ export type UserCreateWithoutSubscriptionEventsInput = {
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetCreateNestedManyWithoutUserInput
@@ -1696,6 +1890,7 @@ export type UserUncheckedCreateWithoutSubscriptionEventsInput = {
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderUncheckedCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobUncheckedCreateNestedManyWithoutUserInput
   model3DAssets?: Prisma.Model3DAssetUncheckedCreateNestedManyWithoutUserInput
@@ -1745,6 +1940,7 @@ export type UserUpdateWithoutSubscriptionEventsInput = {
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUpdateManyWithoutUserNestedInput
   assets?: Prisma.AssetUpdateManyWithoutUserNestedInput
   generationJobs?: Prisma.GenerationJobUpdateManyWithoutUserNestedInput
   model3DAssets?: Prisma.Model3DAssetUpdateManyWithoutUserNestedInput
@@ -1778,6 +1974,7 @@ export type UserUncheckedUpdateWithoutSubscriptionEventsInput = {
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUncheckedUpdateManyWithoutUserNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutUserNestedInput
   generationJobs?: Prisma.GenerationJobUncheckedUpdateManyWithoutUserNestedInput
   model3DAssets?: Prisma.Model3DAssetUncheckedUpdateManyWithoutUserNestedInput
@@ -1812,6 +2009,7 @@ export type UserCreateWithoutModel3DAssetsInput = {
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobCreateNestedManyWithoutUserInput
 }
@@ -1845,6 +2043,7 @@ export type UserUncheckedCreateWithoutModel3DAssetsInput = {
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  projectFolders?: Prisma.ProjectFolderUncheckedCreateNestedManyWithoutUserInput
   assets?: Prisma.AssetUncheckedCreateNestedManyWithoutUserInput
   generationJobs?: Prisma.GenerationJobUncheckedCreateNestedManyWithoutUserInput
 }
@@ -1894,6 +2093,7 @@ export type UserUpdateWithoutModel3DAssetsInput = {
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUpdateManyWithoutUserNestedInput
   assets?: Prisma.AssetUpdateManyWithoutUserNestedInput
   generationJobs?: Prisma.GenerationJobUpdateManyWithoutUserNestedInput
 }
@@ -1927,6 +2127,7 @@ export type UserUncheckedUpdateWithoutModel3DAssetsInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   subscriptionEvents?: Prisma.SubscriptionEventUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  projectFolders?: Prisma.ProjectFolderUncheckedUpdateManyWithoutUserNestedInput
   assets?: Prisma.AssetUncheckedUpdateManyWithoutUserNestedInput
   generationJobs?: Prisma.GenerationJobUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -1941,6 +2142,7 @@ export type UserCountOutputType = {
   sessions: number
   subscriptionEvents: number
   projects: number
+  projectFolders: number
   assets: number
   generationJobs: number
   model3DAssets: number
@@ -1951,6 +2153,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   sessions?: boolean | UserCountOutputTypeCountSessionsArgs
   subscriptionEvents?: boolean | UserCountOutputTypeCountSubscriptionEventsArgs
   projects?: boolean | UserCountOutputTypeCountProjectsArgs
+  projectFolders?: boolean | UserCountOutputTypeCountProjectFoldersArgs
   assets?: boolean | UserCountOutputTypeCountAssetsArgs
   generationJobs?: boolean | UserCountOutputTypeCountGenerationJobsArgs
   model3DAssets?: boolean | UserCountOutputTypeCountModel3DAssetsArgs
@@ -1992,6 +2195,13 @@ export type UserCountOutputTypeCountSubscriptionEventsArgs<ExtArgs extends runti
  */
 export type UserCountOutputTypeCountProjectsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ProjectWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountProjectFoldersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectFolderWhereInput
 }
 
 /**
@@ -2045,6 +2255,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   subscriptionEvents?: boolean | Prisma.User$subscriptionEventsArgs<ExtArgs>
   projects?: boolean | Prisma.User$projectsArgs<ExtArgs>
+  projectFolders?: boolean | Prisma.User$projectFoldersArgs<ExtArgs>
   assets?: boolean | Prisma.User$assetsArgs<ExtArgs>
   generationJobs?: boolean | Prisma.User$generationJobsArgs<ExtArgs>
   model3DAssets?: boolean | Prisma.User$model3DAssetsArgs<ExtArgs>
@@ -2138,6 +2349,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   subscriptionEvents?: boolean | Prisma.User$subscriptionEventsArgs<ExtArgs>
   projects?: boolean | Prisma.User$projectsArgs<ExtArgs>
+  projectFolders?: boolean | Prisma.User$projectFoldersArgs<ExtArgs>
   assets?: boolean | Prisma.User$assetsArgs<ExtArgs>
   generationJobs?: boolean | Prisma.User$generationJobsArgs<ExtArgs>
   model3DAssets?: boolean | Prisma.User$model3DAssetsArgs<ExtArgs>
@@ -2153,6 +2365,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     sessions: Prisma.$SessionPayload<ExtArgs>[]
     subscriptionEvents: Prisma.$SubscriptionEventPayload<ExtArgs>[]
     projects: Prisma.$ProjectPayload<ExtArgs>[]
+    projectFolders: Prisma.$ProjectFolderPayload<ExtArgs>[]
     assets: Prisma.$AssetPayload<ExtArgs>[]
     generationJobs: Prisma.$GenerationJobPayload<ExtArgs>[]
     model3DAssets: Prisma.$Model3DAssetPayload<ExtArgs>[]
@@ -2580,6 +2793,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   sessions<T extends Prisma.User$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   subscriptionEvents<T extends Prisma.User$subscriptionEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$subscriptionEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubscriptionEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projects<T extends Prisma.User$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  projectFolders<T extends Prisma.User$projectFoldersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectFoldersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectFolderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   assets<T extends Prisma.User$assetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AssetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   generationJobs<T extends Prisma.User$generationJobsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$generationJobsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GenerationJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   model3DAssets<T extends Prisma.User$model3DAssetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$model3DAssetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$Model3DAssetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3115,6 +3329,30 @@ export type User$projectsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.ProjectScalarFieldEnum | Prisma.ProjectScalarFieldEnum[]
+}
+
+/**
+ * User.projectFolders
+ */
+export type User$projectFoldersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectFolder
+   */
+  select?: Prisma.ProjectFolderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectFolder
+   */
+  omit?: Prisma.ProjectFolderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectFolderInclude<ExtArgs> | null
+  where?: Prisma.ProjectFolderWhereInput
+  orderBy?: Prisma.ProjectFolderOrderByWithRelationInput | Prisma.ProjectFolderOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectFolderWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectFolderScalarFieldEnum | Prisma.ProjectFolderScalarFieldEnum[]
 }
 
 /**

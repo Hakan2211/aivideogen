@@ -54,6 +54,7 @@ model User {
 
   // DirectorAI: Relations
   projects       Project[]
+  projectFolders ProjectFolder[]
   assets         Asset[]
   generationJobs GenerationJob[]
   model3DAssets  Model3DAsset[]
@@ -113,6 +114,25 @@ model Verification {
 }
 
 // ====================================================================================
+// DirectorAI: Project Folders (for organizing projects)
+// ====================================================================================
+
+model ProjectFolder {
+  id       String    @id @default(cuid())
+  name     String
+  color    String?   // Optional color for visual distinction (e.g., "#3b82f6")
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projects Project[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("project_folder")
+}
+
+// ====================================================================================
 // DirectorAI: Video Projects
 // ====================================================================================
 
@@ -121,6 +141,10 @@ model Project {
   name   String
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Optional folder for organization
+  folderId String?
+  folder   ProjectFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   // The DNA of the video - stores the JSON timeline (ProjectManifest)
   manifest String @default("{}")
@@ -147,6 +171,7 @@ model Project {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([folderId])
   @@index([status])
   @@map("project")
 }

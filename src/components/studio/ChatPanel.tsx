@@ -50,6 +50,8 @@ interface ChatPanelProps {
   onManifestChange: (manifest: ProjectManifest) => void
   collapsed: boolean
   onToggleCollapse: () => void
+  /** Display mode: 'panel' for sidebar, 'fullscreen' for mobile */
+  mode?: 'panel' | 'fullscreen'
 }
 
 // =============================================================================
@@ -64,6 +66,7 @@ export function ChatPanel({
   onManifestChange: _onManifestChange,
   collapsed,
   onToggleCollapse,
+  mode = 'panel',
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<Array<ChatMessage>>([
     {
@@ -313,8 +316,8 @@ export function ChatPanel({
       .trim()
   }
 
-  // Collapsed state
-  if (collapsed) {
+  // Collapsed state (only for panel mode)
+  if (collapsed && mode === 'panel') {
     return (
       <div className="flex h-full flex-col items-center py-4">
         <button
@@ -347,12 +350,14 @@ export function ChatPanel({
           >
             <Trash2 className="h-4 w-4 text-muted-foreground" />
           </button>
-          <button
-            onClick={onToggleCollapse}
-            className="rounded-full p-1 hover:bg-muted"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
+          {mode === 'panel' && (
+            <button
+              onClick={onToggleCollapse}
+              className="rounded-full p-1 hover:bg-muted"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 

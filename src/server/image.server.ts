@@ -15,6 +15,7 @@ import {
   getImageModels,
   getJobStatus,
 } from './services/fal.server'
+import sharp from 'sharp'
 import { uploadBuffer, uploadFromUrl } from './services/bunny.server'
 import { IMAGE_MODELS, getModelById } from './services/types'
 import type { FalImageResult } from './services/fal.server'
@@ -540,6 +541,33 @@ export const uploadUserImageFn = createServerFn({ method: 'POST' })
       throw new Error('Image too large. Maximum size is 10MB.')
     }
 
+    // Auto-resize if image exceeds fal.ai's max dimensions (3850x3850)
+    const MAX_DIMENSION = 3850
+    const imgMeta = await sharp(buffer).metadata()
+    let processedBuffer = buffer
+    let wasResized = false
+
+    if (
+      imgMeta.width &&
+      imgMeta.height &&
+      (imgMeta.width > MAX_DIMENSION || imgMeta.height > MAX_DIMENSION)
+    ) {
+      console.log(
+        `[IMAGE] Resizing from ${imgMeta.width}x${imgMeta.height} (exceeds ${MAX_DIMENSION}px max)`,
+      )
+      processedBuffer = Buffer.from(
+        await sharp(buffer)
+          .resize({
+            width: MAX_DIMENSION,
+            height: MAX_DIMENSION,
+            fit: 'inside',
+            withoutEnlargement: true,
+          })
+          .toBuffer(),
+      )
+      wasResized = true
+    }
+
     // Generate filename with extension based on content type
     const extensionMap: Record<string, string> = {
       'image/jpeg': 'jpg',
@@ -548,25 +576,39 @@ export const uploadUserImageFn = createServerFn({ method: 'POST' })
       'image/gif': 'gif',
     }
     const extension = extensionMap[data.contentType] || 'png'
-    const filename =
+    const rawName =
       data.filename?.replace(/\.[^/.]+$/, '') || // Remove any existing extension
-      `upload-${Date.now()}`
+      'upload'
+    const filename = `${rawName}-${Date.now()}`
     const fullFilename = `${filename}.${extension}`
 
-    // Upload to Bunny CDN
+    // Upload to Bunny CDN (use processed buffer which may have been resized)
     console.log('[IMAGE] Uploading to Bunny CDN...')
-    const uploadResult = await uploadBuffer(buffer, data.contentType, {
-      folder: `images/${context.user.id}`,
-      filename: fullFilename,
-    })
+    const uploadResult = await uploadBuffer(
+      processedBuffer,
+      data.contentType,
+      {
+        folder: `images/${context.user.id}`,
+        filename: fullFilename,
+      },
+    )
     console.log('[IMAGE] Upload success:', uploadResult.url)
 
-    // Get image dimensions (basic check from buffer header)
-    // For proper dimensions, we'd need an image library, but we'll skip for now
+    // Get final dimensions
+    const finalMeta = wasResized
+      ? await sharp(processedBuffer).metadata()
+      : imgMeta
     const metadata = {
       uploadedAt: new Date().toISOString(),
       originalFilename: data.filename,
-      size: buffer.length,
+      size: processedBuffer.length,
+      width: finalMeta.width,
+      height: finalMeta.height,
+      ...(wasResized && {
+        resized: true,
+        originalWidth: imgMeta.width,
+        originalHeight: imgMeta.height,
+      }),
     }
 
     // Create asset record

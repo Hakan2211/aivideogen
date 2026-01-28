@@ -15,6 +15,7 @@ import {
   getJobStatus,
   getVideoModels,
 } from './services/fal.server'
+import { uploadBuffer } from './services/bunny.server'
 import { getVideoModelById } from './services/types'
 import type { FalVideoResult } from './services/fal.server'
 
@@ -499,5 +500,106 @@ export const getPendingVideoJobsFn = createServerFn({ method: 'GET' })
         input: JSON.parse(job.input),
         createdAt: job.createdAt,
       })),
+    }
+  })
+
+// =============================================================================
+// Video Upload
+// =============================================================================
+
+const uploadVideoSchema = z.object({
+  videoData: z.string(), // Base64 encoded video data (without data URL prefix)
+  filename: z.string().optional(),
+  contentType: z.enum([
+    'video/mp4',
+    'video/webm',
+    'video/quicktime',
+    'video/x-msvideo',
+  ]),
+})
+
+/**
+ * Upload a user's own video to their library
+ * Accepts base64-encoded video data, stores in Bunny CDN, creates Asset record
+ */
+export const uploadUserVideoFn = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
+  .inputValidator(uploadVideoSchema)
+  .handler(async ({ data, context }) => {
+    console.log('[VIDEO] uploadUserVideoFn called:', {
+      userId: context.user.id,
+      contentType: data.contentType,
+      dataLength: data.videoData.length,
+    })
+
+    // Decode base64 to buffer
+    const buffer = Buffer.from(data.videoData, 'base64')
+
+    // Validate file size (max 100MB for videos)
+    const MAX_SIZE = 100 * 1024 * 1024 // 100MB
+    if (buffer.length > MAX_SIZE) {
+      throw new Error('Video too large. Maximum size is 100MB.')
+    }
+
+    // Generate filename with extension based on content type
+    const extensionMap: Record<string, string> = {
+      'video/mp4': 'mp4',
+      'video/webm': 'webm',
+      'video/quicktime': 'mov',
+      'video/x-msvideo': 'avi',
+    }
+    const extension = extensionMap[data.contentType] || 'mp4'
+    // Sanitize filename: remove extension, replace spaces with dashes, remove special chars, add timestamp
+    const rawName = (
+      data.filename?.replace(/\.[^/.]+$/, '') || // Remove any existing extension
+      'upload'
+    )
+      .replace(/\s+/g, '-') // Replace spaces with dashes
+      .replace(/[^a-zA-Z0-9._-]/g, '') // Remove special characters
+    const filename = `${rawName}-${Date.now()}`
+    const fullFilename = `${filename}.${extension}`
+
+    // Upload to Bunny CDN
+    console.log('[VIDEO] Uploading to Bunny CDN...')
+    const uploadResult = await uploadBuffer(buffer, data.contentType, {
+      folder: `videos/${context.user.id}`,
+      filename: fullFilename,
+    })
+    console.log('[VIDEO] Upload success:', uploadResult.url)
+
+    // Create metadata
+    const metadata = {
+      uploadedAt: new Date().toISOString(),
+      originalFilename: data.filename,
+      size: buffer.length,
+      generationType: 'upload',
+    }
+
+    // Create asset record
+    const asset = await prisma.asset.create({
+      data: {
+        userId: context.user.id,
+        type: 'video',
+        storageUrl: uploadResult.url,
+        filename: fullFilename,
+        prompt: null, // User uploads don't have prompts
+        provider: 'upload', // Mark as user upload
+        model: null,
+        metadata: JSON.stringify(metadata),
+      },
+    })
+    console.log('[VIDEO] Asset created:', asset.id)
+
+    return {
+      success: true,
+      video: {
+        id: asset.id,
+        url: asset.storageUrl,
+        filename: asset.filename,
+        prompt: asset.prompt,
+        model: asset.model,
+        metadata,
+        createdAt: asset.createdAt,
+      },
     }
   })

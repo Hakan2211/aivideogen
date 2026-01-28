@@ -5,6 +5,7 @@ import {
   Image,
   LayoutDashboard,
   LogOut,
+  Move,
   Shield,
   User,
   Video,
@@ -155,6 +156,23 @@ export function AppSidebar({ user }: AppSidebarProps) {
                     <Video className="h-5! w-5!" />
                     <span className="text-base font-medium group-data-[collapsible=icon]:hidden">
                       Videos
+                    </span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/motion-control')}
+                  tooltip="Motion Control"
+                  size="lg"
+                  className="data-[active=true]:bg-primary/5 data-[active=true]:text-primary group-data-[collapsible=icon]:justify-center"
+                  onClick={handleNavClick}
+                >
+                  <Link to="/motion-control">
+                    <Move className="h-5! w-5!" />
+                    <span className="text-base font-medium group-data-[collapsible=icon]:hidden">
+                      Motion Control
                     </span>
                   </Link>
                 </SidebarMenuButton>

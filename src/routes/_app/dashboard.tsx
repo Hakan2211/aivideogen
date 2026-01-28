@@ -1,10 +1,16 @@
+/**
+ * Dashboard Page - Gallery-Focused Design
+ *
+ * Shows recent creations (images, videos, 3D models) as a visual gallery
+ * with quick actions for creating new content.
+ */
+
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Button } from '../../components/ui/button'
-
-// NOTE: Server functions are dynamically imported in queryFn
-// to prevent Prisma and other server-only code from being bundled into the client.
-// See: https://tanstack.com/router/latest/docs/framework/react/start/server-functions
+import { ArrowRight, Sparkles, Image } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { GalleryItem, QuickActions, StatsSummary } from '@/components/dashboard'
 
 export const Route = createFileRoute('/_app/dashboard')({
   component: DashboardPage,
@@ -13,121 +19,98 @@ export const Route = createFileRoute('/_app/dashboard')({
 function DashboardPage() {
   const routeContext = Route.useRouteContext()
   const user = routeContext.user as { name?: string | null } | undefined
-  const userName = user?.name || 'there'
+  const userName = user?.name?.split(' ')[0] || 'there'
 
-  const { data: platformStatus } = useQuery({
-    queryKey: ['platformStatus'],
+  // Fetch recent creations
+  const { data, isLoading } = useQuery({
+    queryKey: ['dashboard', 'recentCreations'],
     queryFn: async () => {
-      const { getPlatformStatusFn } =
-        await import('../../server/billing.server')
-      return getPlatformStatusFn()
+      const { getRecentCreationsFn } = await import(
+        '@/server/dashboard.server'
+      )
+      return getRecentCreationsFn()
     },
+    staleTime: 1000 * 60 * 2, // 2 minutes
   })
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome back, {userName}!</p>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Projects"
-          value="3"
-          change="+1 from last month"
-        />
-        <StatCard title="Active Users" value="12" change="+3 from last week" />
-        <StatCard
-          title="Revenue"
-          value="$1,234"
-          change="+12% from last month"
-        />
-        <StatCard
-          title="Platform Access"
-          value="Lifetime"
-          change={platformStatus?.isAdmin ? 'Admin' : 'Active'}
-        />
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Welcome back, {userName}!
+          </h1>
+          <div className="mt-2">
+            {data ? (
+              <StatsSummary counts={data.counts} />
+            ) : (
+              <p className="text-muted-foreground">Loading your creations...</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="rounded-lg border bg-card p-6">
-        <h2 className="mb-4 text-xl font-semibold">Quick Actions</h2>
-        <div className="flex flex-wrap gap-4">
-          <Button>Create Project</Button>
-          <Button variant="outline">View Reports</Button>
-          <Link to="/profile">
-            <Button variant="outline">Edit Profile</Button>
-          </Link>
-        </div>
-      </div>
+      <QuickActions />
 
-      {/* Recent Activity */}
-      <div className="rounded-lg border bg-card p-6">
-        <h2 className="mb-4 text-xl font-semibold">Recent Activity</h2>
-        <div className="space-y-4">
-          <ActivityItem
-            icon="🚀"
-            title="Project created"
-            description="You created a new project 'My App'"
-            time="2 hours ago"
-          />
-          <ActivityItem
-            icon="👤"
-            title="Profile updated"
-            description="You updated your profile information"
-            time="1 day ago"
-          />
-          <ActivityItem
-            icon="✨"
-            title="Welcome!"
-            description="You joined the platform"
-            time="3 days ago"
-          />
+      {/* Recent Creations Gallery */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Recent Creations</h2>
+          {data && data.items.length > 0 && (
+            <Link to="/images" search={{ mode: 'generate' }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                View all
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Button>
+            </Link>
+          )}
         </div>
+
+        {isLoading ? (
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-square rounded-2xl" />
+            ))}
+          </div>
+        ) : data && data.items.length > 0 ? (
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {data.items.map((item) => (
+              <GalleryItem key={`${item.type}-${item.id}`} item={item} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState />
+        )}
       </div>
     </div>
   )
 }
 
-function StatCard({
-  title,
-  value,
-  change,
-}: {
-  title: string
-  value: string
-  change: string
-}) {
+function EmptyState() {
   return (
-    <div className="rounded-lg border bg-card p-6">
-      <p className="text-sm font-medium text-muted-foreground">{title}</p>
-      <p className="mt-2 text-3xl font-bold">{value}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{change}</p>
-    </div>
-  )
-}
-
-function ActivityItem({
-  icon,
-  title,
-  description,
-  time,
-}: {
-  icon: string
-  title: string
-  description: string
-  time: string
-}) {
-  return (
-    <div className="flex items-start space-x-3">
-      <span className="text-xl">{icon}</span>
-      <div className="flex-1">
-        <p className="text-sm font-medium">{title}</p>
-        <p className="text-sm text-muted-foreground">{description}</p>
+    <div className="flex flex-col items-center justify-center py-16 rounded-2xl border border-dashed border-border/50 bg-muted/20">
+      <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 p-6 border border-primary/10">
+        <Sparkles className="h-12 w-12 text-primary/50" />
       </div>
-      <span className="text-xs text-muted-foreground">{time}</span>
+      <h3 className="mt-6 text-lg font-semibold">No creations yet</h3>
+      <p className="mt-2 text-muted-foreground text-center max-w-sm">
+        Start creating AI-generated images, videos, and 3D models to see them
+        here
+      </p>
+      <div className="mt-6 flex gap-3">
+        <Link to="/images" search={{ mode: 'generate' }}>
+          <Button>
+            <Image className="mr-2 h-4 w-4" />
+            Generate Image
+          </Button>
+        </Link>
+      </div>
     </div>
   )
 }
